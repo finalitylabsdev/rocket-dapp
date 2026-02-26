@@ -4,6 +4,17 @@
 
 From the repo root:
 
+Create a `.env` file first (required because Vite injects env at image build time):
+
+```env
+VITE_SUPABASE_URL=https://<project-ref>.supabase.co
+VITE_SUPABASE_PUBLISHABLE_KEY=sb_publishable_<your-key>
+# Optional fallback if you still use legacy naming:
+VITE_SUPABASE_ANON_KEY=sb_publishable_<your-key>
+```
+
+Then build/start:
+
 ```bash
 docker compose up -d --build
 ```

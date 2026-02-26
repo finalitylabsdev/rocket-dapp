@@ -532,7 +532,16 @@ export function getWalletAddressFromUser(user: User | null): string | null {
 
 export async function signInWithEthereumWallet(): Promise<string> {
   if (!supabase || !SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
-    throw new Error('Supabase is not configured in this environment.');
+    const missing: string[] = [];
+    if (!SUPABASE_URL) {
+      missing.push('VITE_SUPABASE_URL');
+    }
+    if (!SUPABASE_PUBLISHABLE_KEY) {
+      missing.push('VITE_SUPABASE_PUBLISHABLE_KEY or VITE_SUPABASE_ANON_KEY');
+    }
+
+    const detail = missing.length > 0 ? ` Missing: ${missing.join(', ')}.` : '';
+    throw new Error(`Supabase is not configured in this environment.${detail}`);
   }
 
   const provider = await resolveEthereumProvider();
