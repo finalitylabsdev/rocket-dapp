@@ -1,4 +1,4 @@
-# Host-level Nginx server block (outside Docker) for rocket.finality.dev.
+# Host-level Nginx server block (outside Docker) for rocket.finality.dev / o.finality.dev.
 # This proxies to the Docker container bound at 127.0.0.1:3456.
 #
 # Basic Auth setup:
@@ -8,7 +8,7 @@
 
 server {
   listen 80;
-  server_name rocket.finality.dev;
+  server_name rocket.finality.dev o.finality.dev;
 
   # ── Basic Auth (uncomment to enable) ──
   # auth_basic           "Restricted";
