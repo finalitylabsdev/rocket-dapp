@@ -12,7 +12,7 @@ function readPositiveNumberEnv(key: string): number | null {
 const devFastEconomy = String(import.meta.env.VITE_SPEC_DEV_FAST_ECONOMY || '').toLowerCase();
 export const DEV_FAST_ECONOMY = devFastEconomy === '1' || devFastEconomy === 'true';
 
-const defaultFaucetIntervalSeconds = DEV_FAST_ECONOMY ? 60 : 86_400;
+const defaultFaucetIntervalSeconds = DEV_FAST_ECONOMY ? 5 : 86_400;
 const defaultWhitelistBonusFlux = DEV_FAST_ECONOMY ? 300 : 0;
 const defaultDailyClaimFlux = DEV_FAST_ECONOMY ? 20 : 1;
 const defaultBoxPriceMultiplier = DEV_FAST_ECONOMY ? 0.4 : 1;
