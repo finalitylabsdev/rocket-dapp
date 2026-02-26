@@ -1,0 +1,12 @@
+# Drop all requests that don't match a known server_name.
+# Catches raw-IP hits and any unexpected Host headers.
+# Install alongside rocket.finality.dev.conf in /etc/nginx/sites-enabled/.
+
+server {
+  listen 80 default_server;
+  listen [::]:80 default_server;
+  server_name _;
+
+  # Immediately close the connection — no response body, no headers.
+  return 444;
+}

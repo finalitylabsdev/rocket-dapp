@@ -68,6 +68,10 @@ export default function LeaderboardPage({ onBack }: LeaderboardPageProps) {
   const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
 
   const fetchLeaderboard = async (showRefreshing = false) => {
+    if (!supabase) {
+      setLoading(false);
+      return;
+    }
     if (showRefreshing) setRefreshing(true);
     const { data } = await supabase
       .from('leaderboard')
