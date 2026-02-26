@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ArrowLeftRight, Gift, Rocket, Trophy, Lock, Star, ChevronRight, Layers } from 'lucide-react';
+import { ArrowLeftRight, Gift, Rocket, Trophy, Lock, Star, ChevronRight } from 'lucide-react';
 import { useIntersectionObserver } from '../hooks/useCountUp';
 
 interface ActionCard {
@@ -77,19 +77,6 @@ const cards: ActionCard[] = [
       { label: 'Reset', value: '24 hrs' },
     ],
   },
-  {
-    id: 'assembler',
-    icon: <Layers size={22} className="text-white" />,
-    badge: 'Assets',
-    title: 'Asset Gallery',
-    tagline: 'Explore the full collection',
-    description: 'Browse all on-chain assets — mystery boxes, rocket parts, and feature modules across every rarity tier.',
-    buttonLabel: 'View Assets',
-    stats: [
-      { label: 'Assets', value: '11' },
-      { label: 'Rarity Tiers', value: '8' },
-    ],
-  },
 ];
 
 interface QuickActionsProps {
@@ -97,10 +84,9 @@ interface QuickActionsProps {
   onOpenMystery: () => void;
   onOpenLab: () => void;
   onOpenLeaderboard: () => void;
-  onOpenAssembler: () => void;
 }
 
-export default function QuickActions({ onOpenDex, onOpenMystery, onOpenLab, onOpenLeaderboard, onOpenAssembler }: QuickActionsProps) {
+export default function QuickActions({ onOpenDex, onOpenMystery, onOpenLab, onOpenLeaderboard }: QuickActionsProps) {
   const { ref, isVisible } = useIntersectionObserver(0.1);
   const [hovered, setHovered] = useState<string | null>(null);
 
@@ -171,7 +157,7 @@ export default function QuickActions({ onOpenDex, onOpenMystery, onOpenLab, onOp
                 </div>
 
                 <button
-                  onClick={card.id === 'dex' ? onOpenDex : card.id === 'mystery' ? onOpenMystery : card.id === 'lab' ? onOpenLab : card.id === 'leaderboard' ? onOpenLeaderboard : card.id === 'assembler' ? onOpenAssembler : undefined}
+                  onClick={card.id === 'dex' ? onOpenDex : card.id === 'mystery' ? onOpenMystery : card.id === 'lab' ? onOpenLab : card.id === 'leaderboard' ? onOpenLeaderboard : undefined}
                   className="w-full bg-white hover:bg-zinc-100 text-black font-semibold text-sm py-2.5 rounded-2xl transition-all duration-200 flex items-center justify-center gap-1.5 active:scale-95"
                 >
                   {card.buttonLabel}

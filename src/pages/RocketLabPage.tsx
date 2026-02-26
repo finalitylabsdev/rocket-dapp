@@ -1,11 +1,12 @@
 import { useState } from 'react';
-import { ArrowLeft, FlaskConical, Star } from 'lucide-react';
+import { ArrowLeft, FlaskConical, Star, Rocket } from 'lucide-react';
 import RocketPreview from '../components/lab/RocketPreview';
 import PartsGrid, { type EquippedParts } from '../components/lab/PartsGrid';
 import StatsPanel from '../components/lab/StatsPanel';
-import FloatingParticles from '../components/mystery/FloatingParticles';
-import { ROCKET_MODELS, type RocketModelId } from '../components/lab/RocketModels';
+import { ROCKET_MODELS } from '../components/lab/RocketModels';
 import LaunchSequence from '../components/lab/LaunchSequence';
+import { useGameState } from '../context/GameState';
+import PhiSymbol from '../components/brand/PhiSymbol';
 
 interface RocketLabPageProps {
   onBack: () => void;
@@ -14,7 +15,8 @@ interface RocketLabPageProps {
 type LaunchResult = { score: number; bonus: string; multiplier: string } | null;
 
 export default function RocketLabPage({ onBack }: RocketLabPageProps) {
-  const [selectedModel, setSelectedModel] = useState<RocketModelId>('standard');
+  const game = useGameState();
+  const selectedModel = 'standard' as const;
 
   const [equipped, setEquipped] = useState<EquippedParts>({
     engine: true,
@@ -22,24 +24,14 @@ export default function RocketLabPage({ onBack }: RocketLabPageProps) {
     body: true,
     wings: false,
     booster: false,
-    noseCone: false,
-    heatShield: false,
-    gyroscope: false,
-    solarPanels: false,
-    landingStruts: false,
   });
 
   const [levels, setLevels] = useState<Record<keyof EquippedParts, number>>({
     engine: 1,
-    fuel: 2,
-    body: 3,
+    fuel: 1,
+    body: 1,
     wings: 1,
-    booster: 2,
-    noseCone: 1,
-    heatShield: 1,
-    gyroscope: 1,
-    solarPanels: 1,
-    landingStruts: 1,
+    booster: 1,
   });
 
   const [launching, setLaunching] = useState(false);
@@ -52,7 +44,7 @@ export default function RocketLabPage({ onBack }: RocketLabPageProps) {
   };
 
   const handleUpgrade = (id: keyof EquippedParts) => {
-    setLevels((prev) => ({ ...prev, [id]: Math.min(5, prev[id] + 1) }));
+    setLevels((prev) => ({ ...prev, [id]: Math.min(3, prev[id] + 1) }));
   };
 
   const handleLaunch = () => {
@@ -70,7 +62,7 @@ export default function RocketLabPage({ onBack }: RocketLabPageProps) {
       0
     );
     const base = equippedCount / totalParts;
-    const levelBonus = totalLevels / (equippedCount * 5 || 1);
+    const levelBonus = totalLevels / (equippedCount * 3 || 1);
     const multiplier = (1 + base * 1.5 + levelBonus * 0.5 + modelDef.bonuses.winBonus / 100).toFixed(2);
     const baseScore = 80 + Math.floor(Math.random() * 140);
     const score = Math.round(baseScore * parseFloat(multiplier));
@@ -78,22 +70,20 @@ export default function RocketLabPage({ onBack }: RocketLabPageProps) {
       'Meteor Shower — Wing-Plate damaged',
       'Solar Flare — Navigation penalty',
       'Alien Probe — Random buff applied',
-      'Quantum Turbulence — Fuel efficiency reduced',
       'Clear Skies — No penalties',
       'Gravity Slingshot — Bonus multiplier applied',
-      'Debris Field — Heat shield activated',
     ];
     const bonus = bonuses[Math.floor(Math.random() * bonuses.length)];
 
     const power = Math.min(100, Math.max(0, Math.round(
-      (equipped.engine ? 38 : 0) +
-      (equipped.booster ? 22 : 0) +
-      (equipped.fuel ? 12 : 0) +
-      (equipped.noseCone ? 10 : 0) +
+      (equipped.engine ? 40 : 0) +
+      (equipped.booster ? 25 : 0) +
+      (equipped.fuel ? 15 : 0) +
       levelBonus * 12 +
       modelDef.bonuses.powerBonus
     )));
 
+    game.recordScore(score);
     setLaunchPower(power);
     setLaunchResult({ score, multiplier, bonus });
     setLaunching(false);
@@ -107,10 +97,10 @@ export default function RocketLabPage({ onBack }: RocketLabPageProps) {
 
   const equippedCount = Object.values(equipped).filter(Boolean).length;
   const totalParts = Object.keys(equipped).length;
+  const bestScore = game.scores.length > 0 ? Math.max(...game.scores) : 0;
 
   return (
     <div className="min-h-screen relative overflow-hidden" style={{ background: '#06080F' }}>
-      <FloatingParticles />
 
       <nav
         className="fixed top-0 left-0 right-0 z-50"
@@ -143,8 +133,8 @@ export default function RocketLabPage({ onBack }: RocketLabPageProps) {
                   <FlaskConical size={16} style={{ color: '#94A3B8' }} />
                 </div>
                 <div>
-                  <span className="font-display font-bold text-base leading-none" style={{ color: '#E8ECF4', letterSpacing: '0.04em' }}>Celestial Assembler</span>
-                  <div className="text-[10px] font-medium leading-none mt-0.5" style={{ color: '#4A5468' }}>App 4 · Quantum Lift-Off</div>
+                  <span className="font-display font-bold text-base leading-none" style={{ color: '#E8ECF4', letterSpacing: '0.04em' }}>Rocket Lab</span>
+                  <div className="text-[10px] font-medium leading-none mt-0.5" style={{ color: '#4A5468' }}>Build & Launch</div>
                 </div>
               </div>
             </div>
@@ -153,8 +143,9 @@ export default function RocketLabPage({ onBack }: RocketLabPageProps) {
                 className="hidden sm:flex items-center gap-2 rounded-2xl px-3 py-2"
                 style={{ background: '#0C1018', border: '1px solid #1E2636' }}
               >
-                <div className="glow-dot" />
-                <span className="text-xs font-semibold" style={{ color: '#8A94A8' }}>Testnet</span>
+                <PhiSymbol size={13} color="#E8ECF4" />
+                <span className="text-xs font-bold" style={{ color: '#E8ECF4' }}>{game.fluxBalance}</span>
+                <span className="text-xs" style={{ color: '#4A5468' }}>FLUX</span>
               </div>
             </div>
           </div>
@@ -168,50 +159,29 @@ export default function RocketLabPage({ onBack }: RocketLabPageProps) {
             <div className="flex justify-center mb-3">
               <span className="tag">
                 <FlaskConical size={11} />
-                Celestial Assembler
+                Rocket Lab
               </span>
             </div>
             <h1 className="font-display font-black text-3xl md:text-5xl lg:text-6xl mb-3 leading-[1.08]" style={{ color: '#E8ECF4', letterSpacing: '0.04em' }}>
-              Celestial Assembler
+              Rocket Lab
             </h1>
             <p className="text-lg" style={{ color: '#4A5468' }}>
               Build. Launch. Dominate the cosmos.
             </p>
-          </div>
-
-          <div className="mb-6">
-            <p className="font-display font-bold text-sm mb-3" style={{ color: '#8A94A8', letterSpacing: '0.08em' }}>SELECT ROCKET MODEL</p>
-            <div className="grid grid-cols-3 gap-3">
-              {ROCKET_MODELS.map((m) => (
-                <button
-                  key={m.id}
-                  onClick={() => setSelectedModel(m.id)}
-                  className="rounded-2xl p-4 text-left transition-all duration-200 border"
-                  style={selectedModel === m.id ? {
-                    background: m.accentBg,
-                    border: `1px solid ${m.accentBorder}`,
-                    boxShadow: `0 0 20px ${m.accentBg}`,
-                  } : {
-                    background: '#0C1018',
-                    border: '1px solid #1E2636',
-                  }}
-                >
-                  <div className="flex items-center gap-2 mb-1.5">
-                    <div
-                      className="w-3 h-3 rounded-full"
-                      style={{ background: selectedModel === m.id ? m.accentColor : '#2A3348' }}
-                    />
-                    <span
-                      className="font-display font-bold text-sm"
-                      style={{ color: selectedModel === m.id ? m.accentColor : '#8A94A8', letterSpacing: '0.04em' }}
-                    >
-                      {m.name}
-                    </span>
-                  </div>
-                  <p className="text-[11px]" style={{ color: '#4A5468' }}>{m.tagline}</p>
-                </button>
-              ))}
-            </div>
+            {bestScore > 0 && (
+              <div className="flex items-center justify-center gap-4 mt-4">
+                <div className="flex items-center gap-2 rounded-2xl px-4 py-2" style={{ background: '#0C1018', border: '1px solid #1E2636' }}>
+                  <Rocket size={14} style={{ color: '#F97316' }} />
+                  <span className="font-data font-bold text-sm" style={{ color: '#E8ECF4' }}>{game.scores.length}</span>
+                  <span className="text-xs" style={{ color: '#4A5468' }}>Launches</span>
+                </div>
+                <div className="flex items-center gap-2 rounded-2xl px-4 py-2" style={{ background: '#0C1018', border: '1px solid #1E2636' }}>
+                  <Star size={14} style={{ color: '#FACC15' }} />
+                  <span className="font-data font-bold text-sm" style={{ color: '#E8ECF4' }}>{bestScore.toLocaleString()}</span>
+                  <span className="text-xs" style={{ color: '#4A5468' }}>Best GS</span>
+                </div>
+              </div>
+            )}
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-[260px_1fr_300px] gap-5 items-start">
@@ -254,32 +224,29 @@ export default function RocketLabPage({ onBack }: RocketLabPageProps) {
               />
 
               <div className="rounded-3xl p-4" style={{ background: '#0C1018', border: '1px solid #1E2636' }}>
-                <p className="font-display text-xs font-bold mb-3" style={{ color: '#4A5468', letterSpacing: '0.08em' }}>COSMIC JACKPOT · TOP GRAV SCORES</p>
-                {[
-                  { rank: 1, addr: '0x1a2b…9f8e', score: '12,400', color: '#FACC15' },
-                  { rank: 2, addr: '0x9e0f…5b4c', score: '9,820',  color: '#94A3B8' },
-                  { rank: 3, addr: '0x4f5a…6c7d', score: '7,105',  color: '#F97316' },
-                ].map((entry) => (
-                  <div
-                    key={entry.rank}
-                    className="flex items-center justify-between py-2"
-                    style={{ borderBottom: '1px solid #1E2636' }}
-                  >
-                    <div className="flex items-center gap-2.5">
-                      <span
-                        className="font-data font-black text-sm w-5 text-center"
-                        style={{ color: entry.color }}
-                      >
-                        {entry.rank}
-                      </span>
-                      <span className="font-data text-xs" style={{ color: '#4A5468' }}>{entry.addr}</span>
+                <p className="font-display text-xs font-bold mb-3" style={{ color: '#4A5468', letterSpacing: '0.08em' }}>YOUR LAUNCH HISTORY</p>
+                {game.scores.length === 0 ? (
+                  <p className="text-xs py-2" style={{ color: '#4A5468' }}>No launches yet. Equip parts and launch!</p>
+                ) : (
+                  game.scores.slice(-5).reverse().map((score, i) => (
+                    <div
+                      key={i}
+                      className="flex items-center justify-between py-2"
+                      style={{ borderBottom: '1px solid #1E2636' }}
+                    >
+                      <div className="flex items-center gap-2.5">
+                        <span className="font-data font-black text-sm w-5 text-center" style={{ color: i === 0 ? '#FACC15' : '#4A5468' }}>
+                          {game.scores.length - i}
+                        </span>
+                        <span className="font-data text-xs" style={{ color: '#4A5468' }}>Launch</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <span className="font-data font-bold text-xs" style={{ color: '#E8ECF4' }}>{score.toLocaleString()}</span>
+                        <span className="font-data text-[10px]" style={{ color: '#4A5468' }}>GS</span>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-1">
-                      <span className="font-data font-bold text-xs" style={{ color: '#E8ECF4' }}>{entry.score}</span>
-                      <span className="font-data text-[10px]" style={{ color: '#4A5468' }}>GS</span>
-                    </div>
-                  </div>
-                ))}
+                  ))
+                )}
               </div>
             </div>
           </div>

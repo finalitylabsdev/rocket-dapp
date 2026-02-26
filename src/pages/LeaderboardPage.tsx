@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { ArrowLeft, Zap, Trophy, TrendingUp, TrendingDown, Minus, RefreshCw, Users, Flame, Award } from 'lucide-react';
 import { supabase, type LeaderboardEntry } from '../lib/supabase';
-import FloatingParticles from '../components/mystery/FloatingParticles';
 
 interface LeaderboardPageProps {
   onBack: () => void;
@@ -103,7 +102,6 @@ export default function LeaderboardPage({ onBack }: LeaderboardPageProps) {
 
   return (
     <div className="min-h-screen bg-bg-base relative overflow-hidden">
-      <FloatingParticles />
 
       <style>{`
         @keyframes rankPulse {

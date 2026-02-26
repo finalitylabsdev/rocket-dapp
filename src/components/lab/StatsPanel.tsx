@@ -20,32 +20,28 @@ function computeStats(equipped: EquippedParts, levels: Record<keyof EquippedPart
   );
 
   const base = eq / totalParts;
-  const bonus = totalLevels / (eq * 5 || 1);
+  const bonus = totalLevels / (eq * 3 || 1);
 
   const stability = Math.round(
-    (equipped.wings ? 0.28 : 0.05) * 100 +
-    (equipped.body ? 0.2 : 0) * 100 +
-    (equipped.booster ? 0.06 : 0) * 100 +
-    (equipped.gyroscope ? 0.12 : 0) * 100 +
-    (equipped.heatShield ? 0.08 : 0) * 100 +
+    (equipped.wings ? 0.35 : 0.05) * 100 +
+    (equipped.body ? 0.3 : 0) * 100 +
+    (equipped.booster ? 0.1 : 0) * 100 +
     bonus * 12 +
     modelDef.bonuses.stabilityBonus
   );
 
   const fuelEff = Math.round(
-    (equipped.fuel ? 0.35 : 0.05) * 100 +
-    (equipped.engine ? 0.2 : 0) * 100 +
-    (equipped.booster ? 0.1 : 0) * 100 +
-    (equipped.solarPanels ? 0.12 : 0) * 100 +
+    (equipped.fuel ? 0.45 : 0.05) * 100 +
+    (equipped.engine ? 0.25 : 0) * 100 +
+    (equipped.booster ? 0.15 : 0) * 100 +
     bonus * 10 +
     modelDef.bonuses.fuelBonus
   );
 
   const launchPower = Math.round(
-    (equipped.engine ? 0.38 : 0) * 100 +
-    (equipped.booster ? 0.22 : 0) * 100 +
-    (equipped.fuel ? 0.12 : 0) * 100 +
-    (equipped.noseCone ? 0.1 : 0) * 100 +
+    (equipped.engine ? 0.42 : 0) * 100 +
+    (equipped.booster ? 0.28 : 0) * 100 +
+    (equipped.fuel ? 0.18 : 0) * 100 +
     bonus * 12 +
     modelDef.bonuses.powerBonus
   );
@@ -158,7 +154,7 @@ export default function StatsPanel({ equipped, levels, model, onLaunch, launchin
           {[
             {
               label: 'Orbit Class',
-              value: equippedCount >= 8 ? 'High' : equippedCount >= 4 ? 'Low' : 'Sub',
+              value: equippedCount >= 5 ? 'High' : equippedCount >= 3 ? 'Low' : 'Sub',
             },
             {
               label: 'Multiplier',
