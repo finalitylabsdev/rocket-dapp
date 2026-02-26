@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import { Zap, ExternalLink, ChevronDown, Lock, Clock } from 'lucide-react';
 import { useGameState } from '../context/GameState';
 import { useWallet } from '../hooks/useWallet';
@@ -34,9 +35,16 @@ function formatClaimWindow(seconds: number): string {
 export default function Hero({ onOpenDex }: HeroProps) {
   const game = useGameState();
   const wallet = useWallet();
+  const [now, setNow] = useState(() => Date.now());
+
+  useEffect(() => {
+    if (!game.lastDailyClaim) return;
+    const timer = window.setInterval(() => setNow(Date.now()), 500);
+    return () => window.clearInterval(timer);
+  }, [game.lastDailyClaim]);
 
   const cooldownRemaining = game.lastDailyClaim
-    ? Math.max(0, FAUCET_INTERVAL_MS - (Date.now() - game.lastDailyClaim))
+    ? Math.max(0, FAUCET_INTERVAL_MS - (now - game.lastDailyClaim))
     : 0;
   const canClaim = !game.lastDailyClaim || cooldownRemaining === 0;
 
