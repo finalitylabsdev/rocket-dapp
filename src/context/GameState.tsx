@@ -35,7 +35,7 @@ interface GameState {
   recordScore: (score: number) => void;
 }
 
-const STORAGE_KEY = 'enet-game-state';
+const STORAGE_KEY = 'phinet-game-state';
 
 interface StoredGameState {
   fluxBalance: number;

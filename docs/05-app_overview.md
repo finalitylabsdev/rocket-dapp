@@ -2,7 +2,7 @@
 
 # Entropy Testnet — App Overview
 
-> **Network:** Entropy Network (E-Net | φ-Net) · Permission‑less · Immutable · Proof‑of‑Infinity
+> **Network:** Entropy Network (phi-net) · Permission‑less · Immutable · Proof‑of‑Infinity
 > **Native Token:** Flux (previously referred to as ET — Entropy Token)
 > **Stable‑Coin:** UVD (Universe Dollar)
 > **Brand Voice:** Futuristic, playful, community‑centric
@@ -75,7 +75,7 @@ All locked ETH is **permanently held** by the Bridge smart contract — it can o
 
 | Step | Action             | Contract Call                 | Detail                                                                                                                                        |
 | ---- | ------------------ | ----------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1    | **Connect Wallet** | —                             | MetaMask / WalletConnect. UI detects E-Net \| φ-Net testnet chain ID; warns if user is on the wrong chain.                                             |
+| 1    | **Connect Wallet** | —                             | MetaMask / WalletConnect. UI detects phi-net testnet chain ID; warns if user is on the wrong chain.                                                     |
 | 2    | **Whitelist**      | `bridge.whitelist()`          | User sends **0.05 ETH**. Contract maps address → `whitelisted = true`. ETH is locked forever.                                                 |
 | 3    | **Wait 24 h**      | —                             | Countdown timer displayed in the UI.                                                                                                          |
 | 4    | **Claim Flux**     | `bridge.claimFlux()`          | Contract checks `block.timestamp >= lastClaim + 86 400`. Mints **1 Flux** to the caller.                                                      |

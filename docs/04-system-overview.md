@@ -3,7 +3,7 @@
 # Entropy Testnet — System Overview
 
 > **Version:** 1.0
-> **Network:** Entropy Network (E-Net | φ-Net)
+> **Network:** Entropy Network (phi-net)
 > **Chain Type:** Permission‑less, immutable, proof‑of‑Infinity
 
 ## Changelog
@@ -40,7 +40,7 @@ Legacy terms may still appear in this document. Treat them as deprecated aliases
 
 ## 1. Executive Summary
 
-The Entropy Testnet runs on the **Entropy Network (E-Net | φ-Net)** core — a permission‑less, immutable, proof‑of‑Infinity‑based chain that exposes a stable‑coin protocol (UVD) and a set of on‑chain applications. The core is governed by **deterministic rules only**: there are no upgrade keys, no governance votes, and no admin privileges. The testnet mirrors the exact same constraints as the eventual main‑net design.
+The Entropy Testnet runs on the **Entropy Network (phi-net)** core — a permission‑less, immutable, proof‑of‑Infinity‑based chain that exposes a stable‑coin protocol (UVD) and a set of on‑chain applications. The core is governed by **deterministic rules only**: there are no upgrade keys, no governance votes, and no admin privileges. The testnet mirrors the exact same constraints as the eventual main‑net design.
 
 The testnet delivers four distinct on‑chain experiences that work together:
 
@@ -509,7 +509,7 @@ The 0.05 ETH locked during whitelist is immutable after the first block. It is n
 
 The first touch‑point for every visitor:
 
-* **Brief Intro:** "Welcome to the E-Net | φ-Net Testnet — a deterministic, immutable playground where you can earn real ETH, trade stable‑coins, and build rockets."
+* **Brief Intro:** "Welcome to the phi-net Testnet — a deterministic, immutable playground where you can earn real ETH, trade stable‑coins, and build rockets."
 * **Quick‑Start Buttons:** Whitelisting / Faucet, Open DEX, Play Mystery‑Box / Auction, Launch Rocket, Leaderboard.
 * **System Status (live counters):** Total ETH locked in Bridge, total ET supply (minted/burned), UVD pool reserves and `sₜ` index.
 * **Wallet Prompt:** "Connect Wallet" (MetaMask, WalletConnect, etc.).
@@ -518,7 +518,7 @@ The first touch‑point for every visitor:
 
 | Item                          | Detail                                                                                                    |
 | ----------------------------- | --------------------------------------------------------------------------------------------------------- |
-| **Wallet Integration**        | Use web3‑modal or ethers.js; detect E-Net \| φ-Net testnet chain ID; warn if wrong chain.                          |
+| **Wallet Integration**        | Use web3‑modal or ethers.js; detect phi-net testnet chain ID; warn if wrong chain.                                 |
 | **Gas Estimation & Slippage** | Real‑time gas fee estimator + slippage slider for DEX trades.                                             |
 | **Real‑Time Event Listeners** | Listen for `AuctionEnded`, `LaunchCompleted`, `AuctionStart` events via `provider.on()`.                  |
 | **Data Persistence**          | Store UI state (countdown timers, last claim timestamps) in `localStorage` to survive page refreshes.     |
@@ -545,7 +545,7 @@ Contracts must be deployed **in this exact order** to satisfy inter‑contract d
 ### 12.2 Post‑Deployment
 
 * Verify each contract's bytecode on the network explorer (Etherscan‑style).
-* Publish source code as open‑source to reflect the immutable nature of E-Net | φ-Net.
+* Publish source code as open‑source to reflect the immutable nature of phi-net.
 
 ### 12.3 Security Audits
 

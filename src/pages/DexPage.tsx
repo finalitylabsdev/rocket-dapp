@@ -33,7 +33,7 @@ export default function DexPage({ onBack }: DexPageProps) {
                 </div>
                 <div>
                   <span className="font-mono font-bold text-white text-base leading-none uppercase tracking-wider">Entropy Exchange</span>
-                  <div className="text-[10px] font-mono font-medium text-zinc-500 leading-none mt-0.5 uppercase tracking-wider">Constant-Product AMM · E-Net | φ-Net</div>
+                  <div className="text-[10px] font-mono font-medium text-zinc-500 leading-none mt-0.5 uppercase tracking-wider">Constant-Product AMM · phi-net</div>
                 </div>
               </div>
             </div>

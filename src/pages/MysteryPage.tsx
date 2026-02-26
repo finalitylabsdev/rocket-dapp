@@ -34,7 +34,7 @@ export default function MysteryPage({ onBack }: MysteryPageProps) {
                 </div>
                 <div>
                   <span className="font-mono font-bold text-white text-base leading-none uppercase tracking-wider">Star Vault</span>
-                  <div className="text-[10px] font-mono font-medium text-zinc-500 leading-none mt-0.5 uppercase tracking-wider">App 3 · E-Net | φ-Net Testnet</div>
+                  <div className="text-[10px] font-mono font-medium text-zinc-500 leading-none mt-0.5 uppercase tracking-wider">App 3 · phi-net Testnet</div>
                 </div>
               </div>
             </div>

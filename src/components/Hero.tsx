@@ -5,6 +5,7 @@ import PhiSymbol from './brand/PhiSymbol';
 import {
   EFFECTIVE_DAILY_CLAIM_FLUX,
   FAUCET_INTERVAL_MS,
+  FAUCET_INTERVAL_SECONDS,
   WHITELIST_ETH,
 } from '../config/spec';
 
@@ -13,9 +14,21 @@ interface HeroProps {
 }
 
 function formatCooldown(ms: number): string {
-  const h = Math.floor(ms / 3600000);
-  const m = Math.floor((ms % 3600000) / 60000);
+  const totalSeconds = Math.max(0, Math.ceil(ms / 1000));
+  if (totalSeconds < 3600) {
+    const m = Math.floor(totalSeconds / 60);
+    const s = totalSeconds % 60;
+    return `${m}m ${s}s`;
+  }
+  const h = Math.floor(totalSeconds / 3600);
+  const m = Math.floor((totalSeconds % 3600) / 60);
   return `${h}h ${m}m`;
+}
+
+function formatClaimWindow(seconds: number): string {
+  if (seconds % 3600 === 0) return `${seconds / 3600}H`;
+  if (seconds % 60 === 0) return `${seconds / 60}M`;
+  return `${seconds}S`;
 }
 
 export default function Hero({ onOpenDex }: HeroProps) {
@@ -143,7 +156,7 @@ export default function Hero({ onOpenDex }: HeroProps) {
                     <p className="text-[10px] text-zinc-500 mt-0.5 font-mono">FLUX / DAY</p>
                   </div>
                   <div className="bg-zinc-900 p-3 text-center border border-border-subtle">
-                    <p className="font-mono font-bold text-white text-lg">24H</p>
+                    <p className="font-mono font-bold text-white text-lg">{formatClaimWindow(FAUCET_INTERVAL_SECONDS)}</p>
                     <p className="text-[10px] text-zinc-500 mt-0.5 font-mono">CLAIM WINDOW</p>
                   </div>
                 </div>

@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 
-const STORAGE_KEY = 'enet-wallet';
+const STORAGE_KEY = 'phinet-wallet';
 
 function generateAddress(): string {
   const hex = Array.from({ length: 40 }, () => Math.floor(Math.random() * 16).toString(16)).join('');

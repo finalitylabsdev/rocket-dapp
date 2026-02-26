@@ -2,10 +2,34 @@ import type { RarityTier } from '../types/domain';
 
 export const SPEC_FREEZE_VERSION = '2026-02-26-v1';
 
+function readPositiveNumberEnv(key: string): number | null {
+  const raw = import.meta.env[key];
+  if (raw === undefined || raw === null || raw === '') return null;
+  const parsed = Number(raw);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
+}
+
+const devFastEconomy = String(import.meta.env.VITE_SPEC_DEV_FAST_ECONOMY || '').toLowerCase();
+export const DEV_FAST_ECONOMY = devFastEconomy === '1' || devFastEconomy === 'true';
+
+const defaultFaucetIntervalSeconds = DEV_FAST_ECONOMY ? 60 : 86_400;
+const defaultWhitelistBonusFlux = DEV_FAST_ECONOMY ? 300 : 0;
+const defaultDailyClaimFlux = DEV_FAST_ECONOMY ? 20 : 1;
+const defaultBoxPriceMultiplier = DEV_FAST_ECONOMY ? 0.4 : 1;
+
 export const WHITELIST_ETH = 0.05;
-export const FAUCET_INTERVAL_SECONDS = 86_400;
+export const FAUCET_INTERVAL_SECONDS =
+  readPositiveNumberEnv('VITE_SPEC_FAUCET_INTERVAL_SECONDS') ?? defaultFaucetIntervalSeconds;
 export const FAUCET_INTERVAL_MS = FAUCET_INTERVAL_SECONDS * 1000;
-export const FAUCET_CLAIM_FLUX = 1;
+export const FAUCET_CLAIM_FLUX = readPositiveNumberEnv('VITE_SPEC_FAUCET_CLAIM_FLUX') ?? 1;
+export const WHITELIST_BONUS_FLUX =
+  readPositiveNumberEnv('VITE_SPEC_WHITELIST_BONUS_FLUX') ?? defaultWhitelistBonusFlux;
+export const EFFECTIVE_DAILY_CLAIM_FLUX =
+  readPositiveNumberEnv('VITE_SPEC_DAILY_CLAIM_FLUX') ?? defaultDailyClaimFlux;
+
+const BOX_PRICE_MULTIPLIER =
+  readPositiveNumberEnv('VITE_SPEC_BOX_PRICE_MULTIPLIER') ?? defaultBoxPriceMultiplier;
+const scaleBoxPrice = (basePrice: number) => Math.max(1, Math.round(basePrice * BOX_PRICE_MULTIPLIER));
 
 export const AUCTION_ROUND_SECONDS = 14_400;
 export const AUCTION_MIN_INCREMENT_BPS = 500;
@@ -30,20 +54,12 @@ export const RARITY_MULTIPLIER: Record<RarityTier, number> = {
 };
 
 export const RARITY_BOX_PRICE_FLUX: Record<RarityTier, number> = {
-  Common: 10,
-  Uncommon: 25,
-  Rare: 50,
-  Epic: 100,
-  Legendary: 200,
-  Mythic: 350,
-  Celestial: 500,
-  Quantum: 750,
+  Common: scaleBoxPrice(10),
+  Uncommon: scaleBoxPrice(25),
+  Rare: scaleBoxPrice(50),
+  Epic: scaleBoxPrice(100),
+  Legendary: scaleBoxPrice(200),
+  Mythic: scaleBoxPrice(350),
+  Celestial: scaleBoxPrice(500),
+  Quantum: scaleBoxPrice(750),
 };
-
-const devFastEconomy = String(import.meta.env.VITE_SPEC_DEV_FAST_ECONOMY || '').toLowerCase();
-export const DEV_FAST_ECONOMY = devFastEconomy === '1' || devFastEconomy === 'true';
-
-// Keep fast economy behind an explicit flag to avoid leaking simulation values into default flows.
-export const WHITELIST_BONUS_FLUX = DEV_FAST_ECONOMY ? 100 : 0;
-export const EFFECTIVE_DAILY_CLAIM_FLUX = DEV_FAST_ECONOMY ? 10 : FAUCET_CLAIM_FLUX;
-
