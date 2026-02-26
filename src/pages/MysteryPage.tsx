@@ -51,9 +51,13 @@ export default function MysteryPage({ onBack }: MysteryPageProps) {
                   <span className="text-xs font-mono font-semibold text-zinc-300">{wallet.displayAddress}</span>
                 </div>
               ) : (
-                <button onClick={wallet.connect} className="btn-primary text-sm py-2.5 px-5">
+                <button
+                  onClick={() => void wallet.connect()}
+                  disabled={wallet.isConnecting}
+                  className="btn-primary text-sm py-2.5 px-5 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
                   <Zap size={13} />
-                  Connect Wallet
+                  {wallet.isConnecting ? 'Connecting...' : 'Connect Wallet'}
                 </button>
               )}
             </div>

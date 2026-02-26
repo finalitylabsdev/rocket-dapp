@@ -72,16 +72,21 @@ export default function Navbar({ onNavigate }: NavbarProps) {
                   <span className="text-xs font-mono font-semibold text-zinc-300">{wallet.displayAddress}</span>
                 </div>
                 <button
-                  onClick={wallet.disconnect}
+                  onClick={() => void wallet.disconnect()}
+                  disabled={wallet.isConnecting}
                   className="w-9 h-9 bg-zinc-900 border border-border-subtle flex items-center justify-center hover:border-border-strong transition-all"
                 >
                   <LogOut size={14} className="text-zinc-400" />
                 </button>
               </div>
             ) : (
-              <button onClick={wallet.connect} className="ml-2 btn-primary text-sm py-2.5 px-5">
+              <button
+                onClick={() => void wallet.connect()}
+                disabled={wallet.isConnecting}
+                className="ml-2 btn-primary text-sm py-2.5 px-5 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
                 <Zap size={14} />
-                Connect Wallet
+                {wallet.isConnecting ? 'Connecting...' : 'Connect Wallet'}
               </button>
             )}
           </div>
@@ -122,16 +127,21 @@ export default function Navbar({ onNavigate }: NavbarProps) {
                     <span className="text-xs font-mono font-semibold text-zinc-300">{wallet.displayAddress}</span>
                   </div>
                   <button
-                    onClick={wallet.disconnect}
-                    className="w-10 h-10 bg-zinc-900 border border-border-subtle flex items-center justify-center"
+                    onClick={() => void wallet.disconnect()}
+                    disabled={wallet.isConnecting}
+                    className="w-10 h-10 bg-zinc-900 border border-border-subtle flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <LogOut size={14} className="text-zinc-400" />
                   </button>
                 </div>
               ) : (
-                <button onClick={wallet.connect} className="btn-primary w-full justify-center text-sm">
+                <button
+                  onClick={() => void wallet.connect()}
+                  disabled={wallet.isConnecting}
+                  className="btn-primary w-full justify-center text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                >
                   <Zap size={14} />
-                  Connect Wallet
+                  {wallet.isConnecting ? 'Connecting...' : 'Connect Wallet'}
                 </button>
               )}
             </div>

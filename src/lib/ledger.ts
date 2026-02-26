@@ -62,12 +62,9 @@ async function recordWalletAuthEvent(
   }
 
   const browserId = getOrCreateBrowserId();
-  if (!browserId) {
-    return;
-  }
 
   const { error } = await supabase.rpc(rpcName, {
-    p_browser_id: browserId,
+    p_browser_id: browserId ?? null,
     p_wallet_address: walletAddress,
     p_state: readStateSnapshot(),
     p_client_timestamp: new Date().toISOString(),

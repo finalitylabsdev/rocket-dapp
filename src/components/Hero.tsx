@@ -83,9 +83,13 @@ export default function Hero({ onOpenDex }: HeroProps) {
 
             <div className="flex flex-wrap gap-4">
               {!wallet.isConnected ? (
-                <button onClick={wallet.connect} className="btn-primary text-base px-7 py-3.5">
+                <button
+                  onClick={() => void wallet.connect()}
+                  disabled={wallet.isConnecting}
+                  className="btn-primary text-base px-7 py-3.5 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
                   <Zap size={16} />
-                  Connect Wallet
+                  {wallet.isConnecting ? 'Connecting...' : 'Connect Wallet'}
                 </button>
               ) : !game.lockedEth ? (
                 <button onClick={game.lockEth} className="btn-primary text-base px-7 py-3.5">

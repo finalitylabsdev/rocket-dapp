@@ -8,20 +8,30 @@ Edit `.env` in the repo root:
 
 ```env
 VITE_SUPABASE_URL=https://<new-project-ref>.supabase.co
-VITE_SUPABASE_ANON_KEY=<new-anon-public-key>
+VITE_SUPABASE_PUBLISHABLE_KEY=<new-publishable-key>
 ```
 
 Notes:
-- Use the `anon` key (public key), not `service_role`.
+- Use a public key (`sb_publishable_...` preferred, `anon` also supported), never `service_role`.
 - Frontend reads these in `src/lib/supabase.ts`.
 
-## 2. Apply Database Schema + RLS Policy
+## 2. Enable Auth Providers
+
+In Supabase Dashboard:
+
+1. Open `Authentication -> Providers -> Web3 Wallet`.
+2. Enable Ethereum.
+3. Add your site URL under `Authentication -> URL Configuration` (include your exact sign-in path or `https://your-domain/**`).
+4. Set Web3 rate limits and CAPTCHA under `Authentication -> Rate Limits` / `Authentication -> Bot Detection`.
+
+## 3. Apply Database Schema + RLS Policy
 
 Run the SQL in:
 
 - `supabase/migrations/20260225001016_create_leaderboard_table.sql`
 - `supabase/migrations/20260226224637_create_wallet_ledger.sql`
 - `supabase/migrations/20260226225530_add_app_logs_and_wallet_disconnect.sql`
+- `supabase/migrations/20260226232534_secure_wallet_auth_and_logs.sql`
 
 This creates:
 - `leaderboard` table
@@ -34,13 +44,15 @@ This creates:
   - `browser_wallets`
   - `app_state_ledger` (append-only)
 - Generic application logs table:
-  - `app_logs` (`event_name`, `payload`, timestamps, browser_id/wallet_address linkage)
+  - `app_logs` (`event_name`, `payload`, timestamps, browser_id/wallet_address linkage, `auth_user_id`)
 - RPC write entrypoint:
   - `record_wallet_connect(p_browser_id, p_wallet_address, p_state, p_client_timestamp, p_user_agent)`
   - `record_wallet_disconnect(p_browser_id, p_wallet_address, p_state, p_client_timestamp, p_user_agent)`
-  - Granted to `anon`/`authenticated`; direct table writes remain blocked by RLS
+  - `record_app_log(p_event_name, p_payload, p_wallet_address, p_browser_id, p_client_timestamp, p_user_agent)`
+  - RPCs require authenticated users, verify wallet ownership against `auth.identities`, and apply per-user rate limits
+  - Direct table writes remain blocked by RLS
 
-## 3. Match Frontend Query Expectations
+## 4. Match Frontend Query Expectations
 
 Leaderboard page currently queries:
 
@@ -60,7 +72,7 @@ Used fields:
 - `season`
 - `updated_at`
 
-## 4. Rebuild / Redeploy
+## 5. Rebuild / Redeploy
 
 For Docker deploys, env vars are baked at build time, so rebuild is required:
 
@@ -76,12 +88,13 @@ make refresh
 
 For local dev (`npm run dev`), restart the dev server after changing `.env`.
 
-## 5. Quick Verification
+## 6. Quick Verification
 
 1. Open Leaderboard page.
 2. Confirm rows load (not empty due to auth/RLS error).
 3. Confirm sorting by rank and season-1 data.
 4. Check browser console for Supabase auth/query errors.
+5. Connect wallet and verify `wallet_login` + `wallet_logout` rows appear in `app_logs`.
 
 ## Common Pitfalls
 
