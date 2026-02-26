@@ -1,20 +1,26 @@
-import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, useMemo, type ReactNode } from 'react';
+import {
+  ALL_PART_SLOTS,
+  LEGACY_PART_SLOTS,
+  LEGACY_TO_CANONICAL_SECTION,
+  ROCKET_SECTIONS,
+  type InventoryPart,
+  type PartSlot,
+  type RocketSection,
+} from '../types/domain';
+import {
+  EFFECTIVE_DAILY_CLAIM_FLUX,
+  FAUCET_INTERVAL_MS,
+  WHITELIST_BONUS_FLUX,
+} from '../config/spec';
 
-export type PartSlot = 'engine' | 'fuel' | 'body' | 'wings' | 'booster';
-export type RarityTier = 'Common' | 'Rare' | 'Epic' | 'Legendary';
-
-export interface InventoryPart {
-  id: string;
-  name: string;
-  slot: PartSlot;
-  rarity: RarityTier;
-  power: number;
-}
+export type { InventoryPart, PartSlot, RarityTier, RocketSection } from '../types/domain';
 
 interface GameState {
   fluxBalance: number;
   inventory: InventoryPart[];
   equipped: Record<PartSlot, InventoryPart | null>;
+  canonicalEquipped: Record<RocketSection, InventoryPart | null>;
   levels: Record<PartSlot, number>;
   scores: number[];
   lockedEth: boolean;
@@ -30,25 +36,82 @@ interface GameState {
 }
 
 const STORAGE_KEY = 'enet-game-state';
-const DAY_MS = 24 * 60 * 60 * 1000;
 
-const defaults = {
+interface StoredGameState {
+  fluxBalance: number;
+  inventory: InventoryPart[];
+  equipped: Record<PartSlot, InventoryPart | null>;
+  levels: Record<PartSlot, number>;
+  scores: number[];
+  lockedEth: boolean;
+  lastDailyClaim: number | null;
+}
+
+const equippedDefaults = Object.fromEntries(
+  ALL_PART_SLOTS.map((slot) => [slot, null]),
+) as Record<PartSlot, InventoryPart | null>;
+
+const levelDefaults = Object.fromEntries(
+  ALL_PART_SLOTS.map((slot) => [slot, 1]),
+) as Record<PartSlot, number>;
+
+const canonicalDefaults = Object.fromEntries(
+  ROCKET_SECTIONS.map((section) => [section, null]),
+) as Record<RocketSection, InventoryPart | null>;
+
+const defaults: StoredGameState = {
   fluxBalance: 0,
-  inventory: [] as InventoryPart[],
-  equipped: { engine: null, fuel: null, body: null, wings: null, booster: null } as Record<PartSlot, InventoryPart | null>,
-  levels: { engine: 1, fuel: 1, body: 1, wings: 1, booster: 1 } as Record<PartSlot, number>,
-  scores: [] as number[],
+  inventory: [],
+  equipped: equippedDefaults,
+  levels: levelDefaults,
+  scores: [],
   lockedEth: false,
-  lastDailyClaim: null as number | null,
+  lastDailyClaim: null,
 };
+
+function deriveCanonicalEquipped(
+  equipped: Record<PartSlot, InventoryPart | null>,
+): Record<RocketSection, InventoryPart | null> {
+  const canonical = { ...canonicalDefaults };
+
+  for (const section of ROCKET_SECTIONS) {
+    canonical[section] = equipped[section];
+  }
+
+  for (const legacySlot of LEGACY_PART_SLOTS) {
+    const legacyPart = equipped[legacySlot];
+    const mappedSection = LEGACY_TO_CANONICAL_SECTION[legacySlot];
+    if (!canonical[mappedSection] && legacyPart) {
+      canonical[mappedSection] = legacyPart;
+    }
+  }
+
+  return canonical;
+}
 
 function load() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return { ...defaults, equipped: { ...defaults.equipped }, levels: { ...defaults.levels } };
-    return { ...defaults, ...JSON.parse(raw) };
+    if (!raw) {
+      return {
+        ...defaults,
+        equipped: { ...equippedDefaults },
+        levels: { ...levelDefaults },
+      };
+    }
+    const parsed = JSON.parse(raw) as Partial<StoredGameState>;
+    return {
+      ...defaults,
+      ...parsed,
+      equipped: { ...equippedDefaults, ...(parsed.equipped || {}) },
+      levels: { ...levelDefaults, ...(parsed.levels || {}) },
+    };
   } catch {
-    return { ...defaults, equipped: { ...defaults.equipped }, levels: { ...defaults.levels } };
+    return {
+      ...defaults,
+      equipped: { ...equippedDefaults },
+      levels: { ...levelDefaults },
+    };
   }
 }
 
@@ -62,12 +125,23 @@ export function GameStateProvider({ children }: { children: ReactNode }) {
     localStorage.setItem(STORAGE_KEY, JSON.stringify({ fluxBalance, inventory, equipped, levels, scores, lockedEth, lastDailyClaim }));
   }, [state]);
 
-  const lockEth = () => setState(s => s.lockedEth ? s : { ...s, lockedEth: true, fluxBalance: s.fluxBalance + 100 });
+  const lockEth = () => setState((s) => {
+    if (s.lockedEth) return s;
+    return {
+      ...s,
+      lockedEth: true,
+      fluxBalance: s.fluxBalance + WHITELIST_BONUS_FLUX,
+    };
+  });
 
   const claimDailyFlux = () => {
     const now = Date.now();
-    if (state.lastDailyClaim && now - state.lastDailyClaim < DAY_MS) return false;
-    setState(s => ({ ...s, fluxBalance: s.fluxBalance + 10, lastDailyClaim: now }));
+    if (state.lastDailyClaim && now - state.lastDailyClaim < FAUCET_INTERVAL_MS) return false;
+    setState((s) => ({
+      ...s,
+      fluxBalance: s.fluxBalance + EFFECTIVE_DAILY_CLAIM_FLUX,
+      lastDailyClaim: now,
+    }));
     return true;
   };
 
@@ -101,8 +175,26 @@ export function GameStateProvider({ children }: { children: ReactNode }) {
 
   const recordScore = (score: number) => setState(s => ({ ...s, scores: [...s.scores, score] }));
 
+  const canonicalEquipped = useMemo(
+    () => deriveCanonicalEquipped(state.equipped),
+    [state.equipped],
+  );
+
   return (
-    <GameStateContext.Provider value={{ ...state, lockEth, claimDailyFlux, spendFlux, addPart, equipPart, unequipPart, upgradePart, recordScore }}>
+    <GameStateContext.Provider
+      value={{
+        ...state,
+        canonicalEquipped,
+        lockEth,
+        claimDailyFlux,
+        spendFlux,
+        addPart,
+        equipPart,
+        unequipPart,
+        upgradePart,
+        recordScore,
+      }}
+    >
       {children}
     </GameStateContext.Provider>
   );

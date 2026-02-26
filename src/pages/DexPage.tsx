@@ -32,8 +32,8 @@ export default function DexPage({ onBack }: DexPageProps) {
                   <Zap size={16} className="text-black" fill="black" />
                 </div>
                 <div>
-                  <span className="font-mono font-bold text-white text-base leading-none uppercase tracking-wider">Flux Exchange</span>
-                  <div className="text-[10px] font-mono font-medium text-zinc-500 leading-none mt-0.5 uppercase tracking-wider">Constant-Product AMM · E-Net</div>
+                  <span className="font-mono font-bold text-white text-base leading-none uppercase tracking-wider">Entropy Exchange</span>
+                  <div className="text-[10px] font-mono font-medium text-zinc-500 leading-none mt-0.5 uppercase tracking-wider">Constant-Product AMM · E-Net | φ-Net</div>
                 </div>
               </div>
             </div>
@@ -62,7 +62,7 @@ export default function DexPage({ onBack }: DexPageProps) {
               </span>
             </div>
             <h1 className="font-mono font-black text-3xl md:text-4xl lg:text-5xl text-white mb-3 uppercase tracking-wider">
-              Flux Exchange
+              Entropy Exchange
             </h1>
             <p className="text-zinc-500 text-lg font-mono">
               Trade <span className="text-zinc-300 font-semibold">Flux</span> ↔{' '}

@@ -2,6 +2,11 @@ import { Zap, ExternalLink, ChevronDown, Lock, Clock } from 'lucide-react';
 import { useGameState } from '../context/GameState';
 import { useWallet } from '../hooks/useWallet';
 import PhiSymbol from './brand/PhiSymbol';
+import {
+  EFFECTIVE_DAILY_CLAIM_FLUX,
+  FAUCET_INTERVAL_MS,
+  WHITELIST_ETH,
+} from '../config/spec';
 
 interface HeroProps {
   onOpenDex: () => void;
@@ -17,8 +22,9 @@ export default function Hero({ onOpenDex }: HeroProps) {
   const game = useGameState();
   const wallet = useWallet();
 
-  const DAY_MS = 24 * 60 * 60 * 1000;
-  const cooldownRemaining = game.lastDailyClaim ? Math.max(0, DAY_MS - (Date.now() - game.lastDailyClaim)) : 0;
+  const cooldownRemaining = game.lastDailyClaim
+    ? Math.max(0, FAUCET_INTERVAL_MS - (Date.now() - game.lastDailyClaim))
+    : 0;
   const canClaim = !game.lastDailyClaim || cooldownRemaining === 0;
 
   return (
@@ -63,7 +69,7 @@ export default function Hero({ onOpenDex }: HeroProps) {
               ) : !game.lockedEth ? (
                 <button onClick={game.lockEth} className="btn-primary text-base px-7 py-3.5">
                   <Lock size={16} />
-                  Lock 0.05 ETH
+                  {`Lock ${WHITELIST_ETH} ETH`}
                 </button>
               ) : (
                 <button
@@ -74,7 +80,7 @@ export default function Hero({ onOpenDex }: HeroProps) {
                   {canClaim ? (
                     <>
                       <Zap size={16} />
-                      Claim 10 Flux
+                      {`Claim ${EFFECTIVE_DAILY_CLAIM_FLUX} Flux`}
                     </>
                   ) : (
                     <>
@@ -85,7 +91,7 @@ export default function Hero({ onOpenDex }: HeroProps) {
                 </button>
               )}
               <button onClick={onOpenDex} className="btn-secondary text-base px-7 py-3.5">
-                Flux Exchange
+                Entropy Exchange
                 <ExternalLink size={15} />
               </button>
             </div>
@@ -129,16 +135,16 @@ export default function Hero({ onOpenDex }: HeroProps) {
                 </div>
                 <div className="grid grid-cols-3 gap-3">
                   <div className="bg-zinc-900 p-3 text-center border border-border-subtle">
-                    <p className="font-mono font-bold text-white text-lg">0.05</p>
+                    <p className="font-mono font-bold text-white text-lg">{WHITELIST_ETH}</p>
                     <p className="text-[10px] text-zinc-500 mt-0.5 font-mono">ETH TO LOCK</p>
                   </div>
                   <div className="bg-zinc-900 p-3 text-center border border-border-subtle">
-                    <p className="font-mono font-bold text-white text-lg">100</p>
-                    <p className="text-[10px] text-zinc-500 mt-0.5 font-mono">FLUX ON LOCK</p>
+                    <p className="font-mono font-bold text-white text-lg">{EFFECTIVE_DAILY_CLAIM_FLUX}</p>
+                    <p className="text-[10px] text-zinc-500 mt-0.5 font-mono">FLUX / DAY</p>
                   </div>
                   <div className="bg-zinc-900 p-3 text-center border border-border-subtle">
-                    <p className="font-mono font-bold text-white text-lg">10</p>
-                    <p className="text-[10px] text-zinc-500 mt-0.5 font-mono">FLUX / DAY</p>
+                    <p className="font-mono font-bold text-white text-lg">24H</p>
+                    <p className="text-[10px] text-zinc-500 mt-0.5 font-mono">CLAIM WINDOW</p>
                   </div>
                 </div>
                 {game.lockedEth && (

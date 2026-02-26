@@ -1,0 +1,9 @@
+services:
+  rocket-web:
+    container_name: rocket-web
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "127.0.0.1:3456:80"
+    restart: unless-stopped

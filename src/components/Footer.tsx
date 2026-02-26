@@ -3,7 +3,7 @@ import { Zap, Github, Twitter, FileText } from 'lucide-react';
 export default function Footer() {
   const links = {
     Protocol: ['Whitepaper', 'Docs', 'GitHub', 'Audit Report'],
-    Apps: ['Entropy Gate', 'Flux Exchange', 'Star Vault & Nebula Bids', 'Celestial Assembler'],
+    Apps: ['Entropy Gate', 'Entropy Exchange', 'Star Vault & Nebula Bids', 'Celestial Assembler'],
     Jackpot: ['Quantum Lift-Off', 'Cosmic Jackpot', 'Season 1 Prizes', 'Prize Claim'],
     Community: ['Twitter / X', 'Discord', 'Telegram', 'Blog'],
   };
@@ -19,7 +19,7 @@ export default function Footer() {
               </div>
               <div>
                 <span className="font-mono font-bold text-white text-lg leading-none uppercase tracking-wider">Entropy</span>
-                <div className="text-[10px] font-mono font-medium text-zinc-500 mt-0.5 uppercase tracking-wider">E-Net Testnet</div>
+                <div className="text-[10px] font-mono font-medium text-zinc-500 mt-0.5 uppercase tracking-wider">E-Net | φ-Net Testnet</div>
               </div>
             </div>
             <p className="text-zinc-500 text-sm leading-relaxed max-w-xs mb-6">
@@ -67,7 +67,7 @@ export default function Footer() {
           </p>
           <div className="flex items-center gap-2">
             <div className="glow-dot" />
-            <span className="text-sm font-mono font-medium text-zinc-500">E-NET v0.9.2 — SEASON 1 ACTIVE</span>
+            <span className="text-sm font-mono font-medium text-zinc-500">E-NET | φ-NET v0.9.2 — SEASON 1 ACTIVE</span>
           </div>
         </div>
       </div>

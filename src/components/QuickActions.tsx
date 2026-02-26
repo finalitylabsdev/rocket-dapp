@@ -30,7 +30,7 @@ const cards: ActionCard[] = [
   {
     id: 'dex',
     icon: <ArrowLeftRight size={22} className="text-dot-green" />,
-    title: 'Flux Exchange',
+    title: 'Entropy Exchange',
     tagline: 'Trade at the speed of entropy',
     description: 'Swap Flux ↔ wBTC / wETH / UVD on the constant-product AMM. Low fees. Full on-chain transparency.',
     buttonLabel: 'Start Trading',

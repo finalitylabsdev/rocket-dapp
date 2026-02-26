@@ -2,7 +2,9 @@ import { useState } from 'react';
 import { RotateCcw } from 'lucide-react';
 import RarityBadge, { type RarityTier, RARITY_CONFIG } from '../brand/RarityBadge';
 import PhiSymbol from '../brand/PhiSymbol';
-import { useGameState, type PartSlot, type InventoryPart } from '../../context/GameState';
+import { useGameState } from '../../context/GameState';
+import { RARITY_BOX_PRICE_FLUX, RARITY_MULTIPLIER } from '../../config/spec';
+import { ROCKET_SECTIONS, type InventoryPart, type RocketSection } from '../../types/domain';
 
 interface BoxTier {
   id: string;
@@ -18,38 +20,74 @@ const TIERS: BoxTier[] = [
   {
     id: 'common',
     name: 'Void Crate',
-    price: 10,
+    price: RARITY_BOX_PRICE_FLUX.Common,
     rarity: 'Common',
     tagline: 'The starting point',
-    rewards: ['Common part (×1.0)', 'Rare part (×1.6)'],
-    possible: [{ label: 'Best Drop', value: 'Rare' }, { label: 'Win Chance', value: '60%' }],
+    rewards: ['Common part (×1.0)', 'Uncommon part (×1.25)', 'Rare chance'],
+    possible: [{ label: 'Best Drop', value: 'Rare' }, { label: 'Win Chance', value: '~18%' }],
+  },
+  {
+    id: 'uncommon',
+    name: 'Stellar Cache',
+    price: RARITY_BOX_PRICE_FLUX.Uncommon,
+    rarity: 'Uncommon',
+    tagline: 'Better odds, better loot',
+    rewards: ['Uncommon part (×1.25)', 'Rare chance', 'Epic chance'],
+    possible: [{ label: 'Best Drop', value: 'Epic' }, { label: 'Win Chance', value: '~10%' }],
   },
   {
     id: 'rare',
     name: 'Star Vault Box',
-    price: 50,
+    price: RARITY_BOX_PRICE_FLUX.Rare,
     rarity: 'Rare',
-    tagline: 'Feels good',
-    rewards: ['Rare part (×1.6)', 'Epic part (×2.0)'],
-    possible: [{ label: 'Best Drop', value: 'Epic' }, { label: 'Win Chance', value: '35%' }],
+    tagline: 'Rarity starts here',
+    rewards: ['Rare part (×1.6)', 'Epic chance', 'Legendary chance'],
+    possible: [{ label: 'Best Drop', value: 'Legendary' }, { label: 'Win Chance', value: '~6%' }],
   },
   {
     id: 'epic',
     name: 'Astral Chest',
-    price: 150,
+    price: RARITY_BOX_PRICE_FLUX.Epic,
     rarity: 'Epic',
     tagline: 'Pulsing with energy',
-    rewards: ['Epic part (×2.0)', 'Legendary part (×2.5)'],
-    possible: [{ label: 'Best Drop', value: 'Legendary' }, { label: 'Win Chance', value: '18%' }],
+    rewards: ['Epic part (×2.0)', 'Legendary chance', 'Mythic chance'],
+    possible: [{ label: 'Best Drop', value: 'Mythic' }, { label: 'Win Chance', value: '~3.5%' }],
   },
   {
     id: 'legendary',
     name: 'Solaris Vault',
-    price: 300,
+    price: RARITY_BOX_PRICE_FLUX.Legendary,
     rarity: 'Legendary',
     tagline: 'Shimmer of gold',
-    rewards: ['Legendary part (×2.5)', 'Guaranteed high power'],
-    possible: [{ label: 'Best Drop', value: 'Legendary' }, { label: 'Win Chance', value: '100%' }],
+    rewards: ['Legendary part (×2.5)', 'Mythic chance', 'Celestial chance'],
+    possible: [{ label: 'Best Drop', value: 'Celestial' }, { label: 'Win Chance', value: '~1.8%' }],
+  },
+  {
+    id: 'mythic',
+    name: 'Nova Reliquary',
+    price: RARITY_BOX_PRICE_FLUX.Mythic,
+    rarity: 'Mythic',
+    tagline: 'Heat at the edge of chaos',
+    rewards: ['Mythic part (×3.2)', 'Celestial chance', 'Quantum chance'],
+    possible: [{ label: 'Best Drop', value: 'Quantum' }, { label: 'Win Chance', value: '~0.7%' }],
+  },
+  {
+    id: 'celestial',
+    name: 'Aurora Ark',
+    price: RARITY_BOX_PRICE_FLUX.Celestial,
+    rarity: 'Celestial',
+    tagline: 'Blue-fire premium crate',
+    rewards: ['Celestial part (×4.0)', 'High quantum chance'],
+    possible: [{ label: 'Best Drop', value: 'Quantum' }, { label: 'Win Chance', value: '~12%' }],
+  },
+  {
+    id: 'quantum',
+    name: 'Prism Singularity',
+    price: RARITY_BOX_PRICE_FLUX.Quantum,
+    rarity: 'Quantum',
+    tagline: 'Top-tier reality split',
+    rewards: ['Quantum part (×5.0)', 'Celestial fallback'],
+    possible: [{ label: 'Best Drop', value: 'Quantum' }, { label: 'Win Chance', value: '~75%' }],
   },
 ];
 
@@ -80,23 +118,34 @@ function BoxIllustration({ rarity, state }: { rarity: RarityTier; state: BoxStat
   );
 }
 
-const PART_NAMES: Record<PartSlot, string> = {
-  engine: 'Pulse Engine',
-  fuel: 'Nebula Tank',
-  body: 'Radiation Mantle',
-  wings: 'Solar Wings',
-  booster: 'Ion Array',
+const PART_NAMES: Record<RocketSection, string> = {
+  coreEngine: 'Pulse Engine',
+  wingPlate: 'Solar Wings',
+  fuelCell: 'Nebula Tank',
+  navigationModule: 'Astro-Gyro',
+  payloadBay: 'Cargo Nebula',
+  thrusterArray: 'Ion Array',
+  propulsionCables: 'Quantum Wire',
+  shielding: 'Event-Horizon Shield',
 };
 
-const SLOTS: PartSlot[] = ['engine', 'fuel', 'body', 'wings', 'booster'];
+const SLOTS: RocketSection[] = [...ROCKET_SECTIONS];
 
 // Higher tier boxes have better odds of dropping higher rarities
 const DROP_TABLES: Record<string, RarityTier[]> = {
-  common:    ['Common', 'Common', 'Common', 'Rare'],
-  rare:      ['Common', 'Rare', 'Rare', 'Epic'],
-  epic:      ['Rare', 'Epic', 'Epic', 'Legendary'],
-  legendary: ['Epic', 'Legendary', 'Legendary', 'Legendary'],
+  common:    ['Common', 'Common', 'Uncommon', 'Uncommon', 'Rare'],
+  uncommon:  ['Common', 'Uncommon', 'Uncommon', 'Rare', 'Rare', 'Epic'],
+  rare:      ['Uncommon', 'Rare', 'Rare', 'Epic', 'Epic', 'Legendary'],
+  epic:      ['Rare', 'Epic', 'Epic', 'Legendary', 'Legendary', 'Mythic'],
+  legendary: ['Epic', 'Legendary', 'Legendary', 'Mythic', 'Mythic', 'Celestial'],
+  mythic:    ['Legendary', 'Mythic', 'Mythic', 'Celestial', 'Celestial', 'Quantum'],
+  celestial: ['Mythic', 'Celestial', 'Celestial', 'Quantum', 'Quantum'],
+  quantum:   ['Celestial', 'Quantum', 'Quantum', 'Quantum'],
 };
+
+function formatMultiplier(value: number): string {
+  return value.toFixed(2).replace(/\.00$/, '').replace(/(\.\d)0$/, '$1');
+}
 
 function randomPart(tierId: string): InventoryPart {
   const slot = SLOTS[Math.floor(Math.random() * SLOTS.length)];
@@ -132,7 +181,7 @@ function BoxCard({ tier }: { tier: BoxTier }) {
       game.addPart(part);
       setReward({
         part,
-        multiplier: `×${(1 + RARITY_CONFIG[part.rarity].intensity * 0.6).toFixed(1)}`,
+        multiplier: `×${formatMultiplier(RARITY_MULTIPLIER[part.rarity])}`,
       });
       setState('revealed');
     }, 800);
@@ -272,7 +321,7 @@ export default function BoxSection() {
           <span className="tag mb-2 inline-flex">Star Vault Boxes</span>
           <h2 className="section-title">Open a Star Vault Box</h2>
           <p className="text-sm mt-2 max-w-sm font-mono" style={{ color: '#4A5468' }}>
-            Spend Flux to open boxes and win rocket parts across 4 rarity tiers.
+            Spend Flux to open boxes and win rocket parts across all 8 rarity tiers.
           </p>
         </div>
       </div>

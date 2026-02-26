@@ -5,7 +5,7 @@ interface PhiSymbolProps {
   className?: string;
 }
 
-export default function PhiSymbol({ size = 24, color = 'currentColor', animated = false, className = '' }: PhiSymbolProps) {
+export default function PhiSymbol({ size = 24, color = 'currentColor', className = '' }: PhiSymbolProps) {
   const strokeWidth = Math.max(1.2, size / 16);
   const cx = size / 2;
   const cy = size / 2;

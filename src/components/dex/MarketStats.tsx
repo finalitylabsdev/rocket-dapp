@@ -1,4 +1,4 @@
-import { TrendingUp, TrendingDown, BarChart3, Droplets, Activity, ChevronUp, ChevronDown } from 'lucide-react';
+import { TrendingUp, BarChart3, Droplets, Activity, ChevronUp, ChevronDown } from 'lucide-react';
 import { useIntersectionObserver } from '../../hooks/useCountUp';
 
 const TOKEN_DATA = [

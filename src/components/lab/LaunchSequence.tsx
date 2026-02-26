@@ -302,7 +302,8 @@ function LandingDustCloud({ visible }: { visible: boolean }) {
   );
 }
 
-export default function LaunchSequence({ equipped, model, result, power, onDismiss }: LaunchSequenceProps) {
+export default function LaunchSequence(props: LaunchSequenceProps) {
+  const { model, result, power, onDismiss } = props;
   const [phase, setPhase] = useState<Phase>('countdown');
   const [countdown, setCountdown] = useState(3);
   const [showResultCard, setShowResultCard] = useState(false);

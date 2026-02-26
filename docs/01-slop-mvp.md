@@ -1,6 +1,6 @@
 # Entropy Network — MVP Reduction Plan
 
-> **Goal**: Strip the E-Net frontend from a visually polished but functionally hollow demo into a working MVP where the core game loop operates end-to-end.
+> **Goal**: Strip the E-Net | φ-Net frontend from a visually polished but functionally hollow demo into a working MVP where the core game loop operates end-to-end.
 
 ---
 
