@@ -9,8 +9,19 @@ function readPositiveNumberEnv(key: string): number | null {
   return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
 }
 
+function readBooleanEnv(key: string): boolean | null {
+  const raw = import.meta.env[key];
+  if (raw === undefined || raw === null || raw === '') return null;
+  const normalized = String(raw).trim().toLowerCase();
+  if (['1', 'true', 'yes', 'on'].includes(normalized)) return true;
+  if (['0', 'false', 'no', 'off'].includes(normalized)) return false;
+  return null;
+}
+
 const devFastEconomy = String(import.meta.env.VITE_SPEC_DEV_FAST_ECONOMY || '').toLowerCase();
 export const DEV_FAST_ECONOMY = devFastEconomy === '1' || devFastEconomy === 'true';
+export const DEX_TRADING_ENABLED =
+  readBooleanEnv('VITE_FEATURE_DEX_TRADING_ENABLED') ?? false;
 
 const defaultFaucetIntervalSeconds = DEV_FAST_ECONOMY ? 5 : 86_400;
 const defaultWhitelistBonusFlux = DEV_FAST_ECONOMY ? 300 : 0;

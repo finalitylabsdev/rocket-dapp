@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { recordWalletConnect, recordWalletDisconnect } from '../lib/ledger';
 
 const STORAGE_KEY = 'phinet-wallet';
 
@@ -18,10 +19,18 @@ export function useWallet() {
   }, [address]);
 
   const connect = useCallback(() => {
-    if (!address) setAddress(generateAddress());
+    if (address) return;
+
+    const nextAddress = generateAddress();
+    setAddress(nextAddress);
+    void recordWalletConnect(nextAddress);
   }, [address]);
 
-  const disconnect = useCallback(() => setAddress(null), []);
+  const disconnect = useCallback(() => {
+    if (!address) return;
+    void recordWalletDisconnect(address);
+    setAddress(null);
+  }, [address]);
 
   return {
     address,

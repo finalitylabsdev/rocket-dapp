@@ -20,12 +20,25 @@ Notes:
 Run the SQL in:
 
 - `supabase/migrations/20260225001016_create_leaderboard_table.sql`
+- `supabase/migrations/20260226224637_create_wallet_ledger.sql`
+- `supabase/migrations/20260226225530_add_app_logs_and_wallet_disconnect.sql`
 
 This creates:
 - `leaderboard` table
 - RLS enabled
 - Public `SELECT` policy for `anon` and `authenticated`
 - Optional seed data
+- Browser/wallet ledger tables:
+  - `browser_profiles`
+  - `wallet_registry`
+  - `browser_wallets`
+  - `app_state_ledger` (append-only)
+- Generic application logs table:
+  - `app_logs` (`event_name`, `payload`, timestamps, browser_id/wallet_address linkage)
+- RPC write entrypoint:
+  - `record_wallet_connect(p_browser_id, p_wallet_address, p_state, p_client_timestamp, p_user_agent)`
+  - `record_wallet_disconnect(p_browser_id, p_wallet_address, p_state, p_client_timestamp, p_user_agent)`
+  - Granted to `anon`/`authenticated`; direct table writes remain blocked by RLS
 
 ## 3. Match Frontend Query Expectations
 

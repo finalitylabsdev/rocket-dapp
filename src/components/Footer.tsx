@@ -1,4 +1,5 @@
 import { Zap, Github, Twitter, FileText } from 'lucide-react';
+import { APP_VERSION } from '../config/app';
 
 export default function Footer() {
   const links = {
@@ -67,7 +68,7 @@ export default function Footer() {
           </p>
           <div className="flex items-center gap-2">
             <div className="glow-dot" />
-            <span className="text-sm font-mono font-medium text-zinc-500">phi-net v0.9.2 — SEASON 1 ACTIVE</span>
+            <span className="text-sm font-mono font-medium text-zinc-500">{`phi-net v${APP_VERSION} — SEASON 1 ACTIVE`}</span>
           </div>
         </div>
       </div>
