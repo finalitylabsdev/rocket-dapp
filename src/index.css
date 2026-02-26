@@ -1,0 +1,194 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    box-sizing: border-box;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background-color: #06080F;
+    color: #E8ECF4;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply font-semibold px-6 py-3 rounded-2xl transition-all duration-200 active:scale-95 inline-flex items-center gap-2;
+    background: #E8ECF4;
+    color: #06080F;
+  }
+  .btn-primary:hover {
+    background: #ffffff;
+  }
+
+  .btn-secondary {
+    @apply bg-transparent font-semibold px-6 py-3 rounded-2xl transition-all duration-200 active:scale-95 inline-flex items-center gap-2;
+    border: 1px solid #2A3348;
+    color: #8A94A8;
+  }
+  .btn-secondary:hover {
+    border-color: #3A4A60;
+    color: #E8ECF4;
+  }
+
+  .card {
+    @apply rounded-3xl shadow-card transition-all duration-300 hover:shadow-card-hover;
+    background: #0C1018;
+    border: 1px solid #1E2636;
+    padding: 1.5rem;
+  }
+
+  .stat-card {
+    @apply rounded-2xl p-5;
+    background: #06080F;
+    border: 1px solid #1E2636;
+  }
+
+  .section-title {
+    @apply font-poppins font-bold text-3xl md:text-4xl;
+    color: #E8ECF4;
+  }
+
+  .tag {
+    @apply inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full;
+    background: rgba(30, 38, 54, 0.8);
+    color: #8A94A8;
+    border: 1px solid #2A3348;
+  }
+
+  .rarity-badge {
+    @apply inline-flex items-center gap-1.5 text-[10px] font-bold px-2 py-0.5 rounded-full;
+  }
+
+  .rarity-badge-common    { background: rgba(107,114,128,0.15); color: #6B7280; border: 1px solid rgba(107,114,128,0.3); }
+  .rarity-badge-uncommon  { background: rgba(34,197,94,0.12);   color: #22C55E; border: 1px solid rgba(34,197,94,0.3); }
+  .rarity-badge-rare      { background: rgba(59,130,246,0.12);  color: #3B82F6; border: 1px solid rgba(59,130,246,0.3); }
+  .rarity-badge-epic      { background: rgba(139,92,246,0.12);  color: #8B5CF6; border: 1px solid rgba(139,92,246,0.3); }
+  .rarity-badge-legendary { background: rgba(245,158,11,0.12);  color: #F59E0B; border: 1px solid rgba(245,158,11,0.3); }
+  .rarity-badge-mythic    { background: rgba(239,68,68,0.12);   color: #EF4444; border: 1px solid rgba(239,68,68,0.3); }
+  .rarity-badge-celestial { background: rgba(6,182,212,0.12);   color: #06B6D4; border: 1px solid rgba(6,182,212,0.3); }
+  .rarity-badge-quantum   { background: rgba(232,236,244,0.08); color: #E8ECF4; border: 1px solid rgba(232,236,244,0.2); }
+}
+
+@layer utilities {
+  .text-gradient {
+    background: linear-gradient(135deg, #E8ECF4 0%, #8A94A8 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .text-gradient-gold {
+    background: linear-gradient(135deg, #F59E0B 0%, #FACC15 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .text-gradient-quantum {
+    background: linear-gradient(135deg, #06B6D4 0%, #8B5CF6 25%, #EF4444 50%, #F59E0B 75%, #22C55E 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    background-size: 200%;
+    animation: prismaticShift 3s linear infinite;
+  }
+}
+
+.glow-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #4ADE80;
+  box-shadow: 0 0 8px rgba(74, 222, 128, 0.7);
+  animation: pulse-green 2s ease-in-out infinite;
+  display: inline-block;
+}
+
+@keyframes pulse-green {
+  0%, 100% { box-shadow: 0 0 6px rgba(74, 222, 128, 0.5); }
+  50% { box-shadow: 0 0 14px rgba(74, 222, 128, 0.9); }
+}
+
+@keyframes prismaticShift {
+  0% { background-position: 0% 50%; }
+  100% { background-position: 200% 50%; }
+}
+
+@keyframes phiPulse {
+  0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(232,236,244,0); }
+  50% { transform: scale(1.15); box-shadow: 0 0 0 6px rgba(232,236,244,0); }
+}
+
+@keyframes emberRise {
+  0% { transform: translateY(0) translateX(0) scale(1); opacity: 0.9; }
+  50% { transform: translateY(-30px) translateX(5px) scale(0.7); opacity: 0.5; }
+  100% { transform: translateY(-60px) translateX(-3px) scale(0.1); opacity: 0; }
+}
+
+@keyframes auroraFlow {
+  0%, 100% { transform: translateX(-15%) skewX(-5deg) scaleY(0.8); opacity: 0.5; }
+  50% { transform: translateX(15%) skewX(5deg) scaleY(1.2); opacity: 0.9; }
+}
+
+@keyframes boxShake {
+  0%, 100% { transform: rotate(0deg) scale(1); }
+  15% { transform: rotate(-5deg) scale(1.04); }
+  30% { transform: rotate(5deg) scale(1.06); }
+  45% { transform: rotate(-3deg) scale(1.08); }
+  60% { transform: rotate(3deg) scale(1.08); }
+  75% { transform: rotate(-1.5deg) scale(1.09); }
+  90% { transform: rotate(1.5deg) scale(1.1); }
+}
+
+@keyframes seam {
+  0% { scaleY: 0; opacity: 0; }
+  100% { scaleY: 1; opacity: 1; }
+}
+
+@keyframes boxCrack {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-80px); }
+}
+
+@keyframes boxCrackRight {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(80px); }
+}
+
+@keyframes sparkBurst {
+  0%   { opacity: 0; transform: scale(0.5) rotate(0deg); }
+  40%  { opacity: 1; transform: scale(1.3) rotate(180deg); }
+  100% { opacity: 0; transform: scale(2) rotate(360deg); }
+}
+
+@keyframes trail {
+  0% { height: 28px; opacity: 0.9; }
+  100% { height: 48px; opacity: 0.4; }
+}
+
+::-webkit-scrollbar {
+  width: 5px;
+}
+
+::-webkit-scrollbar-track {
+  background: #06080F;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #2A3348;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #3A4A60;
+}
