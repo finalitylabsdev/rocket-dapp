@@ -22,37 +22,37 @@ export default function MysteryPage({ onBack }: MysteryPageProps) {
                 onClick={onBack}
                 className="flex items-center gap-2 text-zinc-500 hover:text-white transition-colors group"
               >
-                <div className="w-8 h-8 rounded-xl bg-zinc-900 border border-border-default group-hover:border-border-strong flex items-center justify-center transition-all">
+                <div className="w-8 h-8 bg-zinc-900 border border-border-default group-hover:border-border-strong flex items-center justify-center transition-all">
                   <ArrowLeft size={15} className="text-zinc-400 group-hover:text-white" />
                 </div>
-                <span className="text-sm font-medium hidden sm:inline">Back</span>
+                <span className="text-sm font-mono font-medium hidden sm:inline">BACK</span>
               </button>
               <div className="h-5 w-px bg-border-default" />
               <div className="flex items-center gap-3">
-                <div className="w-8 h-8 bg-white rounded-xl flex items-center justify-center">
+                <div className="w-8 h-8 bg-dot-green flex items-center justify-center">
                   <Zap size={16} className="text-black" fill="black" />
                 </div>
                 <div>
-                  <span className="font-poppins font-bold text-white text-base leading-none">Star Vault</span>
-                  <div className="text-[10px] font-medium text-zinc-500 leading-none mt-0.5">App 3 · E-Net Testnet</div>
+                  <span className="font-mono font-bold text-white text-base leading-none uppercase tracking-wider">Star Vault</span>
+                  <div className="text-[10px] font-mono font-medium text-zinc-500 leading-none mt-0.5 uppercase tracking-wider">App 3 · E-Net Testnet</div>
                 </div>
               </div>
             </div>
 
             <div className="flex items-center gap-3">
-              <div className="hidden sm:flex items-center gap-2 bg-zinc-900 border border-border-subtle rounded-2xl px-3 py-2">
+              <div className="hidden sm:flex items-center gap-2 bg-zinc-900 border border-border-subtle px-3 py-2">
                 <PhiSymbol size={14} color="#E8ECF4" />
-                <span className="text-xs font-bold text-white">{fluxBalance}</span>
-                <span className="text-xs text-zinc-500">FLUX</span>
+                <span className="text-xs font-mono font-bold text-white">{fluxBalance}</span>
+                <span className="text-xs font-mono text-zinc-500">FLUX</span>
               </div>
               {wallet.isConnected ? (
-                <div className="hidden sm:flex items-center gap-2 bg-zinc-900 border border-border-subtle rounded-2xl px-3 py-2">
+                <div className="hidden sm:flex items-center gap-2 bg-zinc-900 border border-border-subtle px-3 py-2">
                   <div className="glow-dot" />
-                  <span className="text-xs font-semibold text-zinc-300">{wallet.displayAddress}</span>
+                  <span className="text-xs font-mono font-semibold text-zinc-300">{wallet.displayAddress}</span>
                 </div>
               ) : (
                 <button onClick={wallet.connect} className="btn-primary text-sm py-2.5 px-5">
-                  <Zap size={13} fill="black" />
+                  <Zap size={13} />
                   Connect Wallet
                 </button>
               )}
@@ -70,10 +70,10 @@ export default function MysteryPage({ onBack }: MysteryPageProps) {
                 Gamified Rewards
               </span>
             </div>
-            <h1 className="font-poppins font-black text-3xl md:text-5xl lg:text-6xl text-white mb-4 leading-[1.08]">
+            <h1 className="font-mono font-black text-3xl md:text-5xl lg:text-6xl text-white mb-4 leading-[1.08] uppercase tracking-wider">
               Star Vault
             </h1>
-            <p className="text-zinc-400 text-lg max-w-lg mx-auto">
+            <p className="text-zinc-400 text-lg font-mono">
               Crack open the cosmos.
             </p>
           </div>

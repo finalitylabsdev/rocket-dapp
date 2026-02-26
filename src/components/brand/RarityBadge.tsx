@@ -68,12 +68,11 @@ export default function RarityBadge({ tier, showIcon = true, size = 'sm', classN
 
   return (
     <span
-      className={`inline-flex items-center gap-1 font-bold rounded-full ${textSize} ${px} ${className}`}
+      className={`inline-flex items-center gap-1 font-bold font-mono uppercase tracking-wider ${textSize} ${px} ${className}`}
       style={{
         background: cfg.bg,
         color: cfg.color,
         border: `1px solid ${cfg.border}`,
-        boxShadow: cfg.intensity >= 2 ? `0 0 6px ${cfg.glow}` : undefined,
       }}
     >
       {showIcon && <GemIcon tier={tier} size={iconSize} />}

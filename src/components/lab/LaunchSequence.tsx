@@ -255,15 +255,15 @@ function PowerMeter({ power }: { power: number }) {
 
   return (
     <div
-      className="flex items-center gap-3 px-4 py-2 rounded-2xl"
+      className="flex items-center gap-3 px-4 py-2 "
       style={{ background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(255,255,255,0.08)', backdropFilter: 'blur(8px)' }}
     >
       <span className="text-[10px] font-bold tracking-widest" style={{ color: 'rgba(255,255,255,0.4)', fontFamily: 'monospace' }}>
         POWER
       </span>
-      <div className="w-28 h-2 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.08)' }}>
+      <div className="w-28 h-2  overflow-hidden" style={{ background: 'rgba(255,255,255,0.08)' }}>
         <div
-          className="h-full rounded-full transition-all duration-1000"
+          className="h-full  transition-all duration-1000"
           style={{
             width: `${power}%`,
             background: `linear-gradient(90deg, ${barColor}88 0%, ${barColor} 100%)`,
@@ -285,7 +285,7 @@ function LandingDustCloud({ visible }: { visible: boolean }) {
       {[...Array(10)].map((_, i) => (
         <div
           key={i}
-          className="absolute rounded-full"
+          className="absolute "
           style={{
             width: `${14 + i * 8}px`,
             height: `${8 + i * 4}px`,
@@ -567,14 +567,14 @@ export default function LaunchSequence({ equipped, model, result, power, onDismi
 
       {(phase === 'atmosphere' || phase === 'space') && (
         <>
-          <div className="absolute w-80 h-80 rounded-full"
+          <div className="absolute w-80 h-80 "
             style={{
               background: 'radial-gradient(circle, rgba(80,140,255,0.1) 0%, transparent 70%)',
               top: '8%', left: '3%',
               animation: 'nebulaFloat 14s ease-in-out infinite',
             }}
           />
-          <div className="absolute w-56 h-56 rounded-full"
+          <div className="absolute w-56 h-56 "
             style={{
               background: 'radial-gradient(circle, rgba(60,200,160,0.06) 0%, transparent 70%)',
               top: '45%', right: '6%',
@@ -609,7 +609,7 @@ export default function LaunchSequence({ equipped, model, result, power, onDismi
             style={{ background: '#1a0d00', animation: 'launchpadGround 2s ease-in-out infinite' }}
           />
           <div
-            className="absolute bottom-16 left-1/2 -translate-x-1/2 w-32 h-3 rounded-full"
+            className="absolute bottom-16 left-1/2 -translate-x-1/2 w-32 h-3 "
             style={{ background: '#2a1800', border: '1px solid #3a2200' }}
           />
           <div
@@ -619,7 +619,7 @@ export default function LaunchSequence({ equipped, model, result, power, onDismi
           {[...Array(8)].map((_, i) => (
             <div
               key={i}
-              className="absolute bottom-0 rounded-full"
+              className="absolute bottom-0 "
               style={{
                 width: `${6 + i * 5}px`,
                 height: `${6 + i * 5}px`,
@@ -766,7 +766,7 @@ export default function LaunchSequence({ equipped, model, result, power, onDismi
         style={{ pointerEvents: 'none' }}
       >
         <div
-          className="px-4 py-1.5 rounded-full text-xs font-bold tracking-widest"
+          className="px-4 py-1.5  text-xs font-bold tracking-widest"
           style={{
             background: 'rgba(0,0,0,0.45)',
             border: '1px solid rgba(255,255,255,0.09)',
@@ -782,7 +782,7 @@ export default function LaunchSequence({ equipped, model, result, power, onDismi
           {PHASES.filter((p) => p !== 'result').map((p) => (
             <div
               key={p}
-              className="rounded-full transition-all duration-500"
+              className=" transition-all duration-500"
               style={{
                 width: phase === p ? '22px' : '6px',
                 height: '6px',
@@ -803,7 +803,7 @@ export default function LaunchSequence({ equipped, model, result, power, onDismi
           style={{ pointerEvents: 'none' }}
         >
           <div
-            className="px-5 py-2 rounded-2xl text-xs font-bold tracking-wider"
+            className="px-5 py-2  text-xs font-bold tracking-wider"
             style={{
               background: 'rgba(0,0,0,0.4)',
               border: '1px solid rgba(255,255,255,0.06)',
@@ -829,7 +829,7 @@ export default function LaunchSequence({ equipped, model, result, power, onDismi
           style={{ background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(8px)' }}
         >
           <div
-            className="relative rounded-3xl p-8 max-w-sm w-full text-center overflow-hidden"
+            className="relative  p-8 max-w-sm w-full text-center overflow-hidden"
             style={{
               background: '#0C1018',
               border: `1px solid ${modelColor}44`,
@@ -841,7 +841,7 @@ export default function LaunchSequence({ equipped, model, result, power, onDismi
               {[...Array(22)].map((_, i) => (
                 <div
                   key={i}
-                  className="absolute w-1.5 h-1.5 rounded-full"
+                  className="absolute w-1.5 h-1.5 "
                   style={{
                     left: `${3 + i * 4.4}%`,
                     top: '-8px',
@@ -853,13 +853,13 @@ export default function LaunchSequence({ equipped, model, result, power, onDismi
             </div>
 
             <div
-              className="w-16 h-16 rounded-3xl flex items-center justify-center mx-auto mb-4"
+              className="w-16 h-16  flex items-center justify-center mx-auto mb-4"
               style={{ background: `${modelColor}18`, border: `1px solid ${modelColor}44` }}
             >
               <FlaskConical size={28} style={{ color: modelColor }} />
             </div>
 
-            <p className="font-display text-[11px] font-bold mb-1 tracking-widest" style={{ color: '#4A5468' }}>
+            <p className="font-mono text-[11px] font-bold mb-1 tracking-widest" style={{ color: '#4A5468' }}>
               {isFullPower ? 'MARS LANDING COMPLETE' : 'DEEP SPACE MISSION COMPLETE'}
             </p>
             <p className="font-data font-black text-5xl mb-1" style={{ color: '#E8ECF4' }}>
@@ -869,21 +869,21 @@ export default function LaunchSequence({ equipped, model, result, power, onDismi
             <p className="text-sm mb-1" style={{ color: '#4A5468' }}>{result.multiplier}× Grav Score multiplier</p>
 
             <div
-              className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 mb-4 text-xs font-bold"
+              className="inline-flex items-center gap-1.5  px-3 py-1 mb-4 text-xs font-bold"
               style={{ background: `${modelColor}12`, border: `1px solid ${modelColor}30`, color: modelColor }}
             >
-              <div className="w-1.5 h-1.5 rounded-full" style={{ background: modelColor }} />
+              <div className="w-1.5 h-1.5 " style={{ background: modelColor }} />
               {clampedPower}% thrust reached
             </div>
 
-            <div className="rounded-2xl p-3 mb-6" style={{ background: '#06080F', border: '1px solid #1E2636' }}>
+            <div className=" p-3 mb-6" style={{ background: '#06080F', border: '1px solid #1E2636' }}>
               <p className="text-xs mb-1" style={{ color: '#4A5468' }}>Mission Event</p>
-              <p className="font-display font-bold text-sm" style={{ color: '#E8ECF4' }}>{result.bonus}</p>
+              <p className="font-mono font-bold text-sm" style={{ color: '#E8ECF4' }}>{result.bonus}</p>
             </div>
 
             <button
               onClick={onDismiss}
-              className="w-full py-3.5 rounded-2xl font-display font-bold text-sm transition-all active:scale-95"
+              className="w-full py-3.5  font-mono font-bold text-sm transition-all active:scale-95"
               style={{
                 background: modelColor,
                 color: '#06080F',

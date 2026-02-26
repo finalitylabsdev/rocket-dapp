@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ArrowLeftRight, Gift, Rocket, Trophy, Lock, Star, ChevronRight } from 'lucide-react';
+import { ArrowLeftRight, Gift, Rocket, Trophy, Lock, ChevronRight } from 'lucide-react';
 import { useIntersectionObserver } from '../hooks/useCountUp';
 
 interface ActionCard {
@@ -16,7 +16,7 @@ interface ActionCard {
 const cards: ActionCard[] = [
   {
     id: 'faucet',
-    icon: <Lock size={22} className="text-white" />,
+    icon: <Lock size={22} className="text-dot-green" />,
     badge: 'Start Here',
     title: 'Entropy Gate',
     tagline: 'Lock ETH → Claim Flux',
@@ -29,7 +29,7 @@ const cards: ActionCard[] = [
   },
   {
     id: 'dex',
-    icon: <ArrowLeftRight size={22} className="text-white" />,
+    icon: <ArrowLeftRight size={22} className="text-dot-green" />,
     title: 'Flux Exchange',
     tagline: 'Trade at the speed of entropy',
     description: 'Swap Flux ↔ wBTC / wETH / UVD on the constant-product AMM. Low fees. Full on-chain transparency.',
@@ -41,9 +41,9 @@ const cards: ActionCard[] = [
   },
   {
     id: 'mystery',
-    icon: <Gift size={22} className="text-white" />,
+    icon: <Gift size={22} className="text-dot-green" />,
     badge: 'New',
-    title: 'Star Vault & Nebula Bids',
+    title: 'Star Vault',
     tagline: 'Crack open the cosmos',
     description: 'Buy Star Vault mystery boxes for NFT rocket parts across 8 rarity tiers. Submit rare drops to Nebula Bids auctions every 4 hours.',
     buttonLabel: 'Open a Box',
@@ -54,8 +54,8 @@ const cards: ActionCard[] = [
   },
   {
     id: 'lab',
-    icon: <Rocket size={22} className="text-white" />,
-    title: 'Celestial Assembler',
+    icon: <Rocket size={22} className="text-dot-green" />,
+    title: 'Rocket Lab',
     tagline: 'Build. Launch. Dominate.',
     description: 'Equip 8 NFT parts across Core Engine, Wing-Plates, Fuel Cells and more. Launch via Quantum Lift-Off for your Grav Score.',
     buttonLabel: 'Start Building',
@@ -66,7 +66,7 @@ const cards: ActionCard[] = [
   },
   {
     id: 'leaderboard',
-    icon: <Trophy size={22} className="text-white" />,
+    icon: <Trophy size={22} className="text-dot-green" />,
     badge: 'Season 1',
     title: 'Cosmic Jackpot',
     tagline: 'Compete. Win ETH rewards.',
@@ -99,12 +99,6 @@ export default function QuickActions({ onOpenDex, onOpenMystery, onOpenLab, onOp
             isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'
           }`}
         >
-          <div className="flex justify-center mb-3">
-            <span className="tag">
-              <Star size={11} className="text-white" />
-              Four Apps
-            </span>
-          </div>
           <h2 className="section-title mb-3">Your Dashboard</h2>
           <p className="text-zinc-500 max-w-xl mx-auto">
             One end-to-end journey — from locking ETH to winning it back. Every app feeds the next.
@@ -115,10 +109,10 @@ export default function QuickActions({ onOpenDex, onOpenMystery, onOpenLab, onOp
           {cards.map((card, i) => (
             <div
               key={card.id}
-              className={`relative rounded-3xl bg-bg-card border overflow-hidden cursor-pointer transition-all duration-300 ${
+              className={`relative bg-bg-card border overflow-hidden cursor-pointer transition-all duration-300 ${
                 hovered === card.id
-                  ? 'border-border-strong shadow-card-hover -translate-y-1.5 bg-bg-card-hover'
-                  : 'border-border-subtle shadow-card'
+                  ? 'border-border-strong bg-bg-card-hover'
+                  : 'border-border-subtle'
               } ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
               style={{ transitionDelay: `${i * 70}ms` }}
               onMouseEnter={() => setHovered(card.id)}
@@ -126,39 +120,35 @@ export default function QuickActions({ onOpenDex, onOpenMystery, onOpenLab, onOp
             >
               {card.badge && (
                 <div className="absolute top-3 right-3 z-10">
-                  <span className="bg-white text-black text-[10px] font-bold px-2 py-0.5 rounded-full">
+                  <span className="bg-dot-green text-black text-[10px] font-mono font-bold px-2 py-0.5 uppercase tracking-wider">
                     {card.badge}
                   </span>
                 </div>
               )}
 
               <div className="p-5 flex flex-col h-full">
-                <div
-                  className={`w-11 h-11 rounded-2xl bg-zinc-800 border border-border-default flex items-center justify-center mb-4 transition-all duration-300 ${
-                    hovered === card.id ? 'scale-110 bg-zinc-700' : ''
-                  }`}
-                >
+                <div className="w-11 h-11 bg-zinc-800 border border-border-default flex items-center justify-center mb-4">
                   {card.icon}
                 </div>
 
-                <h3 className="font-poppins font-bold text-white text-base leading-tight mb-1">
+                <h3 className="font-mono font-bold text-white text-base leading-tight mb-1 uppercase tracking-wider">
                   {card.title}
                 </h3>
-                <p className="text-xs font-semibold text-zinc-400 mb-2">{card.tagline}</p>
+                <p className="text-xs font-mono font-semibold text-zinc-400 mb-2">{card.tagline}</p>
                 <p className="text-sm text-zinc-500 leading-relaxed flex-1 mb-4">{card.description}</p>
 
                 <div className="grid grid-cols-2 gap-2 mb-4">
                   {card.stats.map((stat, j) => (
-                    <div key={j} className="bg-zinc-900 rounded-xl p-2 text-center border border-border-subtle">
-                      <p className="font-bold text-white text-sm leading-none">{stat.value}</p>
-                      <p className="text-[10px] text-zinc-500 mt-0.5 leading-none">{stat.label}</p>
+                    <div key={j} className="bg-zinc-900 p-2 text-center border border-border-subtle">
+                      <p className="font-mono font-bold text-white text-sm leading-none">{stat.value}</p>
+                      <p className="text-[10px] text-zinc-500 mt-0.5 leading-none font-mono uppercase">{stat.label}</p>
                     </div>
                   ))}
                 </div>
 
                 <button
                   onClick={card.id === 'dex' ? onOpenDex : card.id === 'mystery' ? onOpenMystery : card.id === 'lab' ? onOpenLab : card.id === 'leaderboard' ? onOpenLeaderboard : undefined}
-                  className="w-full bg-white hover:bg-zinc-100 text-black font-semibold text-sm py-2.5 rounded-2xl transition-all duration-200 flex items-center justify-center gap-1.5 active:scale-95"
+                  className="w-full border border-dot-green text-dot-green hover:bg-dot-green/10 font-mono font-semibold text-sm py-2.5 transition-all duration-200 flex items-center justify-center gap-1.5 active:scale-95 uppercase tracking-wider"
                 >
                   {card.buttonLabel}
                   <ChevronRight size={13} />

@@ -62,18 +62,17 @@ function BoxIllustration({ rarity, state }: { rarity: RarityTier; state: BoxStat
 
   return (
     <div
-      className="relative w-24 h-24 mx-auto rounded-2xl flex items-center justify-center transition-all duration-500"
+      className="relative w-24 h-24 mx-auto flex items-center justify-center transition-all duration-500"
       style={{
         background: cfg.bg,
         border: `2px solid ${isRevealed ? cfg.color : cfg.border}`,
-        boxShadow: isRevealed ? `0 0 30px ${cfg.glow}` : cfg.intensity >= 2 ? `0 0 12px ${cfg.glow}` : undefined,
         transform: isOpening ? 'scale(1.08)' : isRevealed ? 'scale(1.12)' : 'scale(1)',
       }}
     >
       <PhiSymbol size={36} color={isRevealed ? cfg.color : cfg.color + '66'} />
       {isRevealed && (
         <div
-          className="absolute inset-0 rounded-2xl"
+          className="absolute inset-0"
           style={{ background: `radial-gradient(circle, ${cfg.color}20 0%, transparent 70%)` }}
         />
       )}
@@ -147,15 +146,10 @@ function BoxCard({ tier }: { tier: BoxTier }) {
 
   return (
     <div
-      className="relative rounded-3xl flex flex-col overflow-hidden transition-all duration-300 hover:-translate-y-1"
+      className="relative flex flex-col overflow-hidden transition-all duration-300"
       style={{
         background: '#06080F',
         border: `1px solid ${state === 'revealed' ? cfg.color + '60' : cfg.border}`,
-        boxShadow: state === 'revealed'
-          ? `0 0 40px ${cfg.glow}, 0 4px 20px rgba(0,0,0,0.8)`
-          : cfg.intensity >= 3
-          ? `0 0 ${cfg.intensity * 5}px ${cfg.glow}, 0 1px 12px rgba(0,0,0,0.7)`
-          : '0 1px 12px rgba(0,0,0,0.7)',
       }}
     >
       <div
@@ -169,19 +163,19 @@ function BoxCard({ tier }: { tier: BoxTier }) {
             <div className="flex items-center gap-2 mb-1.5">
               <RarityBadge tier={tier.rarity} />
             </div>
-            <h3 className="font-display font-black text-lg leading-none" style={{ color: '#E8ECF4', letterSpacing: '0.02em' }}>
+            <h3 className="font-mono font-black text-lg leading-none uppercase tracking-wider" style={{ color: '#E8ECF4' }}>
               {tier.name}
             </h3>
-            <p className="text-[11px] mt-1" style={{ color: '#4A5468' }}>{tier.tagline}</p>
+            <p className="text-[11px] mt-1 font-mono" style={{ color: '#4A5468' }}>{tier.tagline}</p>
           </div>
           <div className="text-right flex-shrink-0">
             <div className="flex items-center gap-1 justify-end">
               <PhiSymbol size={16} color={cfg.color} />
-              <span className="font-data font-black text-xl" style={{ color: '#E8ECF4' }}>
+              <span className="font-mono font-black text-xl" style={{ color: '#E8ECF4' }}>
                 {tier.price.toLocaleString()}
               </span>
             </div>
-            <p className="text-[10px] font-medium mt-0.5" style={{ color: '#4A5468' }}>FLUX</p>
+            <p className="text-[10px] font-mono font-medium mt-0.5 uppercase" style={{ color: '#4A5468' }}>FLUX</p>
           </div>
         </div>
 
@@ -191,28 +185,28 @@ function BoxCard({ tier }: { tier: BoxTier }) {
 
         {state === 'revealed' && reward ? (
           <div
-            className="mb-4 rounded-2xl p-4 text-center"
+            className="mb-4 p-4 text-center"
             style={{ background: RARITY_CONFIG[reward.part.rarity].bg, border: `1px solid ${RARITY_CONFIG[reward.part.rarity].border}` }}
           >
-            <p className="text-[10px] font-semibold mb-1.5" style={{ color: '#4A5468' }}>YOU RECEIVED</p>
-            <p className="font-display font-black text-lg" style={{ color: RARITY_CONFIG[reward.part.rarity].color }}>{reward.part.name}</p>
+            <p className="text-[10px] font-mono font-semibold mb-1.5 uppercase tracking-wider" style={{ color: '#4A5468' }}>YOU RECEIVED</p>
+            <p className="font-mono font-black text-lg uppercase" style={{ color: RARITY_CONFIG[reward.part.rarity].color }}>{reward.part.name}</p>
             <div className="flex items-center justify-center gap-2 mt-1">
               <RarityBadge tier={reward.part.rarity} size="xs" />
-              <span className="text-xs font-medium" style={{ color: '#8A94A8' }}>PWR {reward.part.power}</span>
+              <span className="text-xs font-mono font-medium" style={{ color: '#8A94A8' }}>PWR {reward.part.power}</span>
             </div>
           </div>
         ) : (
           <div className="mb-4 space-y-1.5 flex-1">
-            <p className="text-[10px] font-bold mb-2" style={{ color: '#4A5468', letterSpacing: '0.08em' }}>POSSIBLE DROPS</p>
+            <p className="text-[10px] font-mono font-bold mb-2 uppercase tracking-widest" style={{ color: '#4A5468' }}>POSSIBLE DROPS</p>
             {tier.rewards.map((r) => (
               <div key={r} className="flex items-center gap-2">
                 <div
-                  className="w-3 h-3 rounded-full flex items-center justify-center flex-shrink-0"
+                  className="w-3 h-3 flex items-center justify-center flex-shrink-0"
                   style={{ background: cfg.bg, border: `1px solid ${cfg.border}` }}
                 >
-                  <div className="w-1 h-1 rounded-full" style={{ background: cfg.color }} />
+                  <div className="w-1 h-1" style={{ background: cfg.color }} />
                 </div>
-                <span className="text-[11px]" style={{ color: '#8A94A8' }}>{r}</span>
+                <span className="text-[11px] font-mono" style={{ color: '#8A94A8' }}>{r}</span>
               </div>
             ))}
           </div>
@@ -220,9 +214,9 @@ function BoxCard({ tier }: { tier: BoxTier }) {
 
         <div className="grid grid-cols-2 gap-2 mb-4">
           {tier.possible.map((p) => (
-            <div key={p.label} className="rounded-xl p-2 text-center" style={{ background: '#0C1018', border: '1px solid #1E2636' }}>
-              <p className="font-data font-bold text-xs" style={{ color: '#E8ECF4' }}>{p.value}</p>
-              <p className="text-[9px] mt-0.5" style={{ color: '#4A5468' }}>{p.label}</p>
+            <div key={p.label} className="p-2 text-center" style={{ background: '#0C1018', border: '1px solid #1E2636' }}>
+              <p className="font-mono font-bold text-xs" style={{ color: '#E8ECF4' }}>{p.value}</p>
+              <p className="text-[9px] font-mono mt-0.5 uppercase" style={{ color: '#4A5468' }}>{p.label}</p>
             </div>
           ))}
         </div>
@@ -230,7 +224,7 @@ function BoxCard({ tier }: { tier: BoxTier }) {
         {state === 'revealed' ? (
           <button
             onClick={handleReset}
-            className="w-full py-3 rounded-2xl font-display font-bold text-sm flex items-center justify-center gap-2 transition-all duration-200 active:scale-95"
+            className="w-full py-3 font-mono font-bold text-sm flex items-center justify-center gap-2 transition-all duration-200 active:scale-95 uppercase tracking-wider"
             style={{ background: '#0C1018', border: '1px solid #2A3348', color: '#8A94A8' }}
           >
             <RotateCcw size={13} />
@@ -240,16 +234,11 @@ function BoxCard({ tier }: { tier: BoxTier }) {
           <button
             onClick={handleOpen}
             disabled={state !== 'idle'}
-            className="w-full py-3 rounded-2xl font-display font-bold text-sm flex items-center justify-center gap-2 transition-all duration-200 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full py-3 font-mono font-bold text-sm flex items-center justify-center gap-2 transition-all duration-200 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed uppercase tracking-wider"
             style={state === 'idle' ? {
-              background: cfg.intensity >= 4
-                ? `linear-gradient(135deg, ${cfg.color}cc 0%, ${cfg.color}88 100%)`
-                : cfg.intensity >= 2
-                ? `linear-gradient(135deg, ${cfg.color}55 0%, ${cfg.color}33 100%)`
-                : '#1A1E24',
-              color: cfg.intensity >= 2 ? '#E8ECF4' : cfg.color,
+              background: 'transparent',
+              color: cfg.color,
               border: `1px solid ${cfg.border}`,
-              boxShadow: cfg.intensity >= 3 ? `0 0 20px ${cfg.glow}` : undefined,
               letterSpacing: '0.05em',
             } : {
               background: '#0C1018',
@@ -268,7 +257,7 @@ function BoxCard({ tier }: { tier: BoxTier }) {
           </button>
         )}
         {error && (
-          <p className="text-center text-xs mt-2 font-semibold" style={{ color: '#EF4444' }}>{error}</p>
+          <p className="text-center text-xs mt-2 font-mono font-semibold" style={{ color: '#EF4444' }}>{error}</p>
         )}
       </div>
     </div>
@@ -282,7 +271,7 @@ export default function BoxSection() {
         <div>
           <span className="tag mb-2 inline-flex">Star Vault Boxes</span>
           <h2 className="section-title">Open a Star Vault Box</h2>
-          <p className="text-sm mt-2 max-w-sm" style={{ color: '#4A5468' }}>
+          <p className="text-sm mt-2 max-w-sm font-mono" style={{ color: '#4A5468' }}>
             Spend Flux to open boxes and win rocket parts across 4 rarity tiers.
           </p>
         </div>

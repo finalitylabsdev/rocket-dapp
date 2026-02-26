@@ -23,21 +23,16 @@ export default function Hero({ onOpenDex }: HeroProps) {
 
   return (
     <section className="relative min-h-screen flex flex-col overflow-hidden pt-20">
-      <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute top-1/4 left-0 w-[500px] h-[500px] rounded-full bg-white/[0.02] blur-3xl" />
-        <div className="absolute bottom-1/4 right-0 w-[400px] h-[400px] rounded-full bg-white/[0.02] blur-3xl" />
-      </div>
-
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex-1 flex items-center">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center w-full py-16 lg:py-0">
           <div className="space-y-8 animate-slide-up">
             <div className="flex flex-wrap gap-2">
               <span className="tag">
-                <span className="glow-dot" />
+                <div className="glow-dot" />
                 Testnet Live
               </span>
               <span className="tag">
-                <Zap size={11} className="text-white" />
+                <Zap size={11} className="text-dot-green" />
                 Proof-of-Infinity
               </span>
               <span className="tag">
@@ -46,11 +41,11 @@ export default function Hero({ onOpenDex }: HeroProps) {
             </div>
 
             <div className="space-y-4">
-              <h1 className="font-poppins font-black text-4xl sm:text-5xl lg:text-6xl text-white leading-[1.08]">
+              <h1 className="font-mono font-black text-4xl sm:text-5xl lg:text-6xl text-white leading-[1.08] uppercase tracking-tight">
                 Welcome to the{' '}
-                <span className="text-gradient">Entropy Network</span>
+                <span className="text-dot-green">Entropy Network</span>
               </h1>
-              <p className="font-poppins font-semibold text-xl text-zinc-500 tracking-wide">
+              <p className="font-mono font-semibold text-xl text-zinc-500 tracking-widest uppercase">
                 Deterministic. Immutable. Gamified.
               </p>
               <p className="text-zinc-500 text-lg leading-relaxed max-w-lg">
@@ -62,7 +57,7 @@ export default function Hero({ onOpenDex }: HeroProps) {
             <div className="flex flex-wrap gap-4">
               {!wallet.isConnected ? (
                 <button onClick={wallet.connect} className="btn-primary text-base px-7 py-3.5">
-                  <Zap size={16} fill="black" />
+                  <Zap size={16} />
                   Connect Wallet
                 </button>
               ) : !game.lockedEth ? (
@@ -78,7 +73,7 @@ export default function Hero({ onOpenDex }: HeroProps) {
                 >
                   {canClaim ? (
                     <>
-                      <Zap size={16} fill="black" />
+                      <Zap size={16} />
                       Claim 10 Flux
                     </>
                   ) : (
@@ -100,22 +95,22 @@ export default function Hero({ onOpenDex }: HeroProps) {
                 <>
                   <div className="flex items-center gap-2">
                     <PhiSymbol size={18} color="#E8ECF4" />
-                    <p className="font-poppins font-bold text-white text-lg">{game.fluxBalance}</p>
-                    <p className="text-xs text-zinc-500">FLUX</p>
+                    <p className="font-mono font-bold text-white text-lg">{game.fluxBalance}</p>
+                    <p className="text-xs text-zinc-500 font-mono">FLUX</p>
                   </div>
                   <div className="h-8 w-px bg-zinc-800" />
                 </>
               )}
               <div>
-                <p className="text-sm font-semibold text-white">Season 1</p>
-                <p className="text-xs text-zinc-500">Cosmic Jackpot open</p>
+                <p className="text-sm font-mono font-semibold text-white uppercase tracking-wider">Season 1</p>
+                <p className="text-xs text-zinc-500 font-mono">Cosmic Jackpot open</p>
               </div>
               {game.scores.length > 0 && (
                 <>
                   <div className="h-8 w-px bg-zinc-800" />
                   <div>
-                    <p className="text-sm font-semibold text-white">{Math.max(...game.scores).toLocaleString()}</p>
-                    <p className="text-xs text-zinc-500">Best Grav Score</p>
+                    <p className="text-sm font-mono font-semibold text-white">{Math.max(...game.scores).toLocaleString()}</p>
+                    <p className="text-xs text-zinc-500 font-mono">Best Grav Score</p>
                   </div>
                 </>
               )}
@@ -124,33 +119,33 @@ export default function Hero({ onOpenDex }: HeroProps) {
 
           <div className="flex items-center justify-center lg:justify-end animate-fade-in" style={{ animationDelay: '0.3s' }}>
             <div className="relative w-full max-w-lg">
-              <div className="rounded-4xl bg-bg-card border border-border-default shadow-card p-8 space-y-6">
+              <div className="bg-bg-card border border-border-default p-8 space-y-6">
                 <div className="text-center">
-                  <div className="w-16 h-16 rounded-2xl bg-zinc-800 border border-border-default flex items-center justify-center mx-auto mb-4">
-                    <Zap size={28} className="text-white" fill="white" />
+                  <div className="w-16 h-16 bg-zinc-800 border border-border-default flex items-center justify-center mx-auto mb-4">
+                    <Zap size={28} className="text-dot-green" />
                   </div>
-                  <p className="font-poppins font-bold text-white text-lg">Entropy Gate</p>
+                  <p className="font-mono font-bold text-white text-lg uppercase tracking-wider">Entropy Gate</p>
                   <p className="text-sm text-zinc-500 mt-1">Lock ETH to begin. Claim Flux daily.</p>
                 </div>
                 <div className="grid grid-cols-3 gap-3">
-                  <div className="bg-zinc-900 rounded-2xl p-3 text-center border border-border-subtle">
-                    <p className="font-poppins font-bold text-white text-lg">0.05</p>
-                    <p className="text-[10px] text-zinc-500 mt-0.5">ETH to lock</p>
+                  <div className="bg-zinc-900 p-3 text-center border border-border-subtle">
+                    <p className="font-mono font-bold text-white text-lg">0.05</p>
+                    <p className="text-[10px] text-zinc-500 mt-0.5 font-mono">ETH TO LOCK</p>
                   </div>
-                  <div className="bg-zinc-900 rounded-2xl p-3 text-center border border-border-subtle">
-                    <p className="font-poppins font-bold text-white text-lg">100</p>
-                    <p className="text-[10px] text-zinc-500 mt-0.5">Flux on lock</p>
+                  <div className="bg-zinc-900 p-3 text-center border border-border-subtle">
+                    <p className="font-mono font-bold text-white text-lg">100</p>
+                    <p className="text-[10px] text-zinc-500 mt-0.5 font-mono">FLUX ON LOCK</p>
                   </div>
-                  <div className="bg-zinc-900 rounded-2xl p-3 text-center border border-border-subtle">
-                    <p className="font-poppins font-bold text-white text-lg">10</p>
-                    <p className="text-[10px] text-zinc-500 mt-0.5">Flux / day</p>
+                  <div className="bg-zinc-900 p-3 text-center border border-border-subtle">
+                    <p className="font-mono font-bold text-white text-lg">10</p>
+                    <p className="text-[10px] text-zinc-500 mt-0.5 font-mono">FLUX / DAY</p>
                   </div>
                 </div>
                 {game.lockedEth && (
-                  <div className="flex items-center justify-center gap-2 rounded-2xl p-3 border" style={{ background: 'rgba(74,222,128,0.06)', borderColor: 'rgba(74,222,128,0.2)' }}>
+                  <div className="flex items-center justify-center gap-2 p-3 border" style={{ background: 'rgba(74,222,128,0.06)', borderColor: 'rgba(74,222,128,0.2)' }}>
                     <Lock size={14} style={{ color: '#4ADE80' }} />
-                    <span className="text-sm font-bold" style={{ color: '#4ADE80' }}>ETH Locked</span>
-                    <span className="text-xs text-zinc-500 ml-auto">{game.fluxBalance} Flux available</span>
+                    <span className="text-sm font-mono font-bold" style={{ color: '#4ADE80' }}>ETH LOCKED</span>
+                    <span className="text-xs text-zinc-500 ml-auto font-mono">{game.fluxBalance} Flux available</span>
                   </div>
                 )}
               </div>
@@ -162,9 +157,9 @@ export default function Hero({ onOpenDex }: HeroProps) {
       <div className="relative flex justify-center pb-8">
         <a
           href="#status"
-          className="flex flex-col items-center gap-1 text-zinc-600 hover:text-zinc-400 transition-colors animate-bounce-gentle"
+          className="flex flex-col items-center gap-1 text-zinc-600 hover:text-zinc-400 transition-colors"
         >
-          <span className="text-xs font-medium">Explore</span>
+          <span className="text-xs font-mono font-medium uppercase tracking-wider">Explore</span>
           <ChevronDown size={18} />
         </a>
       </div>

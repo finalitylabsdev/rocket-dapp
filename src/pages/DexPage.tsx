@@ -21,30 +21,30 @@ export default function DexPage({ onBack }: DexPageProps) {
                 onClick={onBack}
                 className="flex items-center gap-2 text-zinc-500 hover:text-white transition-colors group"
               >
-                <div className="w-8 h-8 rounded-xl bg-zinc-900 border border-border-default group-hover:border-border-strong flex items-center justify-center transition-all">
+                <div className="w-8 h-8 bg-zinc-900 border border-border-default group-hover:border-border-strong flex items-center justify-center transition-all">
                   <ArrowLeft size={15} className="text-zinc-400 group-hover:text-white" />
                 </div>
-                <span className="text-sm font-medium hidden sm:inline">Back</span>
+                <span className="text-sm font-mono font-medium hidden sm:inline">BACK</span>
               </button>
               <div className="h-5 w-px bg-border-default" />
               <div className="flex items-center gap-3">
-                <div className="w-8 h-8 bg-white rounded-xl flex items-center justify-center">
+                <div className="w-8 h-8 bg-dot-green flex items-center justify-center">
                   <Zap size={16} className="text-black" fill="black" />
                 </div>
                 <div>
-                  <span className="font-poppins font-bold text-white text-base leading-none">Flux Exchange</span>
-                  <div className="text-[10px] font-medium text-zinc-500 leading-none mt-0.5">Constant-Product AMM · E-Net</div>
+                  <span className="font-mono font-bold text-white text-base leading-none uppercase tracking-wider">Flux Exchange</span>
+                  <div className="text-[10px] font-mono font-medium text-zinc-500 leading-none mt-0.5 uppercase tracking-wider">Constant-Product AMM · E-Net</div>
                 </div>
               </div>
             </div>
 
             <div className="flex items-center gap-3">
-              <div className="hidden sm:flex items-center gap-2 bg-zinc-900 border border-border-subtle rounded-2xl px-3 py-2">
+              <div className="hidden sm:flex items-center gap-2 bg-zinc-900 border border-border-subtle px-3 py-2">
                 <div className="glow-dot" />
-                <span className="text-xs font-semibold text-zinc-300">Testnet</span>
+                <span className="text-xs font-mono font-semibold text-zinc-300">TESTNET</span>
               </div>
               <button className="btn-primary text-sm py-2.5 px-5">
-                <Zap size={13} fill="black" />
+                <Zap size={13} />
                 Connect Wallet
               </button>
             </div>
@@ -61,40 +61,40 @@ export default function DexPage({ onBack }: DexPageProps) {
                 Decentralized Exchange
               </span>
             </div>
-            <h1 className="font-poppins font-black text-3xl md:text-4xl lg:text-5xl text-white mb-3">
+            <h1 className="font-mono font-black text-3xl md:text-4xl lg:text-5xl text-white mb-3 uppercase tracking-wider">
               Flux Exchange
             </h1>
-            <p className="text-zinc-500 text-lg">
+            <p className="text-zinc-500 text-lg font-mono">
               Trade <span className="text-zinc-300 font-semibold">Flux</span> ↔{' '}
               <span className="text-zinc-300 font-semibold">wBTC / wETH / UVD</span>
             </p>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-[1fr_360px] xl:grid-cols-[1fr_400px] gap-6 max-w-5xl mx-auto lg:max-w-none">
-            <div className="bg-bg-card border border-border-subtle rounded-4xl shadow-card overflow-hidden">
+            <div className="bg-bg-card border border-border-subtle overflow-hidden">
               <div className="p-6 border-b border-border-subtle">
-                <div className="flex gap-1 bg-zinc-900 rounded-2xl p-1">
+                <div className="flex gap-0 border border-border-subtle">
                   <button
                     onClick={() => setActiveTab('swap')}
-                    className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl font-poppins font-semibold text-sm transition-all duration-200 ${
+                    className={`flex-1 flex items-center justify-center gap-2 py-2.5 font-mono font-semibold text-sm transition-all duration-200 ${
                       activeTab === 'swap'
-                        ? 'bg-white text-black shadow-sm'
+                        ? 'bg-dot-green/10 text-dot-green border-b-2 border-dot-green'
                         : 'text-zinc-400 hover:text-zinc-200'
                     }`}
                   >
                     <ArrowLeftRight size={14} />
-                    Swap
+                    SWAP
                   </button>
                   <button
                     onClick={() => setActiveTab('liquidity')}
-                    className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl font-poppins font-semibold text-sm transition-all duration-200 ${
+                    className={`flex-1 flex items-center justify-center gap-2 py-2.5 font-mono font-semibold text-sm transition-all duration-200 ${
                       activeTab === 'liquidity'
-                        ? 'bg-white text-black shadow-sm'
+                        ? 'bg-dot-green/10 text-dot-green border-b-2 border-dot-green'
                         : 'text-zinc-400 hover:text-zinc-200'
                     }`}
                   >
                     <Droplets size={14} />
-                    Liquidity
+                    LIQUIDITY
                   </button>
                 </div>
               </div>
@@ -104,7 +104,7 @@ export default function DexPage({ onBack }: DexPageProps) {
               </div>
 
               <div className="px-6 pb-5 pt-1 border-t border-border-subtle">
-                <div className="flex items-center justify-between text-xs text-zinc-600">
+                <div className="flex items-center justify-between text-xs text-zinc-600 font-mono">
                   <span>Powered by Entropy Protocol v0.9.2</span>
                   <a href="#" className="flex items-center gap-1 hover:text-zinc-400 transition-colors">
                     Contracts <ExternalLink size={10} />
@@ -125,9 +125,9 @@ export default function DexPage({ onBack }: DexPageProps) {
               { label: 'Min Liquidity', value: '$100', sub: 'To add LP' },
               { label: 'Testnet Flux', value: 'Free', sub: 'Via Entropy Gate' },
             ].map((item) => (
-              <div key={item.label} className="bg-bg-card border border-border-subtle rounded-2xl p-4 text-center shadow-card">
-                <p className="font-poppins font-bold text-white text-lg">{item.value}</p>
-                <p className="text-sm font-medium text-zinc-400 mt-0.5">{item.label}</p>
+              <div key={item.label} className="bg-bg-card border border-border-subtle p-4 text-center">
+                <p className="font-mono font-bold text-white text-lg">{item.value}</p>
+                <p className="text-sm font-mono font-medium text-zinc-400 mt-0.5 uppercase tracking-wider">{item.label}</p>
                 <p className="text-xs text-zinc-600 mt-0.5">{item.sub}</p>
               </div>
             ))}

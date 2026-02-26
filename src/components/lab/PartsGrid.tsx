@@ -94,16 +94,13 @@ function PartCard({ part, equipped, level, onToggle, onUpgrade }: {
 
   return (
     <div
-      className="relative rounded-3xl overflow-hidden cursor-pointer select-none transition-all duration-200"
+      className="relative overflow-hidden cursor-pointer select-none transition-all duration-200"
       style={equipped ? {
         background: '#0A0F1A',
-        border: `1px solid ${cfg.border}`,
-        boxShadow: `0 0 20px ${cfg.glow}, 0 2px 8px rgba(0,0,0,0.8)`,
-        transform: 'translateY(-2px)',
+        border: `1px solid ${cfg.color}`,
       } : {
         background: '#06080F',
         border: '1px solid #1E2636',
-        boxShadow: '0 1px 6px rgba(0,0,0,0.6)',
       }}
       onClick={onToggle}
     >
@@ -117,11 +114,10 @@ function PartCard({ part, equipped, level, onToggle, onUpgrade }: {
       <div className="p-3">
         <div className="relative mb-3">
           <div
-            className="w-full aspect-square rounded-2xl overflow-hidden flex items-center justify-center"
+            className="w-full aspect-square overflow-hidden flex items-center justify-center"
             style={{
               background: '#06080F',
               border: `1px solid ${equipped ? cfg.border : '#1E2636'}`,
-              boxShadow: equipped && cfg.intensity >= 2 ? `inset 0 0 16px ${cfg.glow}` : undefined,
             }}
           >
             <Zap size={32} style={{ color: equipped ? cfg.color : '#2A3348' }} />
@@ -137,36 +133,35 @@ function PartCard({ part, equipped, level, onToggle, onUpgrade }: {
         </div>
 
         <p
-          className="font-display font-bold text-sm mb-0.5 leading-tight"
-          style={{ color: '#E8ECF4', letterSpacing: '0.02em' }}
+          className="font-mono font-bold text-sm mb-0.5 leading-tight uppercase tracking-wider"
+          style={{ color: '#E8ECF4' }}
         >
           {part.name}
         </p>
-        <p className="text-[10px] mb-2 leading-snug" style={{ color: '#4A5468' }}>
+        <p className="text-[10px] mb-2 leading-snug font-mono" style={{ color: '#4A5468' }}>
           {part.description}
         </p>
 
         <div className="flex items-center gap-1 mb-2">
           <Zap size={9} style={{ color: '#4A5468' }} />
-          <span className="font-data font-bold text-xs" style={{ color: '#8A94A8' }}>{effectivePower}</span>
-          <span className="text-[9px]" style={{ color: '#4A5468' }}>PWR</span>
-          <span className="text-[9px] ml-auto" style={{ color: '#4A5468' }}>{part.label}</span>
+          <span className="font-mono font-bold text-xs" style={{ color: '#8A94A8' }}>{effectivePower}</span>
+          <span className="text-[9px] font-mono" style={{ color: '#4A5468' }}>PWR</span>
+          <span className="text-[9px] font-mono ml-auto uppercase" style={{ color: '#4A5468' }}>{part.label}</span>
         </div>
 
         <div className="mb-2.5">
           <div className="flex items-center justify-between mb-1">
-            <span className="text-[9px]" style={{ color: '#4A5468' }}>Level</span>
-            <span className="font-data text-[9px]" style={{ color: '#4A5468' }}>
+            <span className="text-[9px] font-mono uppercase" style={{ color: '#4A5468' }}>Level</span>
+            <span className="font-mono text-[9px]" style={{ color: '#4A5468' }}>
               Lv.{level}/{part.maxLevel}
             </span>
           </div>
-          <div className="h-1 rounded-full overflow-hidden" style={{ background: '#1E2636' }}>
+          <div className="h-1 overflow-hidden" style={{ background: '#1E2636' }}>
             <div
-              className="h-full rounded-full transition-all duration-500"
+              className="h-full transition-all duration-500"
               style={{
                 width: `${levelProgress}%`,
-                background: `linear-gradient(90deg, ${cfg.color}55, ${cfg.color})`,
-                boxShadow: equipped && cfg.intensity >= 2 ? `0 0 4px ${cfg.color}80` : undefined,
+                background: cfg.color,
               }}
             />
           </div>
@@ -175,7 +170,7 @@ function PartCard({ part, equipped, level, onToggle, onUpgrade }: {
         <button
           onClick={(e) => { e.stopPropagation(); onUpgrade(); }}
           disabled={level >= part.maxLevel}
-          className="w-full flex items-center justify-center gap-1 py-1.5 rounded-xl text-[10px] font-bold transition-all duration-200 active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed"
+          className="w-full flex items-center justify-center gap-1 py-1.5 text-[10px] font-mono font-bold transition-all duration-200 active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed uppercase tracking-wider"
           style={level < part.maxLevel ? {
             background: cfg.bg,
             color: cfg.color,
@@ -210,12 +205,12 @@ export default function PartsGrid({ equipped, levels, onToggle, onUpgrade }: Par
       <div className="flex items-center justify-between mb-5">
         <div>
           <p
-            className="font-display font-bold text-base"
-            style={{ color: '#E8ECF4', letterSpacing: '0.04em' }}
+            className="font-mono font-bold text-base uppercase tracking-wider"
+            style={{ color: '#E8ECF4' }}
           >
             Parts Inventory
           </p>
-          <p className="text-xs mt-0.5" style={{ color: '#4A5468' }}>
+          <p className="text-xs mt-0.5 font-mono" style={{ color: '#4A5468' }}>
             {equippedCount}/{totalParts} equipped · Click to toggle
           </p>
         </div>

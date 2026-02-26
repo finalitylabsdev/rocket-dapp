@@ -14,12 +14,12 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-6 gap-10 mb-12">
           <div className="md:col-span-2">
             <div className="flex items-center gap-3 mb-4">
-              <div className="w-9 h-9 bg-white rounded-xl flex items-center justify-center">
+              <div className="w-9 h-9 bg-white flex items-center justify-center">
                 <Zap size={18} className="text-black" fill="black" />
               </div>
               <div>
-                <span className="font-poppins font-bold text-white text-lg leading-none">Entropy</span>
-                <div className="text-[10px] font-medium text-zinc-500 mt-0.5">E-Net Testnet</div>
+                <span className="font-mono font-bold text-white text-lg leading-none uppercase tracking-wider">Entropy</span>
+                <div className="text-[10px] font-mono font-medium text-zinc-500 mt-0.5 uppercase tracking-wider">E-Net Testnet</div>
               </div>
             </div>
             <p className="text-zinc-500 text-sm leading-relaxed max-w-xs mb-6">
@@ -33,7 +33,7 @@ export default function Footer() {
               ].map((social, i) => (
                 <button
                   key={i}
-                  className="w-9 h-9 rounded-xl bg-zinc-900 border border-border-default flex items-center justify-center text-zinc-500 hover:text-white hover:border-border-strong transition-all duration-200"
+                  className="w-9 h-9 bg-zinc-900 border border-border-default flex items-center justify-center text-zinc-500 hover:text-white hover:border-border-strong transition-all duration-200"
                   aria-label={social.label}
                 >
                   {social.icon}
@@ -44,7 +44,7 @@ export default function Footer() {
 
           {Object.entries(links).map(([category, items]) => (
             <div key={category}>
-              <h4 className="font-poppins font-bold text-zinc-400 text-sm mb-4">{category}</h4>
+              <h4 className="font-mono font-bold text-zinc-400 text-sm mb-4 uppercase tracking-wider">{category}</h4>
               <ul className="space-y-2.5">
                 {items.map((item) => (
                   <li key={item}>
@@ -62,12 +62,12 @@ export default function Footer() {
         </div>
 
         <div className="pt-8 border-t border-border-subtle flex flex-col sm:flex-row items-center justify-between gap-4">
-          <p className="text-zinc-600 text-sm">
+          <p className="text-zinc-600 text-sm font-mono">
             © 2025 Entropy Protocol. This is a testnet — not financial advice.
           </p>
           <div className="flex items-center gap-2">
             <div className="glow-dot" />
-            <span className="text-sm font-medium text-zinc-500">E-Net v0.9.2 — Cosmic Jackpot Season 1 Active</span>
+            <span className="text-sm font-mono font-medium text-zinc-500">E-NET v0.9.2 — SEASON 1 ACTIVE</span>
           </div>
         </div>
       </div>

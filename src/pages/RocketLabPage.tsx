@@ -117,35 +117,35 @@ export default function RocketLabPage({ onBack }: RocketLabPageProps) {
                 onMouseLeave={(e) => (e.currentTarget.style.color = '#4A5468')}
               >
                 <div
-                  className="w-8 h-8 rounded-xl flex items-center justify-center transition-all"
+                  className="w-8 h-8 flex items-center justify-center transition-all"
                   style={{ background: '#0C1018', border: '1px solid #1E2636' }}
                 >
                   <ArrowLeft size={15} style={{ color: '#8A94A8' }} />
                 </div>
-                <span className="text-sm font-medium hidden sm:inline">Back</span>
+                <span className="text-sm font-mono font-medium hidden sm:inline uppercase tracking-wider">Back</span>
               </button>
               <div className="h-5 w-px" style={{ background: '#1E2636' }} />
               <div className="flex items-center gap-3">
                 <div
-                  className="w-8 h-8 rounded-xl flex items-center justify-center"
+                  className="w-8 h-8 flex items-center justify-center"
                   style={{ background: 'rgba(148,163,184,0.15)', border: '1px solid rgba(148,163,184,0.35)' }}
                 >
                   <FlaskConical size={16} style={{ color: '#94A3B8' }} />
                 </div>
                 <div>
-                  <span className="font-display font-bold text-base leading-none" style={{ color: '#E8ECF4', letterSpacing: '0.04em' }}>Rocket Lab</span>
-                  <div className="text-[10px] font-medium leading-none mt-0.5" style={{ color: '#4A5468' }}>Build & Launch</div>
+                  <span className="font-mono font-bold text-base leading-none uppercase tracking-wider" style={{ color: '#E8ECF4' }}>Rocket Lab</span>
+                  <div className="text-[10px] font-mono font-medium leading-none mt-0.5 uppercase tracking-wider" style={{ color: '#4A5468' }}>Build & Launch</div>
                 </div>
               </div>
             </div>
             <div className="flex items-center gap-3">
               <div
-                className="hidden sm:flex items-center gap-2 rounded-2xl px-3 py-2"
+                className="hidden sm:flex items-center gap-2 px-3 py-2"
                 style={{ background: '#0C1018', border: '1px solid #1E2636' }}
               >
                 <PhiSymbol size={13} color="#E8ECF4" />
-                <span className="text-xs font-bold" style={{ color: '#E8ECF4' }}>{game.fluxBalance}</span>
-                <span className="text-xs" style={{ color: '#4A5468' }}>FLUX</span>
+                <span className="text-xs font-mono font-bold" style={{ color: '#E8ECF4' }}>{game.fluxBalance}</span>
+                <span className="text-xs font-mono" style={{ color: '#4A5468' }}>FLUX</span>
               </div>
             </div>
           </div>
@@ -162,36 +162,36 @@ export default function RocketLabPage({ onBack }: RocketLabPageProps) {
                 Rocket Lab
               </span>
             </div>
-            <h1 className="font-display font-black text-3xl md:text-5xl lg:text-6xl mb-3 leading-[1.08]" style={{ color: '#E8ECF4', letterSpacing: '0.04em' }}>
+            <h1 className="font-mono font-black text-3xl md:text-5xl lg:text-6xl mb-3 leading-[1.08] uppercase tracking-wider" style={{ color: '#E8ECF4' }}>
               Rocket Lab
             </h1>
-            <p className="text-lg" style={{ color: '#4A5468' }}>
+            <p className="text-lg font-mono" style={{ color: '#4A5468' }}>
               Build. Launch. Dominate the cosmos.
             </p>
             {bestScore > 0 && (
               <div className="flex items-center justify-center gap-4 mt-4">
-                <div className="flex items-center gap-2 rounded-2xl px-4 py-2" style={{ background: '#0C1018', border: '1px solid #1E2636' }}>
+                <div className="flex items-center gap-2 px-4 py-2" style={{ background: '#0C1018', border: '1px solid #1E2636' }}>
                   <Rocket size={14} style={{ color: '#F97316' }} />
-                  <span className="font-data font-bold text-sm" style={{ color: '#E8ECF4' }}>{game.scores.length}</span>
-                  <span className="text-xs" style={{ color: '#4A5468' }}>Launches</span>
+                  <span className="font-mono font-bold text-sm" style={{ color: '#E8ECF4' }}>{game.scores.length}</span>
+                  <span className="text-xs font-mono" style={{ color: '#4A5468' }}>LAUNCHES</span>
                 </div>
-                <div className="flex items-center gap-2 rounded-2xl px-4 py-2" style={{ background: '#0C1018', border: '1px solid #1E2636' }}>
+                <div className="flex items-center gap-2 px-4 py-2" style={{ background: '#0C1018', border: '1px solid #1E2636' }}>
                   <Star size={14} style={{ color: '#FACC15' }} />
-                  <span className="font-data font-bold text-sm" style={{ color: '#E8ECF4' }}>{bestScore.toLocaleString()}</span>
-                  <span className="text-xs" style={{ color: '#4A5468' }}>Best GS</span>
+                  <span className="font-mono font-bold text-sm" style={{ color: '#E8ECF4' }}>{bestScore.toLocaleString()}</span>
+                  <span className="text-xs font-mono" style={{ color: '#4A5468' }}>BEST GS</span>
                 </div>
               </div>
             )}
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-[260px_1fr_300px] gap-5 items-start">
-            <div className="rounded-3xl overflow-hidden" style={{ background: '#0C1018', border: '1px solid #1E2636' }}>
+            <div className="overflow-hidden" style={{ background: '#0C1018', border: '1px solid #1E2636' }}>
               <div className="px-5 pt-5 pb-2" style={{ borderBottom: '1px solid #1E2636' }}>
                 <div className="flex items-center justify-between">
-                  <p className="font-display font-bold text-sm" style={{ color: '#E8ECF4', letterSpacing: '0.04em' }}>Preview</p>
+                  <p className="font-mono font-bold text-sm uppercase tracking-wider" style={{ color: '#E8ECF4' }}>Preview</p>
                   <div className="flex items-center gap-1.5">
                     <Star size={11} style={{ color: '#4A5468' }} />
-                    <span className="font-data text-xs" style={{ color: '#4A5468' }}>
+                    <span className="font-mono text-xs" style={{ color: '#4A5468' }}>
                       {equippedCount}/{totalParts}
                     </span>
                   </div>
@@ -205,7 +205,7 @@ export default function RocketLabPage({ onBack }: RocketLabPageProps) {
               />
             </div>
 
-            <div className="rounded-3xl p-5" style={{ background: '#0C1018', border: '1px solid #1E2636' }}>
+            <div className="p-5" style={{ background: '#0C1018', border: '1px solid #1E2636' }}>
               <PartsGrid
                 equipped={equipped}
                 levels={levels}
@@ -223,10 +223,10 @@ export default function RocketLabPage({ onBack }: RocketLabPageProps) {
                 launching={launching}
               />
 
-              <div className="rounded-3xl p-4" style={{ background: '#0C1018', border: '1px solid #1E2636' }}>
-                <p className="font-display text-xs font-bold mb-3" style={{ color: '#4A5468', letterSpacing: '0.08em' }}>YOUR LAUNCH HISTORY</p>
+              <div className="p-4" style={{ background: '#0C1018', border: '1px solid #1E2636' }}>
+                <p className="font-mono text-xs font-bold mb-3 uppercase tracking-widest" style={{ color: '#4A5468' }}>YOUR LAUNCH HISTORY</p>
                 {game.scores.length === 0 ? (
-                  <p className="text-xs py-2" style={{ color: '#4A5468' }}>No launches yet. Equip parts and launch!</p>
+                  <p className="text-xs py-2 font-mono" style={{ color: '#4A5468' }}>No launches yet. Equip parts and launch!</p>
                 ) : (
                   game.scores.slice(-5).reverse().map((score, i) => (
                     <div
@@ -235,14 +235,14 @@ export default function RocketLabPage({ onBack }: RocketLabPageProps) {
                       style={{ borderBottom: '1px solid #1E2636' }}
                     >
                       <div className="flex items-center gap-2.5">
-                        <span className="font-data font-black text-sm w-5 text-center" style={{ color: i === 0 ? '#FACC15' : '#4A5468' }}>
+                        <span className="font-mono font-black text-sm w-5 text-center" style={{ color: i === 0 ? '#FACC15' : '#4A5468' }}>
                           {game.scores.length - i}
                         </span>
-                        <span className="font-data text-xs" style={{ color: '#4A5468' }}>Launch</span>
+                        <span className="font-mono text-xs uppercase" style={{ color: '#4A5468' }}>Launch</span>
                       </div>
                       <div className="flex items-center gap-1">
-                        <span className="font-data font-bold text-xs" style={{ color: '#E8ECF4' }}>{score.toLocaleString()}</span>
-                        <span className="font-data text-[10px]" style={{ color: '#4A5468' }}>GS</span>
+                        <span className="font-mono font-bold text-xs" style={{ color: '#E8ECF4' }}>{score.toLocaleString()}</span>
+                        <span className="font-mono text-[10px]" style={{ color: '#4A5468' }}>GS</span>
                       </div>
                     </div>
                   ))
