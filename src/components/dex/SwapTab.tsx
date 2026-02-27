@@ -38,7 +38,7 @@ function TokenSelector({
             <button
               key={t.symbol}
               onClick={() => { onChange(t.symbol); setOpen(false); }}
-              className={`w-full flex items-center gap-3 px-4 py-3 hover:bg-bg-card-hover transition-colors text-left rounded-[1rem] ${value === t.symbol ? 'bg-bg-card-hover' : ''}`}
+              className={`w-full flex items-center gap-3 px-4 py-3 hover:bg-bg-card-hover transition-colors text-left rounded-lg ${value === t.symbol ? 'bg-bg-card-hover' : ''}`}
             >
               <TokenIcon symbol={t.symbol} size="md" />
               <div>
@@ -100,7 +100,7 @@ export default function SwapTab() {
               <button
                 key={s}
                 onClick={() => setSlippage(s)}
-                className={`flex-1 py-2 text-sm font-mono font-semibold transition-all duration-150 rounded-[1rem] ${
+                className={`flex-1 py-2 text-sm font-mono font-semibold transition-all duration-150 rounded-lg ${
                   slippage === s
                     ? 'bg-dot-green/10 text-dot-green border border-dot-green'
                     : 'bg-bg-inset text-text-secondary hover:bg-bg-card-hover border border-border-subtle'
@@ -212,7 +212,7 @@ export default function SwapTab() {
           background: fromAmount && parseFloat(fromAmount) > 0 ? 'linear-gradient(135deg, var(--color-accent-lime) 0%, #d7ff8f 100%)' : 'var(--color-bg-inset)',
           color: fromAmount && parseFloat(fromAmount) > 0 ? '#09100a' : 'var(--color-text-faint)',
           border: fromAmount && parseFloat(fromAmount) > 0 ? '1px solid rgba(184,255,85,0.72)' : '1px solid var(--color-border-default)',
-          borderRadius: '999px',
+          borderRadius: 'var(--radius-pill)',
           boxShadow: fromAmount && parseFloat(fromAmount) > 0 ? '0 16px 28px rgba(184,255,85,0.2)' : 'var(--surface-gloss)',
         }}
       >

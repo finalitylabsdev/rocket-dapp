@@ -56,9 +56,11 @@ export default {
         'rarity-quantum': '#E8ECF4',
       },
       borderRadius: {
-        '2xl': '1.25rem',
-        '3xl': '1.75rem',
-        '4xl': '2.25rem',
+        lg: '0.5rem',
+        xl: '0.65rem',
+        '2xl': '0.85rem',
+        '3xl': '1.05rem',
+        '4xl': '1.25rem',
       },
       boxShadow: {
         card: '0 24px 60px rgba(7, 10, 18, 0.14)',

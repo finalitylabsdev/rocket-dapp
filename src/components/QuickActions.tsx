@@ -111,7 +111,7 @@ export default function QuickActions({ onOpenDex, onOpenMystery, onOpenLab, onOp
           {cards.map((card, i) => (
             <div
               key={card.id}
-              className={`relative overflow-hidden cursor-pointer transition-all duration-300 rounded-[1.75rem] ${
+              className={`relative overflow-hidden cursor-pointer transition-all duration-300 rounded-3xl ${
                 hovered === card.id
                   ? 'border-border-strong bg-bg-card-hover -translate-y-1'
                   : 'border-border-subtle'
@@ -128,7 +128,7 @@ export default function QuickActions({ onOpenDex, onOpenMystery, onOpenLab, onOp
               <div className="absolute inset-x-0 top-0 h-1 app-accent-line opacity-80" />
               {card.badge && (
                 <div className="absolute top-3 right-3 z-10">
-                  <span className="bg-dot-green text-black text-[10px] font-mono font-bold px-2.5 py-1 rounded-full tracking-wide">
+                  <span className="bg-dot-green text-black text-[10px] font-mono font-bold px-2.5 py-1 rounded-lg tracking-wide">
                     {card.badge}
                   </span>
                 </div>

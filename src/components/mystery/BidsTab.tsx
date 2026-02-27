@@ -113,7 +113,7 @@ export default function BidsTab({ preferredPartId, onPreferredPartHandled }: Bid
           <div className="flex items-center gap-3">
             <span
               className="h-10 w-10 flex items-center justify-center"
-              style={{ background: 'rgba(245,95,217,0.1)', border: '1px solid rgba(245,95,217,0.24)', color: 'var(--color-accent-pink)', borderRadius: '1rem' }}
+              style={{ background: 'rgba(245,95,217,0.1)', border: '1px solid rgba(245,95,217,0.24)', color: 'var(--color-accent-pink)', borderRadius: 'var(--radius-control)' }}
             >
               <Gavel size={16} />
             </span>
@@ -182,7 +182,7 @@ export default function BidsTab({ preferredPartId, onPreferredPartHandled }: Bid
               <button
                 onClick={() => void refresh()}
                 className="px-3 py-2 text-[10px] font-mono font-semibold uppercase tracking-wider"
-                style={{ ...APP3_INSET_STYLE, color: 'var(--color-accent-pink)', borderRadius: '999px' }}
+                style={{ ...APP3_INSET_STYLE, color: 'var(--color-accent-pink)', borderRadius: 'var(--radius-pill)' }}
               >
                 Refresh
               </button>

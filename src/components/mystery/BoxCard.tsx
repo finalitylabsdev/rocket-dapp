@@ -234,7 +234,7 @@ export default function BoxCard({ tier }: { tier: BoxTierConfig }) {
               background: cfg.bg,
               color: cfg.color,
               border: `1px solid ${cfg.border}`,
-              borderRadius: '999px',
+              borderRadius: 'var(--radius-pill)',
             }}
           >
             {wallet.address ? (

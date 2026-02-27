@@ -33,7 +33,7 @@ function SmallTokenSelect({ value, onChange, exclude }: { value: string; onChang
             <button
               key={t}
               onClick={() => { onChange(t); setOpen(false); }}
-              className={`w-full flex items-center gap-3 px-4 py-3 hover:bg-bg-card-hover transition-colors text-left rounded-[1rem] ${value === t ? 'bg-bg-card-hover' : ''}`}
+              className={`w-full flex items-center gap-3 px-4 py-3 hover:bg-bg-card-hover transition-colors text-left rounded-lg ${value === t ? 'bg-bg-card-hover' : ''}`}
             >
               <TokenIcon symbol={t} size="sm" />
               <span className="font-mono font-semibold text-text-primary text-sm">{t}</span>
@@ -171,7 +171,7 @@ export default function LiquidityTab() {
           background: amountA && parseFloat(amountA) > 0 ? 'linear-gradient(135deg, var(--color-accent-lime) 0%, #d7ff8f 100%)' : 'var(--color-bg-inset)',
           color: amountA && parseFloat(amountA) > 0 ? '#09100a' : 'var(--color-text-faint)',
           border: amountA && parseFloat(amountA) > 0 ? '1px solid rgba(184,255,85,0.72)' : '1px solid var(--color-border-default)',
-          borderRadius: '999px',
+          borderRadius: 'var(--radius-pill)',
           boxShadow: amountA && parseFloat(amountA) > 0 ? '0 16px 28px rgba(184,255,85,0.2)' : 'var(--surface-gloss)',
         }}
       >

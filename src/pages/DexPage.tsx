@@ -52,7 +52,7 @@ export default function DexPage() {
                   <div className="flex gap-2 app-panel-muted p-2">
                     <button
                       onClick={() => setActiveTab('swap')}
-                      className={`flex-1 flex items-center justify-center gap-2 py-2.5 font-mono font-semibold text-sm transition-all duration-200 rounded-[1rem] ${
+                      className={`flex-1 flex items-center justify-center gap-2 py-2.5 font-mono font-semibold text-sm transition-all duration-200 rounded-lg ${
                         activeTab === 'swap'
                           ? 'text-dot-green'
                           : 'text-text-secondary hover:text-text-primary'
@@ -64,7 +64,7 @@ export default function DexPage() {
                     </button>
                     <button
                       onClick={() => setActiveTab('liquidity')}
-                      className={`flex-1 flex items-center justify-center gap-2 py-2.5 font-mono font-semibold text-sm transition-all duration-200 rounded-[1rem] ${
+                      className={`flex-1 flex items-center justify-center gap-2 py-2.5 font-mono font-semibold text-sm transition-all duration-200 rounded-lg ${
                         activeTab === 'liquidity'
                           ? 'text-dot-green'
                           : 'text-text-secondary hover:text-text-primary'

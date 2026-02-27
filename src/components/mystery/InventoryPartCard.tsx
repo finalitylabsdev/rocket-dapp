@@ -90,7 +90,7 @@ export default function InventoryPartCard({ part, onSendToAuction }: InventoryPa
           onClick={() => onSendToAuction?.(part)}
           disabled={!canSendToAuction}
           className="py-2 text-[10px] font-mono font-semibold uppercase tracking-wider disabled:opacity-40 disabled:cursor-not-allowed"
-          style={{ background: 'rgba(245,95,217,0.1)', border: '1px solid rgba(245,95,217,0.24)', color: 'var(--color-accent-pink)', borderRadius: '999px' }}
+          style={{ background: 'rgba(245,95,217,0.1)', border: '1px solid rgba(245,95,217,0.24)', color: 'var(--color-accent-pink)', borderRadius: 'var(--radius-pill)' }}
         >
           {part.isLocked ? 'Locked' : 'Send to Auction'}
         </button>

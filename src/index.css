@@ -29,6 +29,12 @@
     --color-accent-pink: #f55fd9;
     --color-accent-pink-soft: rgba(245, 95, 217, 0.15);
     --color-accent-gold: #ffc95e;
+    --radius-compact: 0.35rem;
+    --radius-control: 0.45rem;
+    --radius-pill: 0.5rem;
+    --radius-surface: 0.65rem;
+    --radius-panel: 0.85rem;
+    --radius-window: 1.05rem;
     --surface-shadow: 0 24px 64px rgba(4, 8, 18, 0.34);
     --surface-shadow-soft: 0 18px 40px rgba(4, 8, 18, 0.2);
     --surface-gloss: inset 0 1px 0 rgba(255, 255, 255, 0.08);
@@ -92,7 +98,7 @@
   input,
   select,
   textarea {
-    border-radius: 1.1rem;
+    border-radius: var(--radius-control);
   }
 
   button,
@@ -131,7 +137,7 @@
     background: linear-gradient(135deg, var(--color-accent-lime) 0%, #d7ff8f 100%);
     color: #09100a;
     border: 1px solid rgba(184, 255, 85, 0.72);
-    border-radius: 999px;
+    border-radius: var(--radius-pill);
     box-shadow:
       inset 0 1px 0 rgba(255, 255, 255, 0.45),
       0 12px 28px rgba(184, 255, 85, 0.22);
@@ -150,7 +156,7 @@
     border: 1px solid var(--color-border-default);
     background: var(--color-bg-card);
     color: var(--color-text-secondary);
-    border-radius: 999px;
+    border-radius: var(--radius-pill);
     box-shadow: var(--surface-gloss);
     font-family: 'Space Grotesk', sans-serif;
     letter-spacing: 0.02em;
@@ -165,7 +171,7 @@
     background: var(--color-bg-card);
     border: 1px solid var(--color-border-subtle);
     padding: 1.5rem;
-    border-radius: 1.75rem;
+    border-radius: var(--radius-panel);
     box-shadow: var(--surface-shadow-soft);
     backdrop-filter: blur(14px);
   }
@@ -174,7 +180,7 @@
     @apply p-5;
     background: var(--color-bg-card);
     border: 1px solid var(--color-border-subtle);
-    border-radius: 1.5rem;
+    border-radius: var(--radius-panel);
     box-shadow: var(--surface-shadow-soft);
   }
 
@@ -195,7 +201,7 @@
     background: var(--color-bg-tag);
     color: var(--color-text-secondary);
     border: 1px solid var(--color-border-default);
-    border-radius: 999px;
+    border-radius: var(--radius-pill);
     box-shadow: var(--surface-gloss);
     font-family: 'Space Grotesk', sans-serif;
     letter-spacing: 0.02em;
@@ -205,7 +211,7 @@
   .app-toast {
     background: var(--color-bg-toast) !important;
     border: 1px solid var(--color-border-subtle) !important;
-    border-radius: 1.4rem !important;
+    border-radius: var(--radius-panel) !important;
     color: var(--color-text-primary) !important;
     box-shadow: var(--surface-shadow) !important;
     font-family: 'Space Grotesk', sans-serif !important;
@@ -239,12 +245,12 @@
     background: var(--color-bg-inset) !important;
     border: 1px solid var(--color-border-default) !important;
     color: var(--color-text-secondary) !important;
-    border-radius: 999px !important;
+    border-radius: var(--radius-pill) !important;
   }
 
   .app-toast-action,
   .app-toast-cancel {
-    border-radius: 999px !important;
+    border-radius: var(--radius-pill) !important;
     font-family: 'Space Grotesk', sans-serif !important;
     font-size: 0.6875rem !important;
     font-weight: 700 !important;
@@ -294,7 +300,7 @@
     font-family: 'Space Grotesk', sans-serif;
     text-transform: none;
     letter-spacing: 0.03em;
-    border-radius: 999px;
+    border-radius: var(--radius-pill);
     box-shadow: var(--surface-gloss);
   }
 
@@ -331,7 +337,7 @@
   .app-window {
     background: var(--color-bg-card);
     border: 1px solid var(--color-border-subtle);
-    border-radius: 2rem;
+    border-radius: var(--radius-window);
     box-shadow: var(--surface-shadow);
     backdrop-filter: blur(16px);
   }
@@ -339,7 +345,7 @@
   .app-panel {
     background: var(--color-bg-card);
     border: 1px solid var(--color-border-subtle);
-    border-radius: 1.6rem;
+    border-radius: var(--radius-panel);
     box-shadow: var(--surface-shadow-soft);
     backdrop-filter: blur(14px);
   }
@@ -347,28 +353,28 @@
   .app-panel-muted {
     background: var(--color-bg-inset);
     border: 1px solid var(--color-border-subtle);
-    border-radius: 1.25rem;
+    border-radius: var(--radius-surface);
     box-shadow: var(--surface-gloss);
   }
 
   .app-control {
     background: var(--color-bg-inset);
     border: 1px solid var(--color-border-default);
-    border-radius: 1.1rem;
+    border-radius: var(--radius-control);
     box-shadow: var(--surface-gloss);
   }
 
   .app-chip {
     background: var(--color-bg-tag);
     border: 1px solid var(--color-border-default);
-    border-radius: 999px;
+    border-radius: var(--radius-pill);
     box-shadow: var(--surface-gloss);
   }
 
   .app-stat {
     background: linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0)), var(--color-bg-card);
     border: 1px solid var(--color-border-subtle);
-    border-radius: 1.4rem;
+    border-radius: var(--radius-panel);
     box-shadow: var(--surface-shadow-soft);
   }
 
@@ -454,7 +460,7 @@
 
 ::-webkit-scrollbar-thumb {
   background: var(--scrollbar-thumb);
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
 }
 
 ::-webkit-scrollbar-thumb:hover {

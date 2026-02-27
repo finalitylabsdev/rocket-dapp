@@ -46,7 +46,7 @@ function AuctionRoundCard({
   return (
     <button
       onClick={() => onSelect(round.roundId)}
-      className="w-full p-4 text-left transition-colors rounded-[1.5rem]"
+      className="w-full p-4 text-left transition-colors rounded-2xl"
       style={{
         background: isSelected ? 'rgba(245,95,217,0.1)' : 'var(--color-bg-card)',
         border: `1px solid ${isSelected ? 'rgba(245,95,217,0.24)' : 'var(--color-border-subtle)'}`,

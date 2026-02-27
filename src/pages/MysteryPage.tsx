@@ -36,7 +36,7 @@ export default function MysteryPage() {
         <div className="mb-6 flex gap-2 app-panel-muted p-2">
           <button
             onClick={() => setActiveTab('vault')}
-            className={`flex-1 flex items-center justify-center gap-2 py-3 font-mono font-semibold text-sm transition-all duration-200 rounded-[1rem] ${
+            className={`flex-1 flex items-center justify-center gap-2 py-3 font-mono font-semibold text-sm transition-all duration-200 rounded-lg ${
               activeTab === 'vault' ? '' : 'text-text-secondary hover:text-text-primary'
             }`}
             style={activeTab === 'vault'
@@ -48,7 +48,7 @@ export default function MysteryPage() {
           </button>
           <button
             onClick={() => setActiveTab('bids')}
-            className={`flex-1 flex items-center justify-center gap-2 py-3 font-mono font-semibold text-sm transition-all duration-200 rounded-[1rem] ${
+            className={`flex-1 flex items-center justify-center gap-2 py-3 font-mono font-semibold text-sm transition-all duration-200 rounded-lg ${
               activeTab === 'bids' ? '' : 'text-text-secondary hover:text-text-primary'
             }`}
             style={activeTab === 'bids'

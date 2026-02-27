@@ -43,7 +43,7 @@ export default function VaultTab() {
               ]);
             }}
             className="px-4 py-2 text-xs font-mono font-semibold uppercase tracking-wider"
-            style={{ color: 'var(--color-accent-gold)', border: '1px solid rgba(255,201,94,0.25)', background: 'rgba(255,201,94,0.08)', borderRadius: '999px' }}
+            style={{ color: 'var(--color-accent-gold)', border: '1px solid rgba(255,201,94,0.25)', background: 'rgba(255,201,94,0.08)', borderRadius: 'var(--radius-pill)' }}
           >
             Retry
           </button>

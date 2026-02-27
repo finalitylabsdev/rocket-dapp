@@ -7,7 +7,7 @@ export function formatFluxValue(value: number): string {
 export const APP3_PANEL_STYLE: CSSProperties = {
   background: 'var(--color-bg-card)',
   border: '1px solid var(--color-border-subtle)',
-  borderRadius: '1.75rem',
+  borderRadius: 'var(--radius-panel)',
   boxShadow: 'var(--surface-shadow-soft)',
   backdropFilter: 'blur(16px)',
 };
@@ -15,14 +15,14 @@ export const APP3_PANEL_STYLE: CSSProperties = {
 export const APP3_INSET_STYLE: CSSProperties = {
   background: 'var(--color-bg-inset)',
   border: '1px solid var(--color-border-default)',
-  borderRadius: '1.15rem',
+  borderRadius: 'var(--radius-surface)',
   boxShadow: 'var(--surface-gloss)',
 };
 
 export const APP3_TRACK_STYLE: CSSProperties = {
   background: 'var(--color-bg-inset)',
   border: '1px solid var(--color-border-subtle)',
-  borderRadius: '999px',
+  borderRadius: 'var(--radius-control)',
 };
 
 export const APP3_TEXT_PRIMARY_STYLE: CSSProperties = {
@@ -41,7 +41,7 @@ export const APP3_CONTROL_STYLE: CSSProperties = {
   background: 'var(--color-bg-inset)',
   border: '1px solid var(--color-border-default)',
   color: 'var(--color-text-primary)',
-  borderRadius: '1rem',
+  borderRadius: 'var(--radius-control)',
   boxShadow: 'var(--surface-gloss)',
 };
 
@@ -49,6 +49,6 @@ export const APP3_SECONDARY_BUTTON_STYLE: CSSProperties = {
   background: 'var(--color-bg-inset)',
   border: '1px solid var(--color-border-default)',
   color: 'var(--color-text-secondary)',
-  borderRadius: '999px',
+  borderRadius: 'var(--radius-pill)',
   boxShadow: 'var(--surface-gloss)',
 };

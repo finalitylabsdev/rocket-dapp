@@ -384,14 +384,14 @@ export default function Hero({ onOpenDex }: HeroProps) {
                   </div>
                 </div>
                 {ethLock.isLocked ? (
-                  <div className="flex items-center justify-center gap-2 p-3 border rounded-[1.25rem]" style={{ background: 'rgba(184,255,85,0.08)', borderColor: 'rgba(184,255,85,0.22)' }}>
+                  <div className="flex items-center justify-center gap-2 p-3 border rounded-2xl" style={{ background: 'rgba(184,255,85,0.08)', borderColor: 'rgba(184,255,85,0.22)' }}>
                     <Lock size={14} style={{ color: 'var(--color-accent-lime)' }} />
                     <span className="text-sm font-mono font-bold" style={{ color: 'var(--color-accent-lime)' }}>ETH LOCKED</span>
                     <span className="text-xs text-text-muted ml-auto font-mono">{game.fluxBalance} Flux available</span>
                   </div>
                 ) : (
                   <div
-                    className="p-3 border rounded-[1.25rem] flex items-center gap-2"
+                    className="p-3 border rounded-2xl flex items-center gap-2"
                     style={{
                       background: ethLock.status === 'error' ? 'rgba(251,113,133,0.08)' : 'rgba(250,204,21,0.06)',
                       borderColor: ethLock.status === 'error' ? 'rgba(251,113,133,0.28)' : 'rgba(250,204,21,0.24)',
@@ -411,7 +411,7 @@ export default function Hero({ onOpenDex }: HeroProps) {
                       <button
                         onClick={() => void handleSubmitLock()}
                         disabled={lockCallToActionDisabled}
-                        className="ml-auto border border-amber-300/30 rounded-full px-3 py-1 text-[10px] font-mono font-semibold tracking-wide text-amber-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="ml-auto border border-amber-300/30 rounded-lg px-3 py-1 text-[10px] font-mono font-semibold tracking-wide text-amber-200 disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         {ethLock.isSubmitting
                           ? 'Submitting...'

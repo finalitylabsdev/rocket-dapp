@@ -291,7 +291,7 @@ export default function LeaderboardPage() {
             ].map((p) => (
               <div
                 key={p.place}
-                className="p-5 flex items-center gap-4 rounded-[1.6rem]"
+                className="p-5 flex items-center gap-4 rounded-3xl"
                 style={{ background: p.bg, border: `1px solid ${p.border}` }}
               >
                 <span className="text-2xl font-mono font-black" style={{ color: p.color }}>{p.rank}</span>
