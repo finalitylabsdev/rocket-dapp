@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { FlaskConical, Star, Rocket } from 'lucide-react';
 import RocketPreview from '../components/lab/RocketPreview';
 import PartsGrid, {
@@ -9,31 +9,61 @@ import StatsPanel from '../components/lab/StatsPanel';
 import { ROCKET_MODELS } from '../components/lab/RocketModels';
 import LaunchSequence from '../components/lab/LaunchSequence';
 type LaunchResult = { score: number; bonus: string; multiplier: string } | null;
+const STORAGE_KEY = 'rocket-lab-state';
+
+interface StoredRocketLabState {
+  equipped?: EquippedParts;
+  levels?: Record<EquippedPartId, number>;
+  scores?: number[];
+}
+
+function loadRocketLabState(): StoredRocketLabState {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) {
+      return {};
+    }
+
+    const parsed = JSON.parse(raw) as StoredRocketLabState;
+    return parsed && typeof parsed === 'object' ? parsed : {};
+  } catch {
+    return {};
+  }
+}
 
 export default function RocketLabPage() {
+  const [persistedState] = useState(loadRocketLabState);
   const selectedModel = 'standard' as const;
 
   const [equipped, setEquipped] = useState<EquippedParts>({
-    engine: true,
-    fuel: true,
-    body: true,
-    wings: false,
-    booster: false,
+    engine: persistedState.equipped?.engine ?? true,
+    fuel: persistedState.equipped?.fuel ?? true,
+    body: persistedState.equipped?.body ?? true,
+    wings: persistedState.equipped?.wings ?? false,
+    booster: persistedState.equipped?.booster ?? false,
   });
 
   const [levels, setLevels] = useState<Record<EquippedPartId, number>>({
-    engine: 1,
-    fuel: 1,
-    body: 1,
-    wings: 1,
-    booster: 1,
+    engine: persistedState.levels?.engine ?? 1,
+    fuel: persistedState.levels?.fuel ?? 1,
+    body: persistedState.levels?.body ?? 1,
+    wings: persistedState.levels?.wings ?? 1,
+    booster: persistedState.levels?.booster ?? 1,
   });
 
-  const [scores, setScores] = useState<number[]>([]);
+  const [scores, setScores] = useState<number[]>(() => persistedState.scores ?? []);
   const [launching, setLaunching] = useState(false);
   const [showSequence, setShowSequence] = useState(false);
   const [launchResult, setLaunchResult] = useState<LaunchResult>(null);
   const [launchPower, setLaunchPower] = useState(0);
+
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({
+      equipped,
+      levels,
+      scores,
+    }));
+  }, [equipped, levels, scores]);
 
   const handleToggle = (id: EquippedPartId) => {
     setEquipped((prev) => ({ ...prev, [id]: !prev[id] }));

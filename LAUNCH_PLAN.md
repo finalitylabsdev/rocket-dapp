@@ -43,7 +43,7 @@ The goal is to launch with a database-authoritative gameplay system that is expl
 
 ### Must Harden Before Launch
 
-- [x] Remove local authority from `GameState` for equipped state, levels, and scores
+- [ ] Remove remaining local authority from Rocket Lab state (`equipped`, `levels`, `scores` still persist locally)
 - [x] Remove or explicitly demote Star Vault fallback catalog/config behavior from the normal launch path
 - [x] Replace page-local nav bars with one persistent cross-app shell
 - [ ] Add visible ETH lock status / gating UX instead of keeping it only in libs
@@ -54,7 +54,6 @@ The goal is to launch with a database-authoritative gameplay system that is expl
 
 ### Still Missing For Launch
 
-- [x] Persistent cross-app shell outside the current page-local App 3 surface
 - [ ] Canonical asset and metadata pipeline for launch visuals
 - [ ] Real App 4 compatibility for the canonical 8-part inventory model
 - [ ] Feature flags for staged rollout
@@ -99,13 +98,13 @@ The goal is to launch with a database-authoritative gameplay system that is expl
 - [x] Star Vault box opening uses ledger-backed FLUX mutation
 - [x] Nebula Bids bidding uses ledger-backed FLUX escrow/refund/payout
 - [x] Faucet claims use ledger-backed FLUX mutation
-- [x] Remove remaining implicit gameplay authority from local UI state
-- [x] Decide whether Rocket Lab is launch-authoritative or explicitly isolate it from the launch economy
+- [ ] Remove remaining implicit gameplay authority from local UI state
+- [ ] Decide whether Rocket Lab is launch-authoritative or explicitly isolate it from the launch economy
 - [x] All FLUX mutations are reason-coded (`whitelist_bonus`, `faucet_claim`, `adjustment` with context)
 - [x] FLUX ledger reconciliation view exists (`flux_ledger_reconciliation` — balance vs ledger sum per wallet)
 - [ ] Add stronger idempotency keys for all balance-mutating flows
 
-**7/8 done. Ledger integrity tooling landed. Remaining work is idempotency hardening.**
+**5/8 done. Ledger integrity tooling landed. Remaining work is local-state cleanup and idempotency hardening.**
 
 ### Stage 4: Replace the Star Vault Prototype with Server Authority
 
@@ -145,9 +144,9 @@ The goal is to launch with a database-authoritative gameplay system that is expl
 - [x] Remove per-page duplicated nav chrome
 - [ ] Add clearer next-step / four-app journey cues
 - [ ] Add lightweight onboarding path
-- [x] Replace placeholder docs links / dead-end navigation
+- [ ] Replace placeholder docs links / dead-end navigation
 
-**6/8 done. Shared shell is in place. Remaining work is journey guidance and onboarding.**
+**5/8 done. Shared shell is in place. Remaining work is docs/navigation polish, journey guidance, and onboarding.**
 
 ### Stage 7: Establish the Canonical Asset and Metadata Pipeline
 
