@@ -234,7 +234,7 @@ export default function Hero({ onOpenDex }: HeroProps) {
   ]);
 
   return (
-    <section className="relative min-h-screen flex flex-col overflow-hidden pt-20">
+    <section className="relative min-h-screen flex flex-col overflow-hidden pt-24">
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex-1 flex items-center">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center w-full py-16 lg:py-0">
           <div className="space-y-8 animate-slide-up">
@@ -253,11 +253,11 @@ export default function Hero({ onOpenDex }: HeroProps) {
             </div>
 
             <div className="space-y-4">
-              <h1 className="font-mono font-black text-4xl sm:text-5xl lg:text-6xl text-text-primary leading-[1.08] uppercase tracking-tight">
+              <h1 className="font-mono font-black text-4xl sm:text-5xl lg:text-6xl text-text-primary leading-[1.02] tracking-tight">
                 Welcome to the{' '}
                 <span className="text-dot-green">Entropy Network</span>
               </h1>
-              <p className="font-mono font-semibold text-xl text-text-muted tracking-widest uppercase">
+              <p className="font-mono font-semibold text-xl text-text-muted tracking-wide">
                 Deterministic. Immutable. Gamified.
               </p>
               <p className="text-text-muted text-lg leading-relaxed max-w-lg">
@@ -350,37 +350,48 @@ export default function Hero({ onOpenDex }: HeroProps) {
 
           <div className="flex items-center justify-center lg:justify-end animate-fade-in" style={{ animationDelay: '0.3s' }}>
             <div className="relative w-full max-w-lg">
-              <div className="bg-bg-card border border-border-default p-8 space-y-6">
+              <div className="app-window p-8 space-y-6">
+                <div className="grid grid-cols-[1.5fr_1fr_auto] gap-2">
+                  <div className="h-3 app-accent-line" />
+                  <div
+                    className="h-3 rounded-full"
+                    style={{ background: 'linear-gradient(90deg, rgba(184,255,85,0.18), rgba(255,255,255,0.08))' }}
+                  />
+                  <div
+                    className="h-3 w-3 rounded-full"
+                    style={{ background: 'var(--color-accent-pink)', boxShadow: '0 0 0 4px rgba(245,95,217,0.14)' }}
+                  />
+                </div>
                 <div className="text-center">
-                  <div className="w-16 h-16 bg-bg-inset border border-border-default flex items-center justify-center mx-auto mb-4">
+                  <div className="w-16 h-16 app-panel-muted flex items-center justify-center mx-auto mb-4">
                     <Zap size={28} className="text-dot-green" />
                   </div>
-                  <p className="font-mono font-bold text-text-primary text-lg uppercase tracking-wider">Entropy Gate</p>
+                  <p className="font-mono font-bold text-text-primary text-lg tracking-tight">Entropy Gate</p>
                   <p className="text-sm text-text-muted mt-1">Lock ETH to begin. Claim Flux daily.</p>
                 </div>
                 <div className="grid grid-cols-3 gap-3">
-                  <div className="bg-bg-inset p-3 text-center border border-border-subtle">
+                  <div className="app-panel-muted p-3 text-center">
                     <p className="font-mono font-bold text-text-primary text-lg">{ethLock.lockAmountLabel}</p>
                     <p className="text-[10px] text-text-muted mt-0.5 font-mono">ETH TO LOCK</p>
                   </div>
-                  <div className="bg-bg-inset p-3 text-center border border-border-subtle">
+                  <div className="app-panel-muted p-3 text-center">
                     <p className="font-mono font-bold text-text-primary text-lg">{EFFECTIVE_DAILY_CLAIM_FLUX}</p>
                     <p className="text-[10px] text-text-muted mt-0.5 font-mono">FLUX / DAY</p>
                   </div>
-                  <div className="bg-bg-inset p-3 text-center border border-border-subtle">
+                  <div className="app-panel-muted p-3 text-center">
                     <p className="font-mono font-bold text-text-primary text-lg">{formatClaimWindow(FAUCET_INTERVAL_SECONDS)}</p>
                     <p className="text-[10px] text-text-muted mt-0.5 font-mono">CLAIM WINDOW</p>
                   </div>
                 </div>
                 {ethLock.isLocked ? (
-                  <div className="flex items-center justify-center gap-2 p-3 border" style={{ background: 'rgba(74,222,128,0.06)', borderColor: 'rgba(74,222,128,0.2)' }}>
-                    <Lock size={14} style={{ color: '#4ADE80' }} />
-                    <span className="text-sm font-mono font-bold" style={{ color: '#4ADE80' }}>ETH LOCKED</span>
+                  <div className="flex items-center justify-center gap-2 p-3 border rounded-[1.25rem]" style={{ background: 'rgba(184,255,85,0.08)', borderColor: 'rgba(184,255,85,0.22)' }}>
+                    <Lock size={14} style={{ color: 'var(--color-accent-lime)' }} />
+                    <span className="text-sm font-mono font-bold" style={{ color: 'var(--color-accent-lime)' }}>ETH LOCKED</span>
                     <span className="text-xs text-text-muted ml-auto font-mono">{game.fluxBalance} Flux available</span>
                   </div>
                 ) : (
                   <div
-                    className="p-3 border flex items-center gap-2"
+                    className="p-3 border rounded-[1.25rem] flex items-center gap-2"
                     style={{
                       background: ethLock.status === 'error' ? 'rgba(251,113,133,0.08)' : 'rgba(250,204,21,0.06)',
                       borderColor: ethLock.status === 'error' ? 'rgba(251,113,133,0.28)' : 'rgba(250,204,21,0.24)',
@@ -400,7 +411,7 @@ export default function Hero({ onOpenDex }: HeroProps) {
                       <button
                         onClick={() => void handleSubmitLock()}
                         disabled={lockCallToActionDisabled}
-                        className="ml-auto border border-amber-300/30 px-2.5 py-1 text-[10px] font-mono font-semibold uppercase tracking-wider text-amber-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="ml-auto border border-amber-300/30 rounded-full px-3 py-1 text-[10px] font-mono font-semibold tracking-wide text-amber-200 disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         {ethLock.isSubmitting
                           ? 'Submitting...'

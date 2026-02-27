@@ -46,15 +46,17 @@ function AuctionRoundCard({
   return (
     <button
       onClick={() => onSelect(round.roundId)}
-      className="w-full p-4 text-left transition-colors"
+      className="w-full p-4 text-left transition-colors rounded-[1.5rem]"
       style={{
-        background: isSelected ? 'rgba(168,85,247,0.08)' : 'var(--color-bg-base)',
-        border: `1px solid ${isSelected ? 'rgba(168,85,247,0.3)' : 'var(--color-border-subtle)'}`,
+        background: isSelected ? 'rgba(245,95,217,0.1)' : 'var(--color-bg-card)',
+        border: `1px solid ${isSelected ? 'rgba(245,95,217,0.24)' : 'var(--color-border-subtle)'}`,
+        boxShadow: isSelected ? 'var(--surface-shadow-soft)' : 'var(--surface-gloss)',
       }}
     >
+      <div className="mb-3 h-1 rounded-full" style={{ background: isSelected ? 'linear-gradient(90deg, var(--color-accent-pink) 0%, var(--color-accent-lime) 100%)' : 'linear-gradient(90deg, rgba(255,255,255,0.06), rgba(255,255,255,0.01))' }} />
       <div className="flex items-center justify-between gap-3">
         <div>
-          <p className="font-mono font-black text-sm uppercase tracking-wider" style={APP3_TEXT_PRIMARY_STYLE}>
+          <p className="font-mono font-black text-sm tracking-tight" style={APP3_TEXT_PRIMARY_STYLE}>
             Round #{round.roundId}
           </p>
           <p className="text-[10px] mt-1 font-mono uppercase tracking-wider" style={APP3_TEXT_SECONDARY_STYLE}>

@@ -45,29 +45,31 @@ export default function ShellNav({ page, onNavigate }: ShellNavProps) {
 
   return (
     <nav
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-        isHome
-          ? scrolled
-            ? 'bg-bg-base/95 backdrop-blur-md border-b border-border-subtle'
-            : 'bg-transparent'
-          : 'bg-bg-base/95 backdrop-blur-md border-b border-border-subtle'
-      }`}
+      className="fixed top-0 left-0 right-0 z-50 px-3 pt-3 sm:px-4 sm:pt-4"
     >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16 md:h-20">
+      <div className="max-w-7xl mx-auto">
+        <div
+          className={`app-window px-4 sm:px-5 lg:px-6 transition-all duration-300 ${
+            isHome && !scrolled ? 'bg-bg-card/72' : ''
+          }`}
+        >
+          <div className="flex items-center justify-between h-16 md:h-[4.6rem]">
           {/* Left side */}
           {isHome ? (
             <div className="flex items-center gap-3">
               <div
-                className="w-9 h-9 flex items-center justify-center"
-                style={{ background: 'var(--color-text-primary)' }}
+                className="w-10 h-10 flex items-center justify-center rounded-2xl"
+                style={{
+                  background: 'linear-gradient(135deg, var(--color-accent-lime) 0%, #d7ff8f 100%)',
+                  boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.35), 0 12px 24px rgba(184,255,85,0.18)',
+                }}
               >
-                <PhiSymbol size={20} color="var(--color-bg-base)" />
+                <PhiSymbol size={20} color="#081008" />
               </div>
               <div>
-                <span className="font-mono font-bold text-lg leading-none uppercase tracking-wider text-text-primary">Entropy</span>
-                <div className="mt-0.5 text-[10px] font-medium leading-none font-mono tracking-wider text-text-muted">
-                  ɸ-net · PROOF-OF-INFINITY
+                <span className="font-mono font-bold text-lg leading-none tracking-tight text-text-primary">Entropy</span>
+                <div className="mt-0.5 text-[10px] font-medium leading-none font-mono tracking-wide text-text-muted">
+                  ɸ-net • Proof-of-Infinity
                 </div>
               </div>
             </div>
@@ -75,12 +77,12 @@ export default function ShellNav({ page, onNavigate }: ShellNavProps) {
             <div className="flex items-center gap-4">
               <button
                 onClick={() => onNavigate('home')}
-                className="flex items-center gap-2 text-text-muted hover:text-text-primary transition-colors group"
+                className="flex items-center gap-2 text-text-muted hover:text-text-primary transition-colors group app-chip px-2 py-2"
               >
-                <div className="w-8 h-8 bg-bg-card border border-border-default group-hover:border-border-strong flex items-center justify-center transition-all">
+                <div className="w-8 h-8 bg-bg-inset border border-border-default group-hover:border-border-strong rounded-xl flex items-center justify-center transition-all">
                   <ArrowLeft size={15} className="text-text-secondary group-hover:text-text-primary" />
                 </div>
-                <span className="text-sm font-mono font-medium hidden sm:inline uppercase tracking-wider">Back</span>
+                <span className="text-sm font-mono font-medium hidden sm:inline">Back</span>
               </button>
               <div className="h-5 w-px bg-border-default" />
               {(() => {
@@ -88,11 +90,14 @@ export default function ShellNav({ page, onNavigate }: ShellNavProps) {
                 return (
                   <div className="flex items-center gap-3">
                     <div
-                      className={page === 'lab' ? 'w-8 h-8 flex items-center justify-center' : 'w-8 h-8 bg-dot-green flex items-center justify-center'}
+                      className={page === 'lab' ? 'w-9 h-9 flex items-center justify-center rounded-2xl' : 'w-9 h-9 flex items-center justify-center rounded-2xl'}
                       style={
                         page === 'lab'
-                          ? { background: 'rgba(148,163,184,0.15)', border: '1px solid rgba(148,163,184,0.35)' }
-                          : undefined
+                          ? { background: 'rgba(148,163,184,0.14)', border: '1px solid rgba(148,163,184,0.28)' }
+                          : {
+                            background: 'linear-gradient(135deg, var(--color-accent-lime) 0%, #d7ff8f 100%)',
+                            boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.35), 0 10px 24px rgba(184,255,85,0.18)',
+                          }
                       }
                     >
                       {page === 'lab'
@@ -103,8 +108,8 @@ export default function ShellNav({ page, onNavigate }: ShellNavProps) {
                       }
                     </div>
                     <div>
-                      <span className="font-mono font-bold text-text-primary text-base leading-none uppercase tracking-wider">{meta.title}</span>
-                      <div className="text-[10px] font-mono font-medium text-text-muted leading-none mt-0.5 uppercase tracking-wider">{meta.subtitle}</div>
+                      <span className="font-mono font-bold text-text-primary text-base leading-none tracking-tight">{meta.title}</span>
+                      <div className="text-[10px] font-mono font-medium text-text-muted leading-none mt-0.5 tracking-wide">{meta.subtitle}</div>
                     </div>
                   </div>
                 );
@@ -113,9 +118,9 @@ export default function ShellNav({ page, onNavigate }: ShellNavProps) {
           )}
 
           {/* Right side — desktop */}
-          <div className="hidden md:flex items-center gap-1">
+          <div className="hidden md:flex items-center gap-2">
             {wallet.isConnected && (
-              <div className="flex items-center gap-1.5 text-text-secondary font-mono font-medium text-sm px-3 py-2 bg-bg-card/50 border border-border-subtle mr-1">
+              <div className="flex items-center gap-1.5 text-text-secondary font-mono font-medium text-sm px-3 py-2 app-chip mr-1">
                 <PhiSymbol size={13} color="var(--color-text-primary)" />
                 <span className="font-bold text-text-primary">{game.fluxBalance}</span>
               </div>
@@ -124,14 +129,14 @@ export default function ShellNav({ page, onNavigate }: ShellNavProps) {
               <>
                 <button
                   onClick={() => toast.info('Documentation coming soon')}
-                  className="flex items-center gap-1.5 text-text-secondary hover:text-text-primary font-mono font-medium text-sm px-4 py-2 hover:bg-bg-card transition-all duration-200"
+                  className="flex items-center gap-1.5 text-text-secondary hover:text-text-primary font-mono font-medium text-sm px-4 py-2 app-chip"
                 >
                   <FileText size={15} />
                   DOCS
                 </button>
                 <button
                   onClick={() => onNavigate('leaderboard')}
-                  className="flex items-center gap-1.5 text-text-secondary hover:text-text-primary font-mono font-medium text-sm px-4 py-2 hover:bg-bg-card transition-all duration-200"
+                  className="flex items-center gap-1.5 text-text-secondary hover:text-text-primary font-mono font-medium text-sm px-4 py-2 app-chip"
                 >
                   <Trophy size={15} />
                   JACKPOT
@@ -140,21 +145,21 @@ export default function ShellNav({ page, onNavigate }: ShellNavProps) {
             )}
             <button
               onClick={toggleTheme}
-              className="flex items-center justify-center w-9 h-9 text-text-secondary hover:text-text-primary hover:bg-bg-card transition-all duration-200"
+              className="flex items-center justify-center w-10 h-10 text-text-secondary hover:text-text-primary app-chip"
               aria-label="Toggle theme"
             >
               {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
             </button>
             {wallet.isConnected ? (
               <div className="ml-2 flex items-center gap-2">
-                <div className="flex items-center gap-2 bg-bg-card border border-border-subtle px-3 py-2">
+                <div className="flex items-center gap-2 app-chip px-3 py-2">
                   <div className="glow-dot" />
                   <span className="text-xs font-mono font-semibold text-text-primary">{wallet.displayAddress}</span>
                 </div>
                 <button
                   onClick={() => void wallet.disconnect()}
                   disabled={wallet.isConnecting}
-                  className="w-9 h-9 bg-bg-card border border-border-subtle flex items-center justify-center hover:border-border-strong transition-all"
+                  className="w-10 h-10 app-chip flex items-center justify-center hover:border-border-strong transition-all"
                 >
                   <LogOut size={14} className="text-text-secondary" />
                 </button>
@@ -174,7 +179,7 @@ export default function ShellNav({ page, onNavigate }: ShellNavProps) {
           {/* Mobile hamburger */}
           <button
             onClick={() => setMobileOpen(!mobileOpen)}
-            className="md:hidden w-10 h-10 flex items-center justify-center hover:bg-bg-card transition-colors"
+            className="md:hidden w-10 h-10 flex items-center justify-center app-chip"
           >
             {mobileOpen ? <X size={20} className="text-text-primary" /> : <Menu size={20} className="text-text-primary" />}
           </button>
@@ -182,9 +187,9 @@ export default function ShellNav({ page, onNavigate }: ShellNavProps) {
 
         {/* Mobile menu */}
         {mobileOpen && (
-          <div className="md:hidden pb-4 space-y-1 border-t border-border-subtle pt-4">
+          <div className="md:hidden pb-4 space-y-2 border-t border-border-subtle pt-4">
             {wallet.isConnected && (
-              <div className="flex items-center gap-2 px-4 py-2">
+              <div className="flex items-center gap-2 px-4 py-2 app-chip">
                 <PhiSymbol size={13} color="var(--color-text-primary)" />
                 <span className="font-bold text-text-primary text-sm font-mono">{game.fluxBalance}</span>
                 <span className="text-xs text-text-muted font-mono">FLUX</span>
@@ -194,14 +199,14 @@ export default function ShellNav({ page, onNavigate }: ShellNavProps) {
               <>
                 <button
                   onClick={() => { toast.info('Documentation coming soon'); setMobileOpen(false); }}
-                  className="w-full flex items-center gap-2 text-text-secondary font-mono font-medium text-sm px-4 py-3 hover:bg-bg-card"
+                  className="w-full flex items-center gap-2 text-text-secondary font-mono font-medium text-sm px-4 py-3 app-chip"
                 >
                   <FileText size={15} />
                   DOCS
                 </button>
                 <button
                   onClick={() => { onNavigate('leaderboard'); setMobileOpen(false); }}
-                  className="w-full flex items-center gap-2 text-text-secondary font-mono font-medium text-sm px-4 py-3 hover:bg-bg-card"
+                  className="w-full flex items-center gap-2 text-text-secondary font-mono font-medium text-sm px-4 py-3 app-chip"
                 >
                   <Trophy size={15} />
                   JACKPOT
@@ -210,7 +215,7 @@ export default function ShellNav({ page, onNavigate }: ShellNavProps) {
             )}
             <button
               onClick={toggleTheme}
-              className="w-full flex items-center gap-2 text-text-secondary font-mono font-medium text-sm px-4 py-3 hover:bg-bg-card"
+              className="w-full flex items-center gap-2 text-text-secondary font-mono font-medium text-sm px-4 py-3 app-chip"
             >
               {theme === 'dark' ? <Sun size={15} /> : <Moon size={15} />}
               {theme === 'dark' ? 'LIGHT MODE' : 'DARK MODE'}
@@ -218,14 +223,14 @@ export default function ShellNav({ page, onNavigate }: ShellNavProps) {
             <div className="pt-2 px-2">
               {wallet.isConnected ? (
                 <div className="flex items-center gap-2">
-                  <div className="flex-1 flex items-center gap-2 bg-bg-card border border-border-subtle px-3 py-2.5">
+                  <div className="flex-1 flex items-center gap-2 app-chip px-3 py-2.5">
                     <div className="glow-dot" />
                     <span className="text-xs font-mono font-semibold text-text-primary">{wallet.displayAddress}</span>
                   </div>
                   <button
                     onClick={() => void wallet.disconnect()}
                     disabled={wallet.isConnecting}
-                    className="w-10 h-10 bg-bg-card border border-border-subtle flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-10 h-10 app-chip flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <LogOut size={14} className="text-text-secondary" />
                   </button>
@@ -243,6 +248,7 @@ export default function ShellNav({ page, onNavigate }: ShellNavProps) {
             </div>
           </div>
         )}
+          </div>
       </div>
     </nav>
   );

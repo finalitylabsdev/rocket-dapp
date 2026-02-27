@@ -15,7 +15,7 @@ export default function MysteryPage() {
   };
 
   return (
-    <div className="relative z-10 pt-20 md:pt-24 pb-16 px-4 sm:px-6 lg:px-8">
+    <div className="relative z-10 pt-24 md:pt-28 pb-16 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-10">
           <div className="flex justify-center mb-4">
@@ -24,7 +24,7 @@ export default function MysteryPage() {
               Crack open the cosmos. Bid on destiny.
             </span>
           </div>
-          <h1 className="font-mono font-black text-3xl md:text-5xl lg:text-6xl text-text-primary mb-4 leading-[1.08] uppercase tracking-wider">
+          <h1 className="font-mono font-black text-3xl md:text-5xl lg:text-6xl text-text-primary mb-4 leading-[1.02] tracking-tight">
             Star Vault &amp; Nebula Bids
           </h1>
           <p className="text-text-secondary text-lg font-mono">
@@ -32,30 +32,31 @@ export default function MysteryPage() {
           </p>
         </div>
 
-        <div className="mb-6 flex gap-0 border border-border-subtle overflow-hidden">
+        <div className="app-window p-4 sm:p-5">
+        <div className="mb-6 flex gap-2 app-panel-muted p-2">
           <button
             onClick={() => setActiveTab('vault')}
-            className={`flex-1 flex items-center justify-center gap-2 py-3 font-mono font-semibold text-sm transition-all duration-200 ${
+            className={`flex-1 flex items-center justify-center gap-2 py-3 font-mono font-semibold text-sm transition-all duration-200 rounded-[1rem] ${
               activeTab === 'vault' ? '' : 'text-text-secondary hover:text-text-primary'
             }`}
             style={activeTab === 'vault'
-              ? { background: 'rgba(246,197,71,0.08)', color: '#F6C547', borderBottom: '2px solid #F6C547' }
+              ? { background: 'rgba(255,201,94,0.14)', color: 'var(--color-accent-gold)', boxShadow: 'var(--surface-gloss)' }
               : undefined}
           >
             <Gift size={14} />
-            STAR VAULT
+            Star Vault
           </button>
           <button
             onClick={() => setActiveTab('bids')}
-            className={`flex-1 flex items-center justify-center gap-2 py-3 font-mono font-semibold text-sm transition-all duration-200 ${
+            className={`flex-1 flex items-center justify-center gap-2 py-3 font-mono font-semibold text-sm transition-all duration-200 rounded-[1rem] ${
               activeTab === 'bids' ? '' : 'text-text-secondary hover:text-text-primary'
             }`}
             style={activeTab === 'bids'
-              ? { background: 'rgba(168,85,247,0.08)', color: '#A855F7', borderBottom: '2px solid #A855F7' }
+              ? { background: 'rgba(245,95,217,0.14)', color: 'var(--color-accent-pink)', boxShadow: 'var(--surface-gloss)' }
               : undefined}
           >
             <Gavel size={14} />
-            NEBULA BIDS
+            Nebula Bids
           </button>
         </div>
 
@@ -72,6 +73,7 @@ export default function MysteryPage() {
           </div>
 
           <InventoryPanel onSendToAuction={handleSendToAuction} />
+        </div>
         </div>
       </div>
     </div>

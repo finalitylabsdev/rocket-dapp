@@ -135,7 +135,7 @@ export default function RocketLabPage() {
 
   return (
     <div className="relative overflow-hidden">
-      <div className="relative z-10 pt-20 md:pt-24 pb-16 px-4 sm:px-6 lg:px-8">
+      <div className="relative z-10 pt-24 md:pt-28 pb-16 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
 
           <div className="text-center mb-10">
@@ -145,7 +145,7 @@ export default function RocketLabPage() {
                 Rocket Lab
               </span>
             </div>
-            <h1 className="font-mono font-black text-3xl md:text-5xl lg:text-6xl mb-3 leading-[1.08] uppercase tracking-wider text-text-primary">
+            <h1 className="font-mono font-black text-3xl md:text-5xl lg:text-6xl mb-3 leading-[1.02] tracking-tight text-text-primary">
               Rocket Lab
             </h1>
             <p className="text-lg font-mono text-text-muted">
@@ -153,12 +153,12 @@ export default function RocketLabPage() {
             </p>
             {bestScore > 0 && (
               <div className="flex items-center justify-center gap-4 mt-4">
-                <div className="flex items-center gap-2 px-4 py-2" style={{ background: 'var(--color-bg-card)', border: '1px solid var(--color-border-subtle)' }}>
+                <div className="flex items-center gap-2 px-4 py-2 app-chip">
                   <Rocket size={14} style={{ color: '#F97316' }} />
                   <span className="font-mono font-bold text-sm text-text-primary">{scores.length}</span>
                   <span className="text-xs font-mono text-text-muted">LAUNCHES</span>
                 </div>
-                <div className="flex items-center gap-2 px-4 py-2" style={{ background: 'var(--color-bg-card)', border: '1px solid var(--color-border-subtle)' }}>
+                <div className="flex items-center gap-2 px-4 py-2 app-chip">
                   <Star size={14} style={{ color: '#FACC15' }} />
                   <span className="font-mono font-bold text-sm text-text-primary">{bestScore.toLocaleString()}</span>
                   <span className="text-xs font-mono text-text-muted">BEST GS</span>
@@ -168,7 +168,7 @@ export default function RocketLabPage() {
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-[260px_1fr_300px] gap-5 items-start">
-            <div className="overflow-hidden" style={{ background: 'var(--color-bg-card)', border: '1px solid var(--color-border-subtle)' }}>
+            <div className="overflow-hidden app-window">
               <div className="px-5 pt-5 pb-2" style={{ borderBottom: '1px solid var(--color-border-subtle)' }}>
                 <div className="flex items-center justify-between">
                   <p className="font-mono font-bold text-sm uppercase tracking-wider text-text-primary">Preview</p>
@@ -188,7 +188,7 @@ export default function RocketLabPage() {
               />
             </div>
 
-            <div className="p-5" style={{ background: 'var(--color-bg-card)', border: '1px solid var(--color-border-subtle)' }}>
+            <div className="p-5 app-window">
               <PartsGrid
                 equipped={equipped}
                 levels={levels}
@@ -206,7 +206,7 @@ export default function RocketLabPage() {
                 launching={launching}
               />
 
-              <div className="p-4" style={{ background: 'var(--color-bg-card)', border: '1px solid var(--color-border-subtle)' }}>
+              <div className="p-4 app-window">
                 <p className="font-mono text-xs font-bold mb-3 uppercase tracking-widest text-text-muted">YOUR LAUNCH HISTORY</p>
                 {scores.length === 0 ? (
                   <p className="text-xs py-2 font-mono text-text-muted">No launches yet. Equip parts and launch!</p>

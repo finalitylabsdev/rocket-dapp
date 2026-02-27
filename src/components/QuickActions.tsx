@@ -94,7 +94,7 @@ export default function QuickActions({ onOpenDex, onOpenMystery, onOpenLab, onOp
 
   return (
     <section className="py-20 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-7xl mx-auto">
+      <div className="max-w-7xl mx-auto app-window p-6 sm:p-8">
         <div
           ref={ref}
           className={`text-center mb-12 transition-all duration-700 ${
@@ -111,29 +111,35 @@ export default function QuickActions({ onOpenDex, onOpenMystery, onOpenLab, onOp
           {cards.map((card, i) => (
             <div
               key={card.id}
-              className={`relative bg-bg-card border overflow-hidden cursor-pointer transition-all duration-300 ${
+              className={`relative overflow-hidden cursor-pointer transition-all duration-300 rounded-[1.75rem] ${
                 hovered === card.id
-                  ? 'border-border-strong bg-bg-card-hover'
+                  ? 'border-border-strong bg-bg-card-hover -translate-y-1'
                   : 'border-border-subtle'
               } ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
-              style={{ transitionDelay: `${i * 70}ms` }}
+              style={{
+                transitionDelay: `${i * 70}ms`,
+                background: 'var(--color-bg-card)',
+                borderWidth: '1px',
+                boxShadow: hovered === card.id ? 'var(--surface-shadow)' : 'var(--surface-shadow-soft)',
+              }}
               onMouseEnter={() => setHovered(card.id)}
               onMouseLeave={() => setHovered(null)}
             >
+              <div className="absolute inset-x-0 top-0 h-1 app-accent-line opacity-80" />
               {card.badge && (
                 <div className="absolute top-3 right-3 z-10">
-                  <span className="bg-dot-green text-black text-[10px] font-mono font-bold px-2 py-0.5 uppercase tracking-wider">
+                  <span className="bg-dot-green text-black text-[10px] font-mono font-bold px-2.5 py-1 rounded-full tracking-wide">
                     {card.badge}
                   </span>
                 </div>
               )}
 
               <div className="p-5 flex flex-col h-full">
-                <div className="w-11 h-11 bg-bg-inset border border-border-default flex items-center justify-center mb-4">
+                <div className="w-11 h-11 app-panel-muted flex items-center justify-center mb-4">
                   {card.icon}
                 </div>
 
-                <h3 className="font-mono font-bold text-text-primary text-base leading-tight mb-1 uppercase tracking-wider">
+                <h3 className="font-mono font-bold text-text-primary text-base leading-tight mb-1 tracking-tight">
                   {card.title}
                 </h3>
                 <p className="text-xs font-mono font-semibold text-text-secondary mb-2">{card.tagline}</p>
@@ -141,16 +147,17 @@ export default function QuickActions({ onOpenDex, onOpenMystery, onOpenLab, onOp
 
                 <div className="grid grid-cols-2 gap-2 mb-4">
                   {card.stats.map((stat, j) => (
-                    <div key={j} className="bg-bg-inset p-2 text-center border border-border-subtle">
+                    <div key={j} className="app-panel-muted p-2 text-center">
                       <p className="font-mono font-bold text-text-primary text-sm leading-none">{stat.value}</p>
-                      <p className="text-[10px] text-text-muted mt-0.5 leading-none font-mono uppercase">{stat.label}</p>
+                      <p className="text-[10px] text-text-muted mt-0.5 leading-none font-mono">{stat.label}</p>
                     </div>
                   ))}
                 </div>
 
                 <button
                   onClick={card.id === 'dex' ? onOpenDex : card.id === 'mystery' ? onOpenMystery : card.id === 'lab' ? onOpenLab : card.id === 'leaderboard' ? onOpenLeaderboard : undefined}
-                  className="w-full border border-dot-green text-dot-green hover:bg-dot-green/10 font-mono font-semibold text-sm py-2.5 transition-all duration-200 flex items-center justify-center gap-1.5 active:scale-95 uppercase tracking-wider"
+                  className="w-full btn-secondary font-mono font-semibold text-sm py-2.5 flex items-center justify-center gap-1.5 active:scale-95"
+                  style={hovered === card.id ? { borderColor: 'var(--color-accent-lime)', color: 'var(--color-text-primary)' } : undefined}
                 >
                   {card.buttonLabel}
                   <ChevronRight size={13} />

@@ -27,7 +27,7 @@ export default function DexPage() {
 
   return (
     <PriceProvider>
-      <div className="pt-20 md:pt-24 pb-16 px-4 sm:px-6 lg:px-8">
+      <div className="pt-24 md:pt-28 pb-16 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-10">
             <div className="flex justify-center mb-3">
@@ -36,7 +36,7 @@ export default function DexPage() {
                 Decentralized Exchange
               </span>
             </div>
-            <h1 className="font-mono font-black text-3xl md:text-4xl lg:text-5xl text-text-primary mb-3 uppercase tracking-wider">
+            <h1 className="font-mono font-black text-3xl md:text-4xl lg:text-5xl text-text-primary mb-3 tracking-tight">
               Entropy Exchange
             </h1>
             <p className="text-text-muted text-lg font-mono">
@@ -47,27 +47,29 @@ export default function DexPage() {
 
           <div className="grid grid-cols-1 lg:grid-cols-[1fr_360px] xl:grid-cols-[1fr_400px] gap-6 max-w-5xl mx-auto lg:max-w-none">
             {DEX_TRADING_ENABLED ? (
-              <div className="bg-bg-card border border-border-subtle overflow-hidden">
+              <div className="app-window overflow-hidden">
                 <div className="p-6 border-b border-border-subtle">
-                  <div className="flex gap-0 border border-border-subtle">
+                  <div className="flex gap-2 app-panel-muted p-2">
                     <button
                       onClick={() => setActiveTab('swap')}
-                      className={`flex-1 flex items-center justify-center gap-2 py-2.5 font-mono font-semibold text-sm transition-all duration-200 ${
+                      className={`flex-1 flex items-center justify-center gap-2 py-2.5 font-mono font-semibold text-sm transition-all duration-200 rounded-[1rem] ${
                         activeTab === 'swap'
-                          ? 'bg-dot-green/10 text-dot-green border-b-2 border-dot-green'
+                          ? 'text-dot-green'
                           : 'text-text-secondary hover:text-text-primary'
                       }`}
+                      style={activeTab === 'swap' ? { background: 'rgba(184,255,85,0.12)', boxShadow: 'var(--surface-gloss)' } : undefined}
                     >
                       <ArrowLeftRight size={14} />
                       SWAP
                     </button>
                     <button
                       onClick={() => setActiveTab('liquidity')}
-                      className={`flex-1 flex items-center justify-center gap-2 py-2.5 font-mono font-semibold text-sm transition-all duration-200 ${
+                      className={`flex-1 flex items-center justify-center gap-2 py-2.5 font-mono font-semibold text-sm transition-all duration-200 rounded-[1rem] ${
                         activeTab === 'liquidity'
-                          ? 'bg-dot-green/10 text-dot-green border-b-2 border-dot-green'
+                          ? 'text-dot-green'
                           : 'text-text-secondary hover:text-text-primary'
                       }`}
+                      style={activeTab === 'liquidity' ? { background: 'rgba(184,255,85,0.12)', boxShadow: 'var(--surface-gloss)' } : undefined}
                     >
                       <Droplets size={14} />
                       LIQUIDITY
@@ -92,7 +94,7 @@ export default function DexPage() {
                 </div>
               </div>
             ) : (
-              <div className="relative bg-bg-card border border-border-subtle overflow-hidden">
+              <div className="relative app-window overflow-hidden">
                 <div
                   className="absolute -top-20 -right-20 w-72 h-72 rounded-full blur-3xl pointer-events-none"
                   style={{ background: 'radial-gradient(circle, rgba(74,222,128,0.18) 0%, rgba(74,222,128,0) 70%)' }}
@@ -118,7 +120,7 @@ export default function DexPage() {
                       { icon: Droplets, title: 'Liquidity', value: 'Vault Bootstrapping' },
                       { icon: TimerReset, title: 'Launch', value: 'Mainnet Release Window' },
                     ].map((item) => (
-                      <div key={item.title} className="bg-bg-inset/70 border border-border-subtle p-4">
+                      <div key={item.title} className="app-panel-muted p-4">
                         <div className="flex items-center gap-2 mb-1.5">
                           <item.icon size={13} className="text-dot-green" />
                           <span className="text-[11px] uppercase tracking-widest font-mono text-text-muted">{item.title}</span>
@@ -148,9 +150,9 @@ export default function DexPage() {
 
           <div className="mt-10 grid grid-cols-2 sm:grid-cols-4 gap-4 max-w-5xl mx-auto lg:max-w-none">
             {summaryCards.map((item) => (
-              <div key={item.label} className="bg-bg-card border border-border-subtle p-4 text-center">
+              <div key={item.label} className="app-stat p-4 text-center">
                 <p className="font-mono font-bold text-text-primary text-lg">{item.value}</p>
-                <p className="text-sm font-mono font-medium text-text-secondary mt-0.5 uppercase tracking-wider">{item.label}</p>
+                <p className="text-sm font-mono font-medium text-text-secondary mt-0.5 tracking-wide">{item.label}</p>
                 <p className="text-xs text-text-muted mt-0.5">{item.sub}</p>
               </div>
             ))}

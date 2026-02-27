@@ -4,11 +4,11 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        mono: ["'JetBrains Mono'", 'monospace'],
-        inter: ['Inter', 'sans-serif'],
-        display: ["'JetBrains Mono'", 'monospace'],
-        data: ["'JetBrains Mono'", 'monospace'],
-        poppins: ["'JetBrains Mono'", 'monospace'],
+        mono: ["'Space Grotesk'", 'sans-serif'],
+        inter: ["'IBM Plex Sans'", 'sans-serif'],
+        display: ["'Space Grotesk'", 'sans-serif'],
+        data: ["'IBM Plex Sans'", 'sans-serif'],
+        poppins: ["'Space Grotesk'", 'sans-serif'],
       },
       colors: {
         // Base void palette (from brief)
@@ -36,11 +36,11 @@ export default {
         'accent-dim': 'var(--color-text-muted)',
 
         // Accent colours (fixed — work on both themes)
-        'dot-green': '#4ADE80',
+        'dot-green': 'var(--color-accent-lime)',
         'app-gate': '#8B5CF6',
         'app-exchange': '#06D6A0',
-        'app-vault': '#F6C547',
-        'app-bids': '#A855F7',
+        'app-vault': 'var(--color-accent-gold)',
+        'app-bids': 'var(--color-accent-pink)',
         'app-assembler': '#94A3B8',
         'app-liftoff': '#F97316',
         'app-jackpot': '#FACC15',
@@ -56,16 +56,16 @@ export default {
         'rarity-quantum': '#E8ECF4',
       },
       borderRadius: {
-        '2xl': '4px',
-        '3xl': '4px',
-        '4xl': '4px',
+        '2xl': '1.25rem',
+        '3xl': '1.75rem',
+        '4xl': '2.25rem',
       },
       boxShadow: {
-        card: 'none',
-        'card-hover': 'none',
-        glow: 'none',
-        'glow-sm': 'none',
-        inner: 'none',
+        card: '0 24px 60px rgba(7, 10, 18, 0.14)',
+        'card-hover': '0 30px 80px rgba(7, 10, 18, 0.22)',
+        glow: '0 0 0 1px rgba(184, 255, 85, 0.1), 0 18px 44px rgba(184, 255, 85, 0.12)',
+        'glow-sm': '0 0 0 1px rgba(184, 255, 85, 0.12), 0 12px 24px rgba(184, 255, 85, 0.12)',
+        inner: 'inset 0 1px 0 rgba(255, 255, 255, 0.35)',
       },
       animation: {
         'spin-slow': 'spin 12s linear infinite',

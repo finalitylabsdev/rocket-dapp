@@ -23,13 +23,14 @@ export default function InventoryPartCard({ part, onSendToAuction }: InventoryPa
   const canSendToAuction = Boolean(onSendToAuction) && !part.isLocked && part.rarityTierId >= AUCTION_MIN_RARITY_TIER;
 
   return (
-    <div className="p-4" style={APP3_PANEL_STYLE}>
+    <div className="p-4 overflow-hidden" style={APP3_PANEL_STYLE}>
+      <div className="mb-3 h-1 rounded-full" style={{ background: 'linear-gradient(90deg, var(--color-accent-pink) 0%, var(--color-accent-lime) 100%)', opacity: 0.7 }} />
       <div className="flex items-start justify-between gap-3">
         <div>
-          <p className="font-mono font-black text-sm uppercase tracking-wider" style={APP3_TEXT_PRIMARY_STYLE}>
+          <p className="font-mono font-black text-sm tracking-tight" style={APP3_TEXT_PRIMARY_STYLE}>
             {part.name}
           </p>
-          <p className="text-[10px] mt-1 font-mono uppercase tracking-wider" style={APP3_TEXT_MUTED_STYLE}>
+          <p className="text-[10px] mt-1 font-mono tracking-wide" style={APP3_TEXT_MUTED_STYLE}>
             {part.sectionName}
           </p>
         </div>
@@ -89,7 +90,7 @@ export default function InventoryPartCard({ part, onSendToAuction }: InventoryPa
           onClick={() => onSendToAuction?.(part)}
           disabled={!canSendToAuction}
           className="py-2 text-[10px] font-mono font-semibold uppercase tracking-wider disabled:opacity-40 disabled:cursor-not-allowed"
-          style={{ background: 'rgba(168,85,247,0.08)', border: '1px solid rgba(168,85,247,0.22)', color: '#C084FC' }}
+          style={{ background: 'rgba(245,95,217,0.1)', border: '1px solid rgba(245,95,217,0.24)', color: 'var(--color-accent-pink)', borderRadius: '999px' }}
         >
           {part.isLocked ? 'Locked' : 'Send to Auction'}
         </button>

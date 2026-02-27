@@ -50,9 +50,10 @@ export default function AuctionDetail({ activeAuction, isPlacingBid, onPlaceBid 
 
   return (
     <div className="p-5" style={APP3_PANEL_STYLE}>
+      <div className="mb-4 h-1 rounded-full" style={{ background: 'linear-gradient(90deg, var(--color-accent-pink) 0%, var(--color-accent-lime) 100%)', opacity: 0.82 }} />
       <div className="flex items-center justify-between gap-3">
         <div>
-          <p className="font-mono font-black text-lg uppercase tracking-wider" style={APP3_TEXT_PRIMARY_STYLE}>
+          <p className="font-mono font-black text-lg tracking-tight" style={APP3_TEXT_PRIMARY_STYLE}>
             {part.name}
           </p>
           <p className="mt-1 text-[10px] font-mono uppercase tracking-wider" style={APP3_TEXT_SECONDARY_STYLE}>

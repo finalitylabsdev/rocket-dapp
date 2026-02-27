@@ -19,10 +19,10 @@ export default function MarketStats() {
       ref={ref}
       className={`space-y-4 transition-all duration-700 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}
     >
-      <div className="bg-bg-card border border-border-subtle p-5">
+      <div className="app-panel p-5">
         <div className="flex items-center gap-2 mb-4">
           <Activity size={15} className="text-dot-green" />
-          <h3 className="font-mono font-bold text-text-primary text-sm uppercase tracking-wider">Live Market</h3>
+          <h3 className="font-mono font-bold text-text-primary text-sm tracking-tight">Live Market</h3>
           <div className="ml-auto flex items-center gap-1">
             <div className="glow-dot" />
             <span className="text-[10px] text-dot-green font-mono font-semibold uppercase">Live</span>
@@ -38,7 +38,7 @@ export default function MarketStats() {
             return (
               <div
                 key={token.symbol}
-                className="flex items-center justify-between p-3 bg-bg-inset border border-border-subtle hover:border-border-default hover:bg-bg-card-hover transition-all duration-200 cursor-pointer group"
+                className="flex items-center justify-between p-3 app-panel-muted hover:border-border-default hover:bg-bg-card-hover transition-all duration-200 cursor-pointer group"
               >
                 <div className="flex items-center gap-2.5">
                   <TokenIcon symbol={token.symbol} size="lg" />
@@ -64,8 +64,8 @@ export default function MarketStats() {
         </div>
       </div>
 
-      <div className="bg-bg-card border border-border-subtle p-5">
-        <h3 className="font-mono font-bold text-text-primary text-sm mb-4 flex items-center gap-2 uppercase tracking-wider">
+      <div className="app-panel p-5">
+        <h3 className="font-mono font-bold text-text-primary text-sm mb-4 flex items-center gap-2 tracking-tight">
           <BarChart3 size={15} className="text-text-secondary" />
           Protocol Stats
         </h3>
@@ -87,10 +87,10 @@ export default function MarketStats() {
         </div>
       </div>
 
-      <div className="bg-bg-card border border-border-subtle p-5">
-        <h3 className="font-mono font-bold text-text-primary text-sm mb-4 uppercase tracking-wider">Your Position</h3>
+      <div className="app-panel p-5">
+        <h3 className="font-mono font-bold text-text-primary text-sm mb-4 tracking-tight">Your Position</h3>
         <div className="text-center py-4">
-          <div className="w-12 h-12 bg-bg-inset border border-border-default flex items-center justify-center mx-auto mb-3">
+          <div className="w-12 h-12 app-panel-muted flex items-center justify-center mx-auto mb-3">
             <Droplets size={20} className="text-text-muted" />
           </div>
           <p className="text-text-muted text-sm font-mono">No liquidity positions</p>

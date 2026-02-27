@@ -1,10 +1,10 @@
 import UvdIcon from '../brand/UvdIcon';
 
-const TOKEN_ICONS: Record<string, { bg: string; label: string }> = {
-  FLUX: { bg: 'bg-zinc-200', label: 'F' },
-  wETH: { bg: 'bg-zinc-300', label: '\u039E' },
-  wBTC: { bg: 'bg-zinc-400', label: '\u20BF' },
-  UVD:  { bg: 'bg-zinc-200', label: '' },
+const TOKEN_ICONS: Record<string, { bg: string; label: string; color?: string }> = {
+  FLUX: { bg: 'linear-gradient(135deg, #d9ff9c 0%, #b8ff55 100%)', label: 'F', color: '#09100a' },
+  wETH: { bg: 'linear-gradient(135deg, #d9dee9 0%, #aeb7c8 100%)', label: '\u039E', color: '#111827' },
+  wBTC: { bg: 'linear-gradient(135deg, #ffe8af 0%, #ffb84d 100%)', label: '\u20BF', color: '#1f1605' },
+  UVD:  { bg: 'linear-gradient(135deg, #f8f9ff 0%, #d4dbf7 100%)', label: '', color: '#111827' },
 };
 
 const SIZE_MAP = {
@@ -21,15 +21,20 @@ interface TokenIconProps {
 }
 
 export default function TokenIcon({ symbol, size = 'sm', className = '' }: TokenIconProps) {
-  const tok = TOKEN_ICONS[symbol] ?? { bg: 'bg-zinc-500', label: '?' };
+  const tok = TOKEN_ICONS[symbol] ?? { bg: 'linear-gradient(135deg, #a1a1aa 0%, #71717a 100%)', label: '?', color: '#111827' };
   const s = SIZE_MAP[size];
 
   return (
     <div
-      className={`${s.box} ${tok.bg} flex items-center justify-center text-black font-mono font-black ${s.text} flex-shrink-0 ${className}`}
+      className={`${s.box} flex items-center justify-center font-mono font-black ${s.text} flex-shrink-0 rounded-full ${className}`}
+      style={{
+        background: tok.bg,
+        color: tok.color ?? '#111827',
+        boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.45), 0 10px 20px rgba(7,10,18,0.12)',
+      }}
     >
       {symbol === 'UVD' ? (
-        <UvdIcon size={s.icon} color="black" />
+        <UvdIcon size={s.icon} color={tok.color ?? '#111827'} />
       ) : (
         tok.label
       )}

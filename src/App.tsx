@@ -45,7 +45,21 @@ export default function App() {
     <WalletProvider>
       <GameStateProvider>
         <AppToaster />
-        <div className="min-h-screen font-inter" style={{ background: 'var(--color-bg-base)' }}>
+        <div className="min-h-screen font-inter app-shell-root">
+          <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden" aria-hidden="true">
+            <div
+              className="absolute -top-32 left-[8%] h-72 w-72 rounded-full blur-3xl"
+              style={{ background: 'radial-gradient(circle, rgba(184,255,85,0.12) 0%, rgba(184,255,85,0) 68%)' }}
+            />
+            <div
+              className="absolute top-12 right-[10%] h-80 w-80 rounded-full blur-3xl"
+              style={{ background: 'radial-gradient(circle, rgba(245,95,217,0.12) 0%, rgba(245,95,217,0) 68%)' }}
+            />
+            <div
+              className="absolute bottom-0 left-1/3 h-72 w-72 rounded-full blur-3xl"
+              style={{ background: 'radial-gradient(circle, rgba(96,165,250,0.08) 0%, rgba(96,165,250,0) 70%)' }}
+            />
+          </div>
           {page === 'home' && <StarField />}
           <div className="relative z-10">
             <ShellNav page={page} onNavigate={navigate} />

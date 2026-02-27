@@ -125,12 +125,16 @@ export default function BoxCard({ tier }: { tier: BoxTierConfig }) {
         className="absolute top-0 left-0 right-0 h-px"
         style={{ background: `linear-gradient(90deg, transparent, ${cfg.color}80, transparent)` }}
       />
+      <div
+        className="absolute left-5 right-5 top-4 h-1 rounded-full"
+        style={{ background: `linear-gradient(90deg, ${cfg.color}40, ${cfg.color}, ${cfg.color}20)` }}
+      />
 
-      <div className="p-5 flex-1 flex flex-col">
+      <div className="p-5 pt-8 flex-1 flex flex-col">
         <div className="flex items-start justify-between mb-4 gap-3">
           <div>
             <RarityBadge tier={tier.rarity} />
-            <h3 className="mt-2 font-mono font-black text-lg leading-none uppercase tracking-wider text-text-primary">
+            <h3 className="mt-2 font-mono font-black text-lg leading-none tracking-tight text-text-primary">
               {tier.name}
             </h3>
             <p className="text-[11px] mt-1 font-mono text-text-muted">
@@ -227,9 +231,10 @@ export default function BoxCard({ tier }: { tier: BoxTierConfig }) {
             disabled={isSubmitting || wallet.isConnecting}
             className="w-full py-3 font-mono font-bold text-sm flex items-center justify-center gap-2 uppercase tracking-wider disabled:opacity-50 disabled:cursor-not-allowed"
             style={{
-              background: 'transparent',
+              background: cfg.bg,
               color: cfg.color,
               border: `1px solid ${cfg.border}`,
+              borderRadius: '999px',
             }}
           >
             {wallet.address ? (

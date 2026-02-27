@@ -113,7 +113,7 @@ export default function BidsTab({ preferredPartId, onPreferredPartHandled }: Bid
           <div className="flex items-center gap-3">
             <span
               className="h-10 w-10 flex items-center justify-center"
-              style={{ background: 'rgba(168,85,247,0.08)', border: '1px solid rgba(168,85,247,0.22)', color: '#C084FC' }}
+              style={{ background: 'rgba(245,95,217,0.1)', border: '1px solid rgba(245,95,217,0.24)', color: 'var(--color-accent-pink)', borderRadius: '1rem' }}
             >
               <Gavel size={16} />
             </span>
@@ -182,7 +182,7 @@ export default function BidsTab({ preferredPartId, onPreferredPartHandled }: Bid
               <button
                 onClick={() => void refresh()}
                 className="px-3 py-2 text-[10px] font-mono font-semibold uppercase tracking-wider"
-                style={{ ...APP3_INSET_STYLE, color: '#C084FC' }}
+                style={{ ...APP3_INSET_STYLE, color: 'var(--color-accent-pink)', borderRadius: '999px' }}
               >
                 Refresh
               </button>
@@ -208,7 +208,7 @@ export default function BidsTab({ preferredPartId, onPreferredPartHandled }: Bid
                         {entry.partName ?? 'No winning part'}
                       </p>
                     </div>
-                    <span className="text-xs font-mono" style={{ color: '#C084FC' }}>
+                    <span className="text-xs font-mono" style={{ color: 'var(--color-accent-pink)' }}>
                       {formatFluxValue(entry.finalPrice)} FLUX
                     </span>
                   </div>

@@ -43,17 +43,23 @@ export default function Footer({ onNavigate }: FooterProps) {
   };
 
   return (
-    <footer className="bg-bg-card border-t border-border-subtle">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
+    <footer className="px-4 pb-8 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto app-window px-6 py-10 sm:px-8 sm:py-12">
         <div className="grid grid-cols-1 md:grid-cols-6 gap-10 mb-12">
           <div className="md:col-span-2">
             <div className="flex items-center gap-3 mb-4">
-              <div className="w-9 h-9 flex items-center justify-center" style={{ background: 'var(--color-text-primary)' }}>
-                <Zap size={18} style={{ color: 'var(--color-bg-base)' }} fill="var(--color-bg-base)" />
+              <div
+                className="w-10 h-10 flex items-center justify-center rounded-2xl"
+                style={{
+                  background: 'linear-gradient(135deg, var(--color-accent-lime) 0%, #d7ff8f 100%)',
+                  boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.45), 0 12px 24px rgba(184,255,85,0.18)',
+                }}
+              >
+                <Zap size={18} style={{ color: '#09100a' }} fill="#09100a" />
               </div>
               <div>
-                <span className="font-mono font-bold text-text-primary text-lg leading-none uppercase tracking-wider">Entropy</span>
-                <div className="text-[10px] font-mono font-medium text-text-muted mt-0.5 uppercase tracking-wider">ɸ-net Testnet</div>
+                <span className="font-mono font-bold text-text-primary text-lg leading-none tracking-tight">Entropy</span>
+                <div className="text-[10px] font-mono font-medium text-text-muted mt-0.5 tracking-wide">ɸ-net Testnet</div>
               </div>
             </div>
             <p className="text-text-muted text-sm leading-relaxed max-w-xs mb-6">
@@ -68,7 +74,7 @@ export default function Footer({ onNavigate }: FooterProps) {
                 <button
                   key={i}
                   onClick={comingSoon}
-                  className="w-9 h-9 bg-bg-inset border border-border-default flex items-center justify-center text-text-muted hover:text-text-primary hover:border-border-strong transition-all duration-200"
+                  className="w-10 h-10 app-chip flex items-center justify-center text-text-muted hover:text-text-primary hover:border-border-strong transition-all duration-200"
                   aria-label={social.label}
                 >
                   {social.icon}
@@ -79,7 +85,7 @@ export default function Footer({ onNavigate }: FooterProps) {
 
           {Object.entries(links).map(([category, items]) => (
             <div key={category}>
-              <h4 className="font-mono font-bold text-text-secondary text-sm mb-4 uppercase tracking-wider">{category}</h4>
+              <h4 className="font-mono font-bold text-text-secondary text-sm mb-4 tracking-tight">{category}</h4>
               <ul className="space-y-2.5">
                 {items.map((item) => (
                   <li key={item.label}>
@@ -98,7 +104,7 @@ export default function Footer({ onNavigate }: FooterProps) {
 
         <div className="pt-8 border-t border-border-subtle flex flex-col sm:flex-row items-center justify-between gap-4">
           <p className="text-text-muted text-sm font-mono">
-            © 2026 Entropy Protocol. This is a <b>Testnet</b> — not financial advice.
+            © 2026 Entropy Protocol. This is a <b>Testnet</b> and not financial advice.
           </p>
           <button
             type="button"
@@ -110,10 +116,10 @@ export default function Footer({ onNavigate }: FooterProps) {
             <span
               className="relative block h-3.5 w-3.5 border transition-all duration-200"
               style={{
-                background: ambientFxEnabled ? '#4ADE80' : 'var(--color-border-strong)',
-                borderColor: ambientFxEnabled ? 'rgba(74,222,128,0.45)' : 'var(--color-border-default)',
+                background: ambientFxEnabled ? 'var(--color-accent-lime)' : 'var(--color-border-strong)',
+                borderColor: ambientFxEnabled ? 'rgba(184,255,85,0.5)' : 'var(--color-border-default)',
                 boxShadow: ambientFxEnabled
-                  ? '0 0 0 1px rgba(74,222,128,0.08)'
+                  ? '0 0 0 1px rgba(184,255,85,0.08)'
                   : '0 0 0 1px rgba(58,74,96,0)',
               }}
             >

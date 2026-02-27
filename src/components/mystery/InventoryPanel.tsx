@@ -55,12 +55,26 @@ export default function InventoryPanel({ onSendToAuction }: InventoryPanelProps)
     <aside className="sticky top-24">
       <div style={APP3_PANEL_STYLE}>
         <div className="p-4 border-b" style={{ borderColor: 'var(--color-border-subtle)' }}>
+          <div className="mb-4 grid grid-cols-[1.6fr_1fr_auto] gap-2">
+            <div
+              className="h-3 rounded-full"
+              style={{ background: 'linear-gradient(90deg, var(--color-accent-pink) 0%, var(--color-accent-lime) 100%)' }}
+            />
+            <div
+              className="h-3 rounded-full"
+              style={{ background: 'linear-gradient(90deg, rgba(184,255,85,0.2), rgba(255,255,255,0.08))' }}
+            />
+            <div
+              className="h-3 w-3 rounded-full"
+              style={{ background: 'var(--color-accent-gold)', boxShadow: '0 0 0 4px rgba(255,201,94,0.12)' }}
+            />
+          </div>
           <div className="flex items-center justify-between gap-3">
             <div>
-              <p className="font-mono font-black text-sm uppercase tracking-wider" style={APP3_TEXT_PRIMARY_STYLE}>
+              <p className="font-mono font-black text-sm tracking-tight" style={APP3_TEXT_PRIMARY_STYLE}>
                 My Inventory
               </p>
-              <p className="text-[10px] mt-1 font-mono uppercase tracking-wider" style={APP3_TEXT_MUTED_STYLE}>
+              <p className="text-[10px] mt-1 font-mono tracking-wide" style={APP3_TEXT_MUTED_STYLE}>
                 {game.inventory.length} parts {game.isInventorySyncing ? '· refreshing' : ''}
               </p>
             </div>

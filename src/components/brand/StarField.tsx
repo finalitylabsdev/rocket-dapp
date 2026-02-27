@@ -45,9 +45,9 @@ export default function StarField() {
     const pointer = { x: 0, y: 0, targetX: 0, targetY: 0 };
     const particles: Particle[] = [];
     const isDark = theme === 'dark';
-    const particleColor = isDark ? 'rgba(226, 232, 240, 0.82)' : 'rgba(37, 48, 76, 0.46)';
-    const trailColor = isDark ? 'rgba(96, 165, 250, 0.04)' : 'rgba(71, 85, 105, 0.085)';
-    const accentColor = isDark ? 'rgba(74, 222, 128, 0.08)' : 'rgba(59, 130, 246, 0.035)';
+    const particleColor = isDark ? 'rgba(232, 242, 255, 0.55)' : 'rgba(46, 58, 84, 0.2)';
+    const trailColor = isDark ? 'rgba(245, 95, 217, 0.028)' : 'rgba(148, 217, 56, 0.04)';
+    const accentColor = isDark ? 'rgba(184, 255, 85, 0.06)' : 'rgba(238, 93, 196, 0.028)';
 
     let animationFrame = 0;
     let frame = 0;
@@ -68,8 +68,8 @@ export default function StarField() {
 
     const buildParticles = () => {
       particles.length = 0;
-      const density = isDark ? 18000 : 22000;
-      const count = Math.max(30, Math.round((width * height) / density));
+      const density = isDark ? 26000 : 32000;
+      const count = Math.max(16, Math.round((width * height) / density));
 
       for (let index = 0; index < count; index += 1) {
         particles.push(createParticle(maxRadius));
@@ -128,16 +128,16 @@ export default function StarField() {
       frame += 1;
       const centerX = width * 0.5 + pointer.x * width * 0.035;
       const centerY = height * 0.5 + pointer.y * height * 0.035;
-      const pointerBend = Math.atan2(pointer.y, pointer.x || 0.0001) * 0.012;
+      const pointerBend = Math.atan2(pointer.y, pointer.x || 0.0001) * 0.008;
 
       for (const particle of particles) {
         const previousDistance = particle.distance;
         const travel = Math.min(1, particle.distance / maxRadius);
         const angle = particle.angle + pointer.x * 0.05 * (1 - travel) + pointerBend;
 
-        particle.distance += particle.speed * (1 + travel * 1.35);
-        particle.speed *= 1.004;
-        particle.size += particle.growth * (0.5 + travel * 2.2);
+        particle.distance += particle.speed * (1 + travel * 0.9);
+        particle.speed *= 1.002;
+        particle.size += particle.growth * (0.35 + travel * 1.4);
 
         const prevX = centerX + Math.cos(angle) * previousDistance;
         const prevY = centerY + Math.sin(angle) * previousDistance;
@@ -203,16 +203,16 @@ export default function StarField() {
 
   const baseBackground = theme === 'dark'
     ? [
-        'radial-gradient(circle at 18% 22%, rgba(59, 130, 246, 0.08) 0%, rgba(59, 130, 246, 0) 42%)',
-        'radial-gradient(circle at 78% 14%, rgba(74, 222, 128, 0.055) 0%, rgba(74, 222, 128, 0) 34%)',
-        'radial-gradient(circle at 50% 100%, rgba(37, 99, 235, 0.045) 0%, rgba(37, 99, 235, 0) 46%)',
-        'radial-gradient(circle, rgba(226, 232, 240, 0.045) 1px, transparent 1.4px)',
+        'radial-gradient(circle at 16% 18%, rgba(184, 255, 85, 0.09) 0%, rgba(184, 255, 85, 0) 34%)',
+        'radial-gradient(circle at 84% 14%, rgba(245, 95, 217, 0.08) 0%, rgba(245, 95, 217, 0) 30%)',
+        'radial-gradient(circle at 50% 100%, rgba(96, 165, 250, 0.06) 0%, rgba(96, 165, 250, 0) 42%)',
+        'radial-gradient(circle, rgba(232, 242, 255, 0.03) 1px, transparent 1.6px)',
       ].join(', ')
     : [
-        'radial-gradient(circle at 16% 18%, rgba(148, 163, 184, 0.12) 0%, rgba(148, 163, 184, 0) 36%)',
-        'radial-gradient(circle at 80% 12%, rgba(125, 211, 252, 0.12) 0%, rgba(125, 211, 252, 0) 30%)',
-        'radial-gradient(circle at 50% 100%, rgba(191, 219, 254, 0.14) 0%, rgba(191, 219, 254, 0) 42%)',
-        'radial-gradient(circle, rgba(37, 48, 76, 0.055) 1px, transparent 1.5px)',
+        'radial-gradient(circle at 12% 18%, rgba(148, 217, 56, 0.13) 0%, rgba(148, 217, 56, 0) 32%)',
+        'radial-gradient(circle at 84% 12%, rgba(238, 93, 196, 0.11) 0%, rgba(238, 93, 196, 0) 26%)',
+        'radial-gradient(circle at 50% 100%, rgba(147, 197, 253, 0.12) 0%, rgba(147, 197, 253, 0) 40%)',
+        'radial-gradient(circle, rgba(23, 28, 40, 0.03) 1px, transparent 1.8px)',
       ].join(', ');
 
   return (
@@ -226,9 +226,9 @@ export default function StarField() {
         style={{
           backgroundImage: baseBackground,
           backgroundSize: theme === 'dark'
-            ? 'auto, auto, auto, 54px 54px'
-            : 'auto, auto, auto, 64px 64px',
-          opacity: ambientFxEnabled ? 1 : 0.5,
+            ? 'auto, auto, auto, 72px 72px'
+            : 'auto, auto, auto, 88px 88px',
+          opacity: ambientFxEnabled ? 0.88 : 0.5,
           transition: 'opacity 500ms ease',
         }}
       />

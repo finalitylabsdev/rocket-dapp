@@ -101,7 +101,7 @@ export default function LeaderboardPage() {
 
   return (
     <div className="relative overflow-hidden">
-      <div className="relative z-10 pt-20 md:pt-24 pb-16 px-4 sm:px-6 lg:px-8">
+      <div className="relative z-10 pt-24 md:pt-28 pb-16 px-4 sm:px-6 lg:px-8">
         <div className="max-w-6xl mx-auto">
 
           <div className="text-center mb-10">
@@ -111,7 +111,7 @@ export default function LeaderboardPage() {
                 Season 1
               </span>
             </div>
-            <h1 className="font-mono font-black text-3xl md:text-5xl lg:text-6xl text-text-primary mb-3 leading-[1.08] uppercase tracking-wider">
+            <h1 className="font-mono font-black text-3xl md:text-5xl lg:text-6xl text-text-primary mb-3 leading-[1.02] tracking-tight">
               Cosmic Jackpot
             </h1>
             <p className="text-text-secondary text-lg font-mono">
@@ -126,12 +126,12 @@ export default function LeaderboardPage() {
               { icon: <Zap size={14} className="text-dot-green" />, label: 'Missions Launched', value: loading ? '…' : totals.rockets.toLocaleString(), sub: 'Total Quantum Lift-Offs' },
               { icon: <Flame size={14} className="text-orange-400" />, label: 'Flux Burned', value: loading ? '…' : `${(totals.burned / 1000).toFixed(1)}k`, sub: 'Fuel consumed' },
             ].map((stat) => (
-              <div key={stat.label} className="bg-bg-card border border-border-subtle p-4">
+              <div key={stat.label} className="app-stat p-4">
                 <div className="flex items-center gap-2 mb-2">
-                  <div className="w-7 h-7 bg-bg-inset border border-border-default flex items-center justify-center">
+                  <div className="w-8 h-8 app-panel-muted flex items-center justify-center">
                     {stat.icon}
                   </div>
-                  <span className="text-xs text-text-muted font-mono uppercase tracking-wider">{stat.label}</span>
+                  <span className="text-xs text-text-muted font-mono tracking-wide">{stat.label}</span>
                 </div>
                 <p className="font-mono font-black text-text-primary text-xl">{stat.value}</p>
                 <p className="text-[11px] text-text-muted mt-0.5 font-mono">{stat.sub}</p>
@@ -139,11 +139,11 @@ export default function LeaderboardPage() {
             ))}
           </div>
 
-          <div className="bg-bg-card border border-border-subtle overflow-hidden">
+          <div className="app-window overflow-hidden">
             <div className="px-6 py-4 border-b border-border-subtle flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <Award size={16} className="text-text-secondary" />
-                <span className="font-mono font-bold text-text-primary text-sm uppercase tracking-wider">Season Rankings</span>
+                <span className="font-mono font-bold text-text-primary text-sm tracking-tight">Season Rankings</span>
                 <span className="tag text-[11px]">Grav Score · Top 20</span>
               </div>
               <div className="flex items-center gap-3">
@@ -153,7 +153,7 @@ export default function LeaderboardPage() {
                 <button
                   onClick={() => fetchLeaderboard(true)}
                   disabled={refreshing}
-                  className="w-8 h-8 bg-bg-inset border border-border-default flex items-center justify-center hover:border-border-strong transition-all active:scale-90"
+                  className="w-9 h-9 app-control flex items-center justify-center hover:border-border-strong transition-all active:scale-90"
                 >
                   <RefreshCw
                     size={13}
@@ -291,7 +291,7 @@ export default function LeaderboardPage() {
             ].map((p) => (
               <div
                 key={p.place}
-                className="p-5 flex items-center gap-4"
+                className="p-5 flex items-center gap-4 rounded-[1.6rem]"
                 style={{ background: p.bg, border: `1px solid ${p.border}` }}
               >
                 <span className="text-2xl font-mono font-black" style={{ color: p.color }}>{p.rank}</span>
