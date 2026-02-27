@@ -1,6 +1,6 @@
 # Launch Plan
 
-> Version: 0.3.0
+> Version: 0.3.1
 > Date: 2026-02-27
 > Status: Active
 > Scope reference: `SCOPE.md`
@@ -41,7 +41,7 @@ The goal is to launch with a database-authoritative gameplay system that is expl
 - [x] Basic multi-page product shell and page routing
 - [x] Basic brand and visual primitives
 
-### Must Harden Before Launch
+### Launch-Critical Gaps
 
 - [ ] Remove remaining local authority from Rocket Lab state (`equipped`, `levels`, `scores` still persist locally)
 - [x] Remove or explicitly demote Star Vault fallback catalog/config behavior from the normal launch path
@@ -52,7 +52,7 @@ The goal is to launch with a database-authoritative gameplay system that is expl
 - [ ] Deploy `auction-tick` to production and configure cron (see `docs/11-auction-tick-runbook.md`)
 - [ ] Enable leaked password protection in Supabase Dashboard
 
-### Still Missing For Launch
+### Remaining Launch Scope
 
 - [ ] Canonical asset and metadata pipeline for launch visuals
 - [ ] Real App 4 compatibility for the canonical 8-part inventory model
@@ -62,13 +62,15 @@ The goal is to launch with a database-authoritative gameplay system that is expl
 
 ## Stage Progress Snapshot
 
+These checklists describe the current codebase state as of the version/date above. They are intended to show shipped work versus remaining launch work, not the original idealized build order.
+
 ### Stage 0: Freeze the Hybrid Boundary
 
 - [x] Supabase is the effective gameplay authority for App 3 at launch
 - [x] The repo is aligned to DB-authoritative FLUX, inventory, and auctions
 - [ ] Write the authority matrix explicitly into launch docs so the boundary is operational, not implied
 
-**2/3 done. 1 doc task remaining.**
+**2/3 done. Remaining work is documentation only.**
 
 ### Stage 1: Harden Identity, Wallet Proof, and ETH Lock
 
@@ -91,7 +93,7 @@ The goal is to launch with a database-authoritative gameplay system that is expl
 - [ ] Document chain-linkage / reconciliation fields needed for later cutover
 - [ ] Document replay/reconstruction expectations if event-history parity is required
 
-**4/6 done. Remaining work is documentation for chain cutover.**
+**4/6 done. Remaining work is launch documentation for chain cutover.**
 
 ### Stage 3: Promote FLUX into the Full Gameplay Ledger
 
