@@ -259,6 +259,8 @@ export async function placeAuctionBid(
 ): Promise<{ bidId: number; minNextBid: number; balance: FluxBalance }> {
   assertSupabaseConfigured();
 
+  const idempotencyKey = `bid:${walletAddress.toLowerCase()}:${roundId}:${amount}`;
+
   const { data, error } = await supabase!.rpc('place_auction_bid', {
     p_wallet_address: walletAddress,
     p_round_id: roundId,
@@ -266,6 +268,7 @@ export async function placeAuctionBid(
     p_whitelist_bonus_amount: WHITELIST_BONUS_FLUX,
     p_client_timestamp: new Date().toISOString(),
     p_user_agent: typeof navigator !== 'undefined' ? navigator.userAgent : null,
+    p_idempotency_key: idempotencyKey,
   });
 
   if (error) {

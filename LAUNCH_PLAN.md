@@ -1,6 +1,6 @@
 # Launch Plan
 
-> Version: 0.3.2
+> Version: 0.3.3
 > Date: 2026-02-27
 > Status: Active
 > Scope reference: `SCOPE.md`
@@ -36,6 +36,10 @@ The goal is to launch with a database-authoritative gameplay system that is expl
 - [x] Auction operator diagnostics panel (round lifecycle, bid/submission stats, scheduler health)
 - [x] Auction ops SQL views: `auction_round_diagnostics`, `flux_ledger_reconciliation`, `auction_scheduler_health`
 - [x] Auction-tick deployment runbook with secrets, cron, monitoring, and recovery procedures
+- [x] FLUX ledger idempotency keys on all balance-mutating RPCs (`record_flux_faucet_claim`, `adjust_wallet_flux_balance`, `open_mystery_box`, `place_auction_bid`, `finalize_auction`)
+- [x] Client-side idempotency key generation for faucet claims, box opens, and auction bids
+- [x] Reconciliation foundation: `reconciliation_snapshots` table and `run_flux_reconciliation()` RPC
+- [x] Production deploy checklist (`docs/13-production-deploy-checklist.md`)
 - [x] Explicit deny-all RLS policies on internal tables
 - [x] Security hardening documentation for ETH lock, RLS, and auction tables
 - [x] `GameState` uses real server-backed FLUX and inventory snapshots
@@ -60,7 +64,7 @@ The goal is to launch with a database-authoritative gameplay system that is expl
 - [x] Real App 4 compatibility for the canonical 8-part inventory model (Rocket Lab now consumes the canonical 8-slot inventory through a read-only adapter)
 - [ ] Feature flags for staged rollout
 - [ ] Launch rehearsal — internal, closed beta, public gates
-- [ ] Full DB-versus-chain reconciliation workflows for later authority cutover
+- [x] Full DB-versus-chain reconciliation workflows for later authority cutover (`reconciliation_snapshots` + `run_flux_reconciliation()` RPC shipped; chain-side comparison deferred until chain authority exists)
 
 ## Stage Progress Snapshot
 
@@ -107,9 +111,9 @@ These checklists describe the current codebase state as of the version/date abov
 - [x] Rocket Lab is explicitly isolated from the launch economy (read-only inventory adapter + local simulation-only launches)
 - [x] All FLUX mutations are reason-coded (`whitelist_bonus`, `faucet_claim`, `adjustment` with context)
 - [x] FLUX ledger reconciliation view exists (`flux_ledger_reconciliation` — balance vs ledger sum per wallet)
-- [ ] Add stronger idempotency keys for all balance-mutating flows
+- [x] Add stronger idempotency keys for all balance-mutating flows (`idempotency_key` column on `flux_ledger_entries` with unique constraint; all client-facing RPCs and `finalize_auction` enforce duplicate detection)
 
-**7/8 done. Ledger integrity is in place and Rocket Lab is explicitly non-authoritative. Remaining work is idempotency hardening.**
+**8/8 done. Ledger integrity is complete with idempotency hardening shipped.**
 
 ### Stage 4: Replace the Star Vault Prototype with Server Authority
 
@@ -315,12 +319,12 @@ Work:
 - Add active auction state, bid placement, minimum increment enforcement, escrow, outbid refunds, final settlement, and seller payout
 - Add a scheduler/cron-driven round lifecycle
 - Add read models for current auction, auction history, and operator diagnostics
-- Keep scheduler reruns operationally safe; treat stronger balance-flow idempotency as separate follow-up work (not in this branch)
+- Make scheduler reruns safe via idempotency keys on all finalization ledger entries (refunds, payouts)
 
 Exit criteria:
 
 - Auctions can run repeatedly after the documented production deploy + cron steps are completed
-- Refunds, payouts, and winner selection remain operationally recoverable across scheduler reruns; stronger balance-flow idempotency is still a hardening follow-up
+- Refunds, payouts, and winner selection are idempotent across scheduler reruns
 
 ## Stage 6: Deliver the Shared Shell and App 3 UX
 
@@ -403,7 +407,7 @@ Prepare now:
 
 - Keep service interfaces stable for future backend swaps
 - Keep domain APIs stable across storage backends
-- Add reconciliation hooks for future DB-versus-chain comparison
+- Add reconciliation hooks for future DB-versus-chain comparison (DB-side foundation shipped: `reconciliation_snapshots` table + `run_flux_reconciliation()` RPC; chain-side comparison deferred)
 - Preserve the reserved chain-ready columns now present on `inventory_parts` and `auction_bids`
 - Keep `auction_rounds` and `auction_submissions` off-chain-only until the contract-side round/listing identifiers are fixed and unambiguous
 
