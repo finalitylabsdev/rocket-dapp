@@ -1,14 +1,15 @@
 import BoxCard from './BoxCard';
 import { useBoxTiers } from '../../hooks/useBoxTiers';
 import { useRarityConfig } from '../../hooks/useRarityConfig';
+import { APP3_INSET_STYLE, APP3_PANEL_STYLE } from './ui';
 
 function LoadingCard() {
   return (
-    <div className="p-5 animate-pulse" style={{ background: 'var(--color-bg-base)', border: '1px solid var(--color-border-subtle)' }}>
+    <div className="p-5 animate-pulse" style={APP3_PANEL_STYLE}>
       <div className="h-4 w-20 mb-3" style={{ background: 'var(--color-bg-card-hover)' }} />
       <div className="h-6 w-36 mb-2" style={{ background: 'var(--color-bg-card-hover)' }} />
       <div className="h-3 w-28 mb-6" style={{ background: 'var(--color-bg-card-hover)' }} />
-      <div className="h-28 mb-6" style={{ background: 'var(--color-bg-card)' }} />
+      <div className="h-28 mb-6" style={APP3_INSET_STYLE} />
       <div className="space-y-2">
         <div className="h-3" style={{ background: 'var(--color-bg-card-hover)' }} />
         <div className="h-3" style={{ background: 'var(--color-bg-card-hover)' }} />

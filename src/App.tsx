@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { Suspense, lazy, useState, useEffect, useCallback } from 'react';
 import { GameStateProvider } from './context/GameState';
 import { WalletProvider } from './hooks/useWallet';
 import Navbar from './components/Navbar';
@@ -6,15 +6,20 @@ import Hero from './components/Hero';
 import QuickActions from './components/QuickActions';
 import Footer from './components/Footer';
 import AppToaster from './components/AppToaster';
-import DexPage from './pages/DexPage';
-import MysteryPage from './pages/MysteryPage';
-import RocketLabPage from './pages/RocketLabPage';
-import LeaderboardPage from './pages/LeaderboardPage';
 import StarField from './components/brand/StarField';
+
+const DexPage = lazy(() => import('./pages/DexPage'));
+const MysteryPage = lazy(() => import('./pages/MysteryPage'));
+const RocketLabPage = lazy(() => import('./pages/RocketLabPage'));
+const LeaderboardPage = lazy(() => import('./pages/LeaderboardPage'));
 
 export type Page = 'home' | 'dex' | 'mystery' | 'lab' | 'leaderboard';
 
 const VALID_PAGES = new Set<Page>(['home', 'dex', 'mystery', 'lab', 'leaderboard']);
+
+function PageFallback() {
+  return <div className="min-h-screen bg-bg-base" />;
+}
 
 function pageFromHash(): Page {
   const hash = window.location.hash.replace('#', '') as Page;
@@ -40,13 +45,21 @@ export default function App() {
       <GameStateProvider>
         <AppToaster />
         {page === 'dex' ? (
-          <DexPage onBack={() => navigate('home')} />
+          <Suspense fallback={<PageFallback />}>
+            <DexPage onBack={() => navigate('home')} />
+          </Suspense>
         ) : page === 'mystery' ? (
-          <MysteryPage onBack={() => navigate('home')} />
+          <Suspense fallback={<PageFallback />}>
+            <MysteryPage onBack={() => navigate('home')} />
+          </Suspense>
         ) : page === 'lab' ? (
-          <RocketLabPage onBack={() => navigate('home')} />
+          <Suspense fallback={<PageFallback />}>
+            <RocketLabPage onBack={() => navigate('home')} />
+          </Suspense>
         ) : page === 'leaderboard' ? (
-          <LeaderboardPage onBack={() => navigate('home')} />
+          <Suspense fallback={<PageFallback />}>
+            <LeaderboardPage onBack={() => navigate('home')} />
+          </Suspense>
         ) : (
           <div className="min-h-screen font-inter" style={{ background: 'var(--color-bg-base)' }}>
             <StarField />

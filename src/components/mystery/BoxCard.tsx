@@ -7,6 +7,15 @@ import { useWallet } from '../../hooks/useWallet';
 import { formatStarVaultError, openMysteryBox } from '../../lib/starVault';
 import type { BoxTierConfig, InventoryPart } from '../../types/domain';
 import BoxIllustration, { type BoxAnimationState } from './BoxIllustration';
+import {
+  APP3_INSET_STYLE,
+  APP3_PANEL_STYLE,
+  APP3_SECONDARY_BUTTON_STYLE,
+  APP3_TEXT_PRIMARY_STYLE,
+  APP3_TEXT_SECONDARY_STYLE,
+  APP3_TRACK_STYLE,
+  formatFluxValue,
+} from './ui';
 
 const SHAKE_MS = 350;
 const CRACK_MS = 500;
@@ -17,20 +26,16 @@ function sleep(ms: number): Promise<void> {
   });
 }
 
-function formatFluxValue(value: number): string {
-  return value.toFixed(2).replace(/\.00$/, '').replace(/(\.\d)0$/, '$1');
-}
-
 function AttributeBars({ part }: { part: InventoryPart }) {
   return (
     <div className="space-y-2 mt-3">
       {part.attributes.map((value, index) => (
         <div key={part.attributeNames[index]}>
           <div className="flex items-center justify-between text-[10px] font-mono uppercase tracking-wider mb-1">
-            <span style={{ color: 'var(--color-text-secondary)' }}>{part.attributeNames[index]}</span>
-            <span style={{ color: 'var(--color-text-primary)' }}>{value}</span>
+            <span style={APP3_TEXT_SECONDARY_STYLE}>{part.attributeNames[index]}</span>
+            <span style={APP3_TEXT_PRIMARY_STYLE}>{value}</span>
           </div>
-          <div className="h-1.5 overflow-hidden" style={{ background: 'var(--color-bg-inset)', border: '1px solid var(--color-border-subtle)' }}>
+          <div className="h-1.5 overflow-hidden" style={APP3_TRACK_STYLE}>
             <div
               className="h-full"
               style={{
@@ -112,7 +117,7 @@ export default function BoxCard({ tier }: { tier: BoxTierConfig }) {
     <div
       className="relative flex flex-col overflow-hidden"
       style={{
-        background: 'var(--color-bg-base)',
+        ...APP3_PANEL_STYLE,
         border: `1px solid ${state === 'revealed' ? `${cfg.color}66` : cfg.border}`,
       }}
     >
@@ -135,7 +140,7 @@ export default function BoxCard({ tier }: { tier: BoxTierConfig }) {
           <div className="text-right shrink-0">
             <div className="flex items-center gap-1 justify-end">
               <PhiSymbol size={15} color={cfg.color} />
-              <span className="font-mono font-black text-xl text-text-primary">
+              <span className="font-mono font-black text-xl" style={APP3_TEXT_PRIMARY_STYLE}>
                 {formatFluxValue(tier.price)}
               </span>
             </div>
@@ -163,14 +168,14 @@ export default function BoxCard({ tier }: { tier: BoxTierConfig }) {
             </p>
             <div className="mt-2 flex items-center justify-between gap-2">
               <RarityBadge tier={reward.rarity} size="xs" />
-              <span className="text-[10px] font-mono uppercase text-text-secondary">
+              <span className="text-[10px] font-mono uppercase" style={APP3_TEXT_SECONDARY_STYLE}>
                 {reward.sectionName}
               </span>
             </div>
             <AttributeBars part={reward} />
             <div className="mt-3 flex items-center justify-between text-xs font-mono">
-              <span style={{ color: 'var(--color-text-secondary)' }}>Part Value</span>
-              <span style={{ color: 'var(--color-text-primary)' }}>
+              <span style={APP3_TEXT_SECONDARY_STYLE}>Part Value</span>
+              <span style={APP3_TEXT_PRIMARY_STYLE}>
                 <PhiSymbol size={10} color="currentColor" /> {formatFluxValue(reward.partValue)}
               </span>
             </div>
@@ -200,7 +205,7 @@ export default function BoxCard({ tier }: { tier: BoxTierConfig }) {
 
         <div className="grid grid-cols-2 gap-2 mb-4">
           {tier.possible.map((item) => (
-            <div key={item.label} className="p-2 text-center" style={{ background: 'var(--color-bg-card)', border: '1px solid var(--color-border-subtle)' }}>
+            <div key={item.label} className="p-2 text-center" style={APP3_INSET_STYLE}>
               <p className="font-mono font-bold text-xs text-text-primary">{item.value}</p>
               <p className="text-[9px] font-mono mt-0.5 uppercase text-text-muted">{item.label}</p>
             </div>
@@ -211,7 +216,7 @@ export default function BoxCard({ tier }: { tier: BoxTierConfig }) {
           <button
             onClick={handleReset}
             className="w-full py-3 font-mono font-bold text-sm flex items-center justify-center gap-2 uppercase tracking-wider"
-            style={{ background: 'var(--color-bg-card)', border: '1px solid var(--color-border-default)', color: 'var(--color-text-secondary)' }}
+            style={APP3_SECONDARY_BUTTON_STYLE}
           >
             <RotateCcw size={13} />
             Open Another

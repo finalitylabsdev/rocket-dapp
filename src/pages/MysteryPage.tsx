@@ -3,6 +3,7 @@ import { ArrowLeft, Gift, Gavel, Moon, Sun, Zap } from 'lucide-react';
 import VaultTab from '../components/mystery/VaultTab';
 import BidsTab from '../components/mystery/BidsTab';
 import InventoryPanel from '../components/mystery/InventoryPanel';
+import { APP3_INSET_STYLE, formatFluxValue } from '../components/mystery/ui';
 import { useGameState } from '../context/GameState';
 import { useTheme } from '../context/ThemeContext';
 import { useWallet } from '../hooks/useWallet';
@@ -53,10 +54,10 @@ export default function MysteryPage({ onBack }: MysteryPageProps) {
             </div>
 
             <div className="flex items-center gap-3">
-              <div className="hidden sm:flex items-center gap-2 bg-bg-card border border-border-subtle px-3 py-2">
+              <div className="hidden sm:flex items-center gap-2 px-3 py-2" style={APP3_INSET_STYLE}>
                 <PhiSymbol size={14} color="var(--color-text-primary)" />
                 <span className="text-xs font-mono font-bold text-text-primary">
-                  {fluxBalance.toFixed(2).replace(/\.00$/, '').replace(/(\.\d)0$/, '$1')}
+                  {formatFluxValue(fluxBalance)}
                 </span>
                 <span className="text-xs font-mono text-text-muted">FLUX</span>
               </div>
