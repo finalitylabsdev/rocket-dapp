@@ -25,7 +25,11 @@ export default function InventoryPanel({ onSendToAuction }: InventoryPanelProps)
   const [sectionFilter, setSectionFilter] = useState<RocketSection | 'all'>('all');
 
   const sectionOptions = useMemo(
-    () => Array.from(new Set(game.inventory.map((part) => part.slot))),
+    () =>
+      Array.from(new Set(game.inventory.map((part) => part.slot))).map((key) => ({
+        key,
+        label: game.inventory.find((part) => part.slot === key)?.sectionName ?? key,
+      })),
     [game.inventory],
   );
 
@@ -123,8 +127,8 @@ export default function InventoryPanel({ onSendToAuction }: InventoryPanelProps)
             >
               <option value="all">All Sections</option>
               {sectionOptions.map((section) => (
-                <option key={section} value={section}>
-                  {section}
+                <option key={section.key} value={section.key}>
+                  {section.label}
                 </option>
               ))}
             </select>

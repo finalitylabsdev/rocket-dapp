@@ -19,10 +19,49 @@ function LoadingCard() {
   );
 }
 
+function StatusBanner({
+  title,
+  message,
+  tone,
+}: {
+  title: string;
+  message: string;
+  tone: 'danger' | 'warning' | 'info';
+}) {
+  const styles = tone === 'danger'
+    ? {
+        background: '#120B0B',
+        border: '1px solid rgba(239,68,68,0.35)',
+        color: '#FCA5A5',
+      }
+    : tone === 'warning'
+      ? {
+          background: 'rgba(120,53,15,0.24)',
+          border: '1px solid rgba(245,158,11,0.28)',
+          color: '#FCD34D',
+        }
+      : {
+          background: 'rgba(15,23,42,0.72)',
+          border: '1px solid rgba(59,130,246,0.22)',
+          color: '#BFDBFE',
+        };
+
+  return (
+    <div className="mb-6 p-4 font-mono" style={styles}>
+      <p className="text-[11px] font-semibold uppercase tracking-[0.2em]">{title}</p>
+      <p className="mt-2 text-sm">{message}</p>
+    </div>
+  );
+}
+
 export default function VaultTab() {
   const rarityConfig = useRarityConfig();
-  const { boxTiers, isLoading, error, refresh } = useBoxTiers();
-  const combinedError = error ?? rarityConfig.error;
+  const { boxTiers, isLoading, error, readState, refresh } = useBoxTiers();
+  const showRetry = (!isLoading && readState !== 'ready') || (!rarityConfig.isLoading && rarityConfig.readState !== 'catalog');
+  const isCatalogDegraded = readState === 'degraded';
+  const isCatalogStale = readState === 'stale';
+  const isRarityFallback = rarityConfig.readState === 'fallback';
+  const isRarityStale = rarityConfig.readState === 'stale';
 
   return (
     <section>
@@ -31,10 +70,10 @@ export default function VaultTab() {
           <span className="tag mb-2 inline-flex">Star Vault Boxes</span>
           <h2 className="section-title">Open a Star Vault Box</h2>
           <p className="text-sm mt-2 max-w-xl font-mono text-text-muted">
-            Server-generated drops, database-driven rarity visuals, and full inventory snapshots after every open.
+            Server-generated drops, catalog-backed box metadata, and inventory snapshots after every open.
           </p>
         </div>
-        {combinedError && (
+        {showRetry && (
           <button
             onClick={() => {
               void Promise.all([
@@ -50,17 +89,60 @@ export default function VaultTab() {
         )}
       </div>
 
-      {combinedError && (
-        <div className="mb-6 p-4 font-mono text-sm" style={{ background: '#120B0B', border: '1px solid rgba(239,68,68,0.35)', color: '#FCA5A5' }}>
-          {combinedError}
-        </div>
+      {isCatalogDegraded && (
+        <StatusBanner
+          title="Degraded Catalog Read"
+          message={error ?? 'Star Vault metadata is unavailable. Box purchasing is paused until the catalog recovers.'}
+          tone="danger"
+        />
       )}
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-        {isLoading && boxTiers.length === 0
-          ? Array.from({ length: 4 }, (_, index) => <LoadingCard key={index} />)
-          : boxTiers.map((tier) => <BoxCard key={tier.id} tier={tier} />)}
-      </div>
+      {!isCatalogDegraded && isCatalogStale && error && (
+        <StatusBanner
+          title="Stale Box Metadata"
+          message={error}
+          tone="warning"
+        />
+      )}
+
+      {!isCatalogDegraded && isRarityFallback && rarityConfig.error && (
+        <StatusBanner
+          title="Launch-Default Rarity Styling"
+          message={rarityConfig.error}
+          tone="info"
+        />
+      )}
+
+      {!isCatalogDegraded && isRarityStale && rarityConfig.error && (
+        <StatusBanner
+          title="Stale Rarity Metadata"
+          message={rarityConfig.error}
+          tone="info"
+        />
+      )}
+
+      {isCatalogDegraded ? (
+        <div className="p-5" style={APP3_PANEL_STYLE}>
+          <div className="p-5" style={APP3_INSET_STYLE}>
+            <p className="font-mono font-black text-lg uppercase tracking-wider text-text-primary">
+              Star Vault Catalog Unavailable
+            </p>
+            <p className="mt-3 text-sm font-mono text-text-muted">
+              App 3 no longer falls back to hidden placeholder boxes when the catalog is missing. This degraded state is deliberate:
+              box openings are paused until the live box-tier metadata returns.
+            </p>
+            <p className="mt-3 text-xs font-mono uppercase tracking-[0.16em] text-text-secondary">
+              Rarity badges remain on launch-default treatment so inventory labels stay readable while catalog reads recover.
+            </p>
+          </div>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+          {isLoading && boxTiers.length === 0
+            ? Array.from({ length: 4 }, (_, index) => <LoadingCard key={index} />)
+            : boxTiers.map((tier) => <BoxCard key={tier.id} tier={tier} />)}
+        </div>
+      )}
     </section>
   );
 }

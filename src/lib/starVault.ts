@@ -1,5 +1,6 @@
 import { WHITELIST_BONUS_FLUX } from '../config/spec';
 import type {
+  AssetReference,
   BoxTierConfig,
   InventoryPart,
   RocketSectionConfig,
@@ -21,6 +22,9 @@ interface RarityTierRow {
   border: string;
   glow: string;
   intensity: number | string;
+  illustration_key?: string | null;
+  illustration_url?: string | null;
+  illustration_alt?: string | null;
 }
 
 interface RocketSectionRow {
@@ -31,6 +35,9 @@ interface RocketSectionRow {
   attr1_name: string;
   attr2_name: string;
   attr3_name: string;
+  illustration_key?: string | null;
+  illustration_url?: string | null;
+  illustration_alt?: string | null;
 }
 
 interface BoxTierRow {
@@ -41,6 +48,9 @@ interface BoxTierRow {
   rewards_description: string[];
   possible_stats: unknown;
   sort_order: number | string;
+  illustration_key?: string | null;
+  illustration_url?: string | null;
+  illustration_alt?: string | null;
 }
 
 interface InventoryPartPayload {
@@ -61,6 +71,9 @@ interface InventoryPartPayload {
   is_equipped?: boolean;
   source?: 'mystery_box' | 'auction_win' | 'admin';
   created_at?: string;
+  illustration_key?: string | null;
+  illustration_url?: string | null;
+  illustration_alt?: string | null;
 }
 
 interface OpenMysteryBoxResponse {
@@ -90,6 +103,15 @@ function assertSupabaseConfigured(): void {
 function toNumber(value: number | string | undefined | null): number {
   const parsed = typeof value === 'number' ? value : Number(value);
   return Number.isFinite(parsed) ? parsed : 0;
+}
+
+function toOptionalText(value: unknown): string | null {
+  if (typeof value !== 'string') {
+    return null;
+  }
+
+  const trimmed = value.trim();
+  return trimmed.length > 0 ? trimmed : null;
 }
 
 function toErrorMessage(error: unknown, fallback: string): string {
@@ -128,6 +150,22 @@ function isRarityTier(value: string): value is RarityTier {
   return ['Common', 'Uncommon', 'Rare', 'Epic', 'Legendary', 'Mythic', 'Celestial', 'Quantum'].includes(value);
 }
 
+function normalizeIllustration(
+  payload: {
+    illustration_key?: string | null;
+    illustration_url?: string | null;
+    illustration_alt?: string | null;
+  },
+  fallbackKey: string,
+  fallbackAlt?: string,
+): AssetReference {
+  return {
+    key: toOptionalText(payload.illustration_key) ?? fallbackKey,
+    url: toOptionalText(payload.illustration_url),
+    alt: toOptionalText(payload.illustration_alt) ?? fallbackAlt ?? null,
+  };
+}
+
 function normalizeRarityTierRow(payload: RarityTierRow): RarityTierConfig {
   const name = isRarityTier(payload.name) ? payload.name : 'Common';
 
@@ -142,6 +180,7 @@ function normalizeRarityTierRow(payload: RarityTierRow): RarityTierConfig {
     border: payload.border,
     glow: payload.glow,
     intensity: toNumber(payload.intensity),
+    illustration: normalizeIllustration(payload, name.toLowerCase(), name),
   };
 }
 
@@ -152,7 +191,7 @@ function normalizeRocketSectionRow(payload: RocketSectionRow): RocketSectionConf
     displayName: payload.display_name,
     description: payload.description,
     attributeNames: [payload.attr1_name, payload.attr2_name, payload.attr3_name],
-    illustration: { key: payload.key },
+    illustration: normalizeIllustration(payload, payload.key, payload.display_name),
   };
 }
 
@@ -191,6 +230,7 @@ function normalizeBoxTierRow(payload: BoxTierRow, rarityLookup: Map<number, Rari
     price: rarityLookup.get(toNumber(payload.rarity_tier_id))?.baseBoxPriceFlux ?? 0,
     rewards: Array.isArray(payload.rewards_description) ? payload.rewards_description : [],
     possible: normalizePossibleStats(payload.possible_stats),
+    illustration: normalizeIllustration(payload, payload.id, payload.name),
   };
 }
 
@@ -248,7 +288,7 @@ function normalizeInventoryPart(payload: InventoryPartPayload): InventoryPart {
     isEquipped: Boolean(payload.is_equipped),
     source: payload.source,
     createdAt: payload.created_at,
-    illustration: { key: payload.section_key, alt: payload.name },
+    illustration: normalizeIllustration(payload, payload.section_key, payload.name),
   };
 }
 

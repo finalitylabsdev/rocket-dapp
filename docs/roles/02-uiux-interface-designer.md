@@ -826,13 +826,15 @@ A 7‑step guided tour using a spotlight + tooltip pattern overlaying the real U
 | 2    | Whitelist button       | "Lock 0.05 ETH to enter the testnet. This funds the prize pool." | Complete whitelist. |
 | 3    | Claim button           | "Claim your first φ. Come back every 24h for more."              | Claim φ.            |
 | 4    | Exchange tab           | "Swap φ for other tokens here, or hold and keep claiming."       | Navigate.           |
-| 5    | Star Vault tab         | "Buy a mystery box and see what part you get."                   | Navigate.           |
+| 5    | Star Vault tab         | "Buy a mystery box and inspect the live catalog-backed crate before you open it." | Navigate.           |
 | 6    | Assembler tab          | "Once you have parts, build your rocket here."                   | Navigate.           |
 | 7    | Launch button (locked) | "Fill all 8 slots, then launch. Top 3 win real ETH."             | Dismiss.            |
 
 **Completion:** "Tour Complete ✦" celebration toast with confetti. Replayable from Settings.
 
 **Skip:** "Skip tour" link visible at every step. Dismisses immediately.
+
+If Star Vault catalog reads are degraded during the tour, the onboarding layer should acknowledge the degraded metadata state and direct the user to retry instead of implying the vault is fully available.
 
 ***
 
