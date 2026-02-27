@@ -1,6 +1,6 @@
 # Launch Plan
 
-> Version: 0.3.1
+> Version: 0.3.2
 > Date: 2026-02-27
 > Status: Active
 > Scope reference: `SCOPE.md`
@@ -28,6 +28,7 @@ The goal is to launch with a database-authoritative gameplay system that is expl
 - [x] FLUX ledger and balance foundation (append-only, reason-coded, wallet-scoped)
 - [x] Canonical Star Vault catalog tables in Supabase (rarity tiers, sections, variants, box tiers, drop weights)
 - [x] Canonical Star Vault inventory table and `open_mystery_box()` RPC
+- [x] Chain-cutover linkage metadata reserved on canonical gameplay records (`inventory_parts`, `auction_bids`)
 - [x] Canonical Nebula Bids schema, bid/submission RPCs, and round lifecycle RPCs
 - [x] `auction-tick` Edge Function with bearer token auth and 30s rate limiting
 - [x] App 3 split UI for Star Vault, Nebula Bids, and shared inventory
@@ -68,16 +69,16 @@ These checklists describe the current codebase state as of the version/date abov
 
 - [x] Supabase is the effective gameplay authority for App 3 at launch
 - [x] The repo is aligned to DB-authoritative FLUX, inventory, and auctions
-- [ ] Write the authority matrix explicitly into launch docs so the boundary is operational, not implied
+- [x] Write the authority matrix explicitly into launch docs so the boundary is operational, not implied
 
-**2/3 done. Remaining work is documentation only.**
+**3/3 done. The launch authority boundary is now explicit.**
 
 ### Stage 1: Harden Identity, Wallet Proof, and ETH Lock
 
 - [x] Wallet auth and session restoration
 - [x] ETH lock verification flow with Edge Function
 - [x] ETH lock backend hardening: 20s verification cooldown, uniform 404, rate limiting (6 calls / 15 min)
-- [x] Explicit deny-all RLS on internal tables (`app_logs`, `app_state_ledger`, `browser_profiles`, `browser_wallets`, `wallet_registry`)
+- [x] Explicit deny-all RLS on current internal tables (`app_logs`, `wallet_registry`) with defensive no-op coverage for already-dropped legacy tables
 - [ ] Launch-grade reconnect, wallet-switch, and invalid-session UX review
 - [ ] Expose ETH lock status and gating clearly in the UI
 - [ ] Support-grade audit and dispute review workflow
@@ -90,10 +91,10 @@ These checklists describe the current codebase state as of the version/date abov
 - [x] State tables: `inventory_parts`, `auction_rounds`, `auction_submissions`, `auction_bids`
 - [x] Stable DB-backed IDs for all App 3 gameplay objects
 - [x] `source` and `source_ref` fields on `inventory_parts` for provenance tracking
-- [ ] Document chain-linkage / reconciliation fields needed for later cutover
-- [ ] Document replay/reconstruction expectations if event-history parity is required
+- [x] Reserve and document chain-linkage / reconciliation fields needed for later cutover
+- [x] Document replay/reconstruction expectations if event-history parity is required
 
-**4/6 done. Remaining work is launch documentation for chain cutover.**
+**6/6 done. The launch schema now carries explicit cutover metadata and documented replay boundaries.**
 
 ### Stage 3: Promote FLUX into the Full Gameplay Ledger
 
@@ -129,13 +130,14 @@ These checklists describe the current codebase state as of the version/date abov
 - [x] Client UI: submissions, bidding, active round reads, history reads, realtime updates
 - [x] `auction-tick` Edge Function with bearer auth, 30s rate limit, three-pass lifecycle
 - [x] Operator diagnostics panel: round lifecycle timeline, bid/submission stats, scheduler health indicator
-- [x] SQL diagnostics views: `auction_round_diagnostics`, `auction_scheduler_health`
-- [x] Deployment runbook: `docs/11-auction-tick-runbook.md` with secrets, cron config, monitoring, recovery
+- [x] SQL diagnostics views: `auction_round_diagnostics`, `flux_ledger_reconciliation`, `auction_scheduler_health`
+- [x] Deployment runbook: `docs/11-auction-tick-runbook.md` with secrets, cron config, monitoring, recovery, and explicit manual production steps
+- [x] Local transactional smoke test passed on 2026-02-27 (box open -> submit -> bid -> finalize -> rollback on local Supabase)
 - [ ] Deploy `auction-tick` to production with required secrets
 - [ ] Configure production cron (pg_cron or external) at 5-minute cadence or better
 - [ ] Verify full round lifecycle in production: start, transition, finalize, restart
 
-**9/12 done. All code and docs are in place. Remaining work is production deployment and verification.**
+**10/13 done. Runtime code and local smoke coverage are in place; deployment, cron, and production verification remain manual operational work.**
 
 ### Stage 6: Deliver the Shared Shell and App 3 UX
 
@@ -175,7 +177,7 @@ These checklists describe the current codebase state as of the version/date abov
 - [x] Backend scheduler primitive (`auction-tick`)
 - [x] Auction operator diagnostics panel in Nebula Bids UI
 - [x] SQL diagnostic views for round lifecycle, ledger reconciliation, scheduler health
-- [x] Deployment runbook with secrets, cron, monitoring, failure recovery, and pre-launch checklist
+- [x] Deployment runbook with secrets, cron, monitoring, failure recovery, and explicit manual pre-launch steps
 - [ ] Feature flags for staged rollout
 - [ ] Support and audit tooling for wallet-level dispute review
 - [ ] Launch rehearsal — internal, closed beta, public gates
@@ -201,6 +203,25 @@ Deliverables:
 - A written authority matrix for wallet auth, ETH lock, FLUX, inventory, auctions, and derived views
 - Stable rules for what is on-chain now versus deferred
 - A future cutover rule: no mixed authority between DB and chain for the same gameplay flow during launch
+
+Launch authority matrix:
+
+| Surface | Launch authority | Normal write path | Operational rule before cutover |
+|---------|------------------|-------------------|---------------------------------|
+| Wallet auth/session identity | Supabase Auth | Supabase Auth + wallet-signature login flow | Wallet signatures prove identity, but gameplay writes still key off authenticated Supabase user + verified wallet |
+| Wallet-to-user ownership checks | `resolve_authenticated_wallet()` + `wallet_registry` | `SECURITY DEFINER` RPCs only | Wallet ownership mismatches block writes; no client-side override |
+| ETH lock proof / whitelist gate | `eth_lock_submissions` + `verify-eth-lock` | `record_eth_lock_submission(...)` + Edge Function verification | Chain receipt is evidence for eligibility only; it does not become gameplay authority |
+| FLUX balances and ledger | `wallet_flux_balances` + `flux_ledger_entries` | Ledger-backed RPCs only | No client cache or chain read can credit/debit FLUX directly during launch |
+| Star Vault inventory / part ownership | `inventory_parts` | `open_mystery_box()` and auction settlement RPCs | `chain_*` fields are linkage metadata only until a full inventory cutover moves reads and writes together |
+| Nebula Bids rounds / submissions / bids | `auction_rounds`, `auction_submissions`, `auction_bids` | Auction RPCs + `auction-tick` | Scheduler and RPCs own lifecycle; chain mirrors are deferred and cannot partially replace round logic |
+| Derived reads / operator diagnostics | SQL views + read RPCs over canonical tables | Service-role queries / authenticated read RPCs | Derived views may lag, but they never become the source of truth |
+| Rocket Lab local progression (`equipped`, `levels`, `scores`) | Local client state only | Frontend local state | Explicitly outside the launch-authoritative economy until migrated off the legacy local model |
+
+Operational rules:
+
+- If a chain event disagrees with DB state before cutover, treat it as audit evidence for manual review, not as an automatic gameplay mutation.
+- A future cutover must move both reads and writes for a gameplay surface at the same release boundary.
+- `service_role` may repair or reconcile data, but ad hoc edits are break-glass operations, not the normal authority path.
 
 Exit criteria:
 
@@ -231,14 +252,19 @@ Work:
 
 - Add catalog/config tables for rarity tiers, rocket sections, part variants, box tiers, and drop weights
 - Add canonical state tables for inventory parts, auction submissions, auctions, bids, and derived ownership
-- Add append-only event tables for every critical state transition
-- Add chain-ready linkage fields now: `source`, `chain_status`, `chain_tx_hash`, `chain_token_id`, `chain_block_number`, `reconciled_at`
+- Keep the shipped append-only ledger (`flux_ledger_entries`) and document the still-missing event-history layer for full inventory/auction replay
+- Add chain-ready linkage fields now where the mapping is unambiguous: `inventory_parts` reserves `source`, `source_ref`, `chain_status`, `chain_tx_hash`, `chain_token_id`, `chain_block_number`, `reconciled_at`; `auction_bids` reserves bid-level `chain_status`, `chain_tx_hash`, `chain_block_number`, `reconciled_at`
 - Add stable public IDs that can later map to on-chain IDs
+
+Current reconstruction boundary:
+
+- Live App 3 state is reconstructable from canonical tables plus `flux_ledger_entries`.
+- Full inventory/auction event-history parity still needs dedicated append-only transition tables before any chain-primary replay workflow is treated as launch-ready.
 
 Exit criteria:
 
 - The database can represent all App 3 gameplay without local-only fallback state
-- Core gameplay state can be reconstructed from canonical tables plus event history
+- Core gameplay state can be reconstructed from canonical tables, with any missing replay/event-history guarantees explicitly documented as follow-up work
 
 ## Stage 3: Promote FLUX into the Full Gameplay Ledger
 
@@ -264,7 +290,7 @@ Work:
 
 - Replace hardcoded catalog/config reads with DB-backed reads
 - Replace client-side randomness with a server RPC
-- Make box opening atomic: debit FLUX, generate canonical part, persist inventory, emit event records
+- Make box opening atomic: debit FLUX, generate canonical part, and persist inventory in one RPC
 - Return canonical part payloads from the server only
 - Remove local-only inventory creation from the box-open path
 
@@ -284,13 +310,13 @@ Work:
 - Add candidate selection logic for each round
 - Add active auction state, bid placement, minimum increment enforcement, escrow, outbid refunds, final settlement, and seller payout
 - Add a scheduler/cron-driven round lifecycle
-- Add read models for current auction, bid history, contributor stats, and between-round states
-- Make auction settlement idempotent
+- Add read models for current auction, auction history, and operator diagnostics
+- Keep scheduler reruns operationally safe; treat stronger balance-flow idempotency as separate follow-up work (not in this branch)
 
 Exit criteria:
 
-- Auctions can run repeatedly without manual operator intervention
-- Refunds, payouts, and winner selection remain consistent across retries and scheduler reruns
+- Auctions can run repeatedly after the documented production deploy + cron steps are completed
+- Refunds, payouts, and winner selection remain operationally recoverable across scheduler reruns; stronger balance-flow idempotency is still a hardening follow-up
 
 ## Stage 6: Deliver the Shared Shell and App 3 UX
 
@@ -351,15 +377,16 @@ Prepare the product to run as a live service.
 
 Work:
 
-- Add scheduler monitoring and failure visibility
+- Wire the documented scheduler monitoring, alerting, and failure visibility into production
 - Add support and audit tooling
 - Add feature flags for staged rollout
-- Add reconciliation/admin views for balances, auctions, and wallet eligibility
+- Keep balance and auction reconciliation/admin views available; add wallet-eligibility support tooling separately
 - Run internal rehearsal, closed beta, and public launch gates
 
 Exit criteria:
 
 - The team can detect and respond to launch issues without relying on ad hoc DB edits as the normal path
+- The manual deployment steps in the runbook have been executed and verified in production
 
 ## Parallel Track: Prepare for Chain Cutover Later
 
@@ -370,7 +397,8 @@ Prepare now:
 - Keep service interfaces stable for future backend swaps
 - Keep domain APIs stable across storage backends
 - Add reconciliation hooks for future DB-versus-chain comparison
-- Preserve chain-ready columns and status fields in the canonical model
+- Preserve the reserved chain-ready columns now present on `inventory_parts` and `auction_bids`
+- Keep `auction_rounds` and `auction_submissions` off-chain-only until the contract-side round/listing identifiers are fixed and unambiguous
 
 Do not do yet:
 
