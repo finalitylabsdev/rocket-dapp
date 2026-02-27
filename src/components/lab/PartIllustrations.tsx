@@ -1,5 +1,6 @@
 import type { RarityTier } from '../brand/RarityBadge';
-import { RARITY_CONFIG } from '../brand/RarityBadge';
+import { getRarityConfig } from '../brand/RarityBadge';
+import type { RocketSection } from '../../types/domain';
 
 interface IllustrationProps {
   equipped: boolean;
@@ -9,7 +10,7 @@ interface IllustrationProps {
 
 function getAccent(rarity: RarityTier, equipped: boolean) {
   if (!equipped) return { primary: '#2a2f3d', secondary: '#1a1f2a', highlight: '#3a4050', glow: 'none' };
-  const cfg = RARITY_CONFIG[rarity];
+  const cfg = getRarityConfig(rarity);
   return { primary: cfg.color, secondary: cfg.bg, highlight: cfg.border, glow: cfg.glow };
 }
 
@@ -735,10 +736,33 @@ export function StarFiberIllustration({ equipped, rarity, size = 72 }: Illustrat
   );
 }
 
+export const SECTION_ILLUSTRATIONS: Record<RocketSection, React.ComponentType<IllustrationProps>> = {
+  coreEngine:        PulseEngineIllustration,
+  wingPlate:         SolarWingsIllustration,
+  fuelCell:          NebulaTankIllustration,
+  navigationModule:  AstroGyroIllustration,
+  payloadBay:        PhotonSailsIllustration,
+  thrusterArray:     IonArrayIllustration,
+  propulsionCables:  StarFiberIllustration,
+  shielding:         RadiationMantleIllustration,
+};
+
+export function SectionIllustration({ section, equipped, rarity, size = 72 }: {
+  section: RocketSection;
+  equipped: boolean;
+  rarity: RarityTier;
+  size?: number;
+}) {
+  const Component = SECTION_ILLUSTRATIONS[section];
+  return <Component equipped={equipped} rarity={rarity} size={size} />;
+}
+
+/** @deprecated Use `RocketSection` keys and `SECTION_ILLUSTRATIONS` instead. */
 export type PartId =
   | 'engine' | 'fuel' | 'body' | 'wings' | 'booster'
   | 'noseCone' | 'heatShield' | 'gyroscope' | 'solarPanels' | 'landingStruts';
 
+/** @deprecated Use `SECTION_ILLUSTRATIONS` and `SectionIllustration` instead. */
 const ILLUSTRATIONS: Record<PartId, React.ComponentType<IllustrationProps>> = {
   engine:       PulseEngineIllustration,
   fuel:         NebulaTankIllustration,
@@ -752,6 +776,7 @@ const ILLUSTRATIONS: Record<PartId, React.ComponentType<IllustrationProps>> = {
   landingStruts: StarFiberIllustration,
 };
 
+/** @deprecated Use `SectionIllustration` instead. */
 export default function PartIllustration({ id, equipped, rarity, size = 72 }: {
   id: PartId;
   equipped: boolean;

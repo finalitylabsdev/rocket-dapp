@@ -38,7 +38,7 @@ The goal is to launch with a database-authoritative gameplay system that is expl
 
 - [x] `GameState` uses real server-backed FLUX and inventory snapshots
 - [x] Remove local authority from `GameState` for equipped state, levels, and scores
-- [ ] Remove or explicitly demote Star Vault fallback catalog/config behavior from the normal launch path
+- [x] Remove or explicitly demote Star Vault fallback catalog/config behavior from the normal launch path
 - [ ] Replace page-local nav bars with one persistent cross-app shell
 - [ ] Add visible ETH lock status / gating UX instead of keeping it only in libs
 - [ ] Replace placeholder-heavy box/part visual logic with metadata-driven rendering
@@ -105,7 +105,7 @@ Status: Core ledger flows landed, but not fully hardened.
 - [x] Box opening uses server RPCs
 - [x] Part generation is server-side
 - [x] Inventory is server-backed
-- [ ] Remove fallback catalog/config assumptions from the normal production path
+- [x] Remove fallback catalog/config assumptions from the normal production path
 - [ ] Harden failure-mode UX around partial outages and degraded reads
 - [ ] Replace placeholder rendering with canonical metadata-driven presentation
 
@@ -142,11 +142,11 @@ Status: Partially complete.
 
 - [x] Canonical rarity / section / part / box data exists at the data-model level
 - [ ] Replace placeholder box visuals with launch-ready assets
-- [ ] Define metadata-backed rendering for parts and boxes
-- [ ] Make UI rendering depend on metadata references instead of hardcoded visual branching
+- [x] Define metadata-backed rendering for parts and boxes
+- [x] Make UI rendering depend on metadata references instead of hardcoded visual branching
 - [ ] Keep fallback visuals only as explicit compatibility behavior if needed
 
-Status: Not started in a launch-ready form.
+Status: Metadata-driven rendering established; placeholder box visuals and fallback compatibility remain.
 
 ### Stage 8: Add App 4 Compatibility Only
 
