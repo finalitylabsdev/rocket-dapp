@@ -42,6 +42,7 @@ services:
       SIM_LOOP_INTERVAL_MS: ${SIM_LOOP_INTERVAL_MS:-45000}
       SIM_INITIAL_SPREAD_MS: ${SIM_INITIAL_SPREAD_MS:-15000}
       SIM_MAX_BOX_OPENS_PER_CYCLE: ${SIM_MAX_BOX_OPENS_PER_CYCLE:-1}
+      SIM_DRY_RUN: ${SIM_DRY_RUN:-false}
       SIM_RUN_ONCE: ${SIM_RUN_ONCE:-false}
       SIM_USER_AGENT: ${SIM_USER_AGENT:-entropy-sim/1.0}
     restart: unless-stopped

@@ -51,13 +51,15 @@ Optional simulator tuning:
 
 - `SIM_CHAIN_ID` (default `1`)
 - `SIM_SIWE_URI`
-  - If unset, the worker falls back to `VITE_SIWE_URI`, then `http://rocket-web/`.
-  - In production, set this to the real frontend origin if your web3 auth setup is strict about SIWE domain/URI.
+  - If unset, the worker falls back to `VITE_SIWE_URI`, then `https://o.finality.dev/`.
+  - For this production setup, use the real frontend origin `https://o.finality.dev/`.
 - `SIM_SIWE_DOMAIN` (defaults from the SIWE URI)
 - `SIM_BOX_TIER_IDS` (comma-separated list; if omitted, the worker loads `box_tiers` from Supabase)
 - `SIM_LOOP_INTERVAL_MS` (default `45000`)
 - `SIM_INITIAL_SPREAD_MS` (default `15000`)
 - `SIM_MAX_BOX_OPENS_PER_CYCLE` (default `1`)
+- `SIM_DRY_RUN` (`true` or `false`)
+  - When `true`, the worker runs the full staggered loop and emits normal gameplay events without calling Supabase.
 - `SIM_RUN_ONCE` (`true` or `false`)
 - `SIM_USER_AGENT` (default `entropy-sim/1.0`)
 
@@ -76,6 +78,21 @@ docker compose --profile sim up -d --build rocket-sim
 ```
 
 The normal web container is unchanged. The simulator is opt-in and does not start under the default `make up`.
+
+## Quick Checks
+
+Use these for fast verification before you point the worker at production:
+
+```bash
+# Offline one-shot using the wallets in .env
+zsh -lc 'set -a; source .env; SIM_DRY_RUN=true SIM_RUN_ONCE=true node scripts/synthetic-traffic.mjs'
+
+# Offline crypto self-test only
+SIM_SELF_TEST=true node scripts/synthetic-traffic.mjs
+
+# Real production traffic
+make sim-up
+```
 
 ## Monitor It
 
@@ -114,3 +131,22 @@ make sim-down
 Most launch-critical gameplay RPCs in this repo require a real authenticated Supabase session tied to a wallet identity. A simple service-role container would not exercise the same codepath.
 
 This simulator uses real wallet signatures and web3 auth, so it exercises the same normal player path after the ETH lock is already in place.
+
+## Operational Notes
+
+- The simulator no longer needs `npm install` inside the `rocket-sim` image.
+  - The worker uses built-in Node APIs only, so `docker compose --profile sim up --build rocket-sim` does not depend on registry access.
+- `SIM_SELF_TEST=true node scripts/synthetic-traffic.mjs` runs an offline crypto self-test.
+  - This validates the local Keccak-256, address derivation, and Ethereum personal-sign path without touching the network.
+- `SIM_DRY_RUN=true` runs the worker in a fully offline loop.
+  - This is useful for checking the container lifecycle, stagger timing, and JSON event stream before you point it at production.
+- The current production database is still on the pre-idempotency RPC signatures.
+  - The worker intentionally calls the production-compatible signatures now.
+  - When the `add_flux_idempotency_keys` migration is applied in production, the simulator can safely add those idempotency parameters back.
+
+## Future Fallback
+
+If you later want persistent synthetic activity without relying on a local container, a DB-side synthetic loop is a viable fallback.
+
+- It is not required for the current on-demand workflow.
+- The preferred operating model remains: start `rocket-sim` when you want load, stop it when you do not.
