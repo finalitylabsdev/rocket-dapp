@@ -329,11 +329,21 @@ export async function fetchCatalog(): Promise<{
   };
 }
 
+function createIdempotencyKey(): string {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return crypto.randomUUID();
+  }
+
+  return `${Date.now()}-${Math.random().toString(36).slice(2, 12)}`;
+}
+
 export async function openMysteryBox(
   walletAddress: string,
   boxTierId: string,
 ): Promise<{ part: InventoryPart; balance: FluxBalance; ledgerEntryId: number }> {
   assertSupabaseConfigured();
+
+  const idempotencyKey = `box_open:${walletAddress.toLowerCase()}:${createIdempotencyKey()}`;
 
   const { data, error } = await supabase!.rpc('open_mystery_box', {
     p_wallet_address: walletAddress,
@@ -341,6 +351,7 @@ export async function openMysteryBox(
     p_whitelist_bonus_amount: WHITELIST_BONUS_FLUX,
     p_client_timestamp: new Date().toISOString(),
     p_user_agent: typeof navigator !== 'undefined' ? navigator.userAgent : null,
+    p_idempotency_key: idempotencyKey,
   });
 
   if (error) {

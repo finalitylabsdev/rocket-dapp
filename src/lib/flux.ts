@@ -213,6 +213,11 @@ export async function createSignedFluxClaimSettlement(
   };
 }
 
+function buildFaucetIdempotencyKey(walletAddress: string): string {
+  const today = new Date().toISOString().slice(0, 10);
+  return `faucet:${walletAddress.toLowerCase()}:${today}`;
+}
+
 export async function submitFluxFaucetClaim(
   walletAddress: string,
   claimAmount: number,
@@ -238,6 +243,7 @@ export async function submitFluxFaucetClaim(
     p_whitelist_bonus_amount: whitelistBonusAmount,
     p_client_timestamp: issuedAt,
     p_user_agent: typeof navigator !== 'undefined' ? navigator.userAgent : null,
+    p_idempotency_key: buildFaucetIdempotencyKey(walletAddress),
   });
 
   if (error) {
@@ -253,6 +259,7 @@ export async function adjustFluxBalance(
   reason: string,
   payload: Record<string, unknown> = {},
   whitelistBonusAmount = WHITELIST_BONUS_FLUX,
+  idempotencyKey: string | null = null,
 ): Promise<FluxBalance> {
   assertSupabaseConfigured();
 
@@ -264,6 +271,7 @@ export async function adjustFluxBalance(
     p_whitelist_bonus_amount: whitelistBonusAmount,
     p_client_timestamp: new Date().toISOString(),
     p_user_agent: typeof navigator !== 'undefined' ? navigator.userAgent : null,
+    p_idempotency_key: idempotencyKey,
   });
 
   if (error) {
