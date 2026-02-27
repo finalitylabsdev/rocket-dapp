@@ -140,9 +140,11 @@ This simulator uses real wallet signatures and web3 auth, so it exercises the sa
   - This validates the local Keccak-256, address derivation, and Ethereum personal-sign path without touching the network.
 - `SIM_DRY_RUN=true` runs the worker in a fully offline loop.
   - This is useful for checking the container lifecycle, stagger timing, and JSON event stream before you point it at production.
-- The current production database is still on the pre-idempotency RPC signatures.
-  - The worker intentionally calls the production-compatible signatures now.
-  - When the `add_flux_idempotency_keys` migration is applied in production, the simulator can safely add those idempotency parameters back.
+- The current production RPC surface is mixed.
+  - `place_auction_bid` uses the idempotent signature and the simulator sends `p_idempotency_key` explicitly for bids.
+  - Other simulator RPCs still target the older production-compatible signatures until their idempotency migrations are applied.
+- If live logs show `column "idempotency_key" does not exist` during `auction_bid`, the DB function has outpaced the schema.
+  - Apply [20260228174500_repair_flux_ledger_idempotency_key.sql](/Users/mblk/Code/finality/rocket/supabase/migrations/20260228174500_repair_flux_ledger_idempotency_key.sql) to add `public.flux_ledger_entries.idempotency_key` and its unique partial index.
 
 ## Future Fallback
 

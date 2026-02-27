@@ -1244,6 +1244,7 @@ async function maybePlaceBid(simUser, config, activeAuction) {
   const minBid = computeMinNextBid(currentHighestBid);
   const markup = currentHighestBid > 0 ? Math.random() * 0.1 : 0;
   const amount = Math.round((minBid * (1 + markup)) * 100) / 100;
+  const idempotencyKey = `sim-bid:${simUser.walletAddress}:${roundId}:${amount.toFixed(2)}`;
 
   try {
     await callRpc(simUser, config, 'place_auction_bid', {
@@ -1253,6 +1254,7 @@ async function maybePlaceBid(simUser, config, activeAuction) {
       p_whitelist_bonus_amount: config.whitelistBonusFlux,
       p_client_timestamp: toIsoNow(),
       p_user_agent: config.userAgent,
+      p_idempotency_key: idempotencyKey,
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
