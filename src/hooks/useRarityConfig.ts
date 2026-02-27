@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
-  applyRarityConfigOverrides,
-  resetRarityConfigOverrides,
+  setRarityConfig,
+  resetRarityConfig,
 } from '../components/brand/RarityBadge';
 import type { RarityTier, RarityTierConfig } from '../types/domain';
 import { fetchCatalog, formatStarVaultError } from '../lib/starVault';
@@ -25,11 +25,11 @@ export function useRarityConfig(): UseRarityConfigResult {
     try {
       const catalog = await fetchCatalog();
       setRarityTiers(catalog.rarityTiers);
-      applyRarityConfigOverrides(catalog.rarityTiers);
+      setRarityConfig(catalog.rarityTiers);
       setError(null);
     } catch (nextError) {
       setError(formatStarVaultError(nextError, 'Failed to load rarity config.'));
-      resetRarityConfigOverrides();
+      resetRarityConfig();
     } finally {
       setIsLoading(false);
     }

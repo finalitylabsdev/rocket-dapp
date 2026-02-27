@@ -1,4 +1,4 @@
-import { RARITY_BOX_PRICE_FLUX, RARITY_MULTIPLIER, WHITELIST_BONUS_FLUX } from '../config/spec';
+import { WHITELIST_BONUS_FLUX } from '../config/spec';
 import type {
   BoxTierConfig,
   InventoryPart,
@@ -81,39 +81,6 @@ interface FluxBalancePayload {
   updated_at?: string;
 }
 
-const FALLBACK_RARITY_TIERS: RarityTierConfig[] = [
-  { id: 1, name: 'Common', multiplier: RARITY_MULTIPLIER.Common, baseBoxPriceFlux: RARITY_BOX_PRICE_FLUX.Common, approximateDropRate: 35, color: '#6B7280', bg: 'rgba(107,114,128,0.12)', border: 'rgba(107,114,128,0.3)', glow: 'rgba(107,114,128,0)', intensity: 0 },
-  { id: 2, name: 'Uncommon', multiplier: RARITY_MULTIPLIER.Uncommon, baseBoxPriceFlux: RARITY_BOX_PRICE_FLUX.Uncommon, approximateDropRate: 25, color: '#22C55E', bg: 'rgba(34,197,94,0.12)', border: 'rgba(34,197,94,0.3)', glow: 'rgba(34,197,94,0.15)', intensity: 1 },
-  { id: 3, name: 'Rare', multiplier: RARITY_MULTIPLIER.Rare, baseBoxPriceFlux: RARITY_BOX_PRICE_FLUX.Rare, approximateDropRate: 18, color: '#3B82F6', bg: 'rgba(59,130,246,0.12)', border: 'rgba(59,130,246,0.3)', glow: 'rgba(59,130,246,0.2)', intensity: 2 },
-  { id: 4, name: 'Epic', multiplier: RARITY_MULTIPLIER.Epic, baseBoxPriceFlux: RARITY_BOX_PRICE_FLUX.Epic, approximateDropRate: 10, color: '#8B5CF6', bg: 'rgba(139,92,246,0.12)', border: 'rgba(139,92,246,0.3)', glow: 'rgba(139,92,246,0.25)', intensity: 3 },
-  { id: 5, name: 'Legendary', multiplier: RARITY_MULTIPLIER.Legendary, baseBoxPriceFlux: RARITY_BOX_PRICE_FLUX.Legendary, approximateDropRate: 6, color: '#F59E0B', bg: 'rgba(245,158,11,0.12)', border: 'rgba(245,158,11,0.3)', glow: 'rgba(245,158,11,0.3)', intensity: 4 },
-  { id: 6, name: 'Mythic', multiplier: RARITY_MULTIPLIER.Mythic, baseBoxPriceFlux: RARITY_BOX_PRICE_FLUX.Mythic, approximateDropRate: 3.5, color: '#EF4444', bg: 'rgba(239,68,68,0.12)', border: 'rgba(239,68,68,0.3)', glow: 'rgba(239,68,68,0.35)', intensity: 5 },
-  { id: 7, name: 'Celestial', multiplier: RARITY_MULTIPLIER.Celestial, baseBoxPriceFlux: RARITY_BOX_PRICE_FLUX.Celestial, approximateDropRate: 1.8, color: '#06B6D4', bg: 'rgba(6,182,212,0.12)', border: 'rgba(6,182,212,0.3)', glow: 'rgba(6,182,212,0.4)', intensity: 6 },
-  { id: 8, name: 'Quantum', multiplier: RARITY_MULTIPLIER.Quantum, baseBoxPriceFlux: RARITY_BOX_PRICE_FLUX.Quantum, approximateDropRate: 0.7, color: '#E8ECF4', bg: 'rgba(232,236,244,0.12)', border: 'rgba(232,236,244,0.3)', glow: 'rgba(232,236,244,0.45)', intensity: 7 },
-];
-
-const FALLBACK_SECTIONS: RocketSectionConfig[] = [
-  { id: 1, key: 'coreEngine', displayName: 'Core Engine', description: 'The heart of the ship. Determines raw lift-off capability and thermal tolerance.', attributeNames: ['Heat Flux', 'Thrust Efficiency', 'Mass'] },
-  { id: 2, key: 'wingPlate', displayName: 'Wing-Plate', description: 'Aerodynamic surfaces that govern flight stability and drag.', attributeNames: ['Aerodynamic Drag', 'Surface Area', 'Durability'] },
-  { id: 3, key: 'fuelCell', displayName: 'Fuel Cell', description: 'Energy storage that determines range and weight efficiency.', attributeNames: ['Fuel Capacity', 'Energy Density', 'Weight'] },
-  { id: 4, key: 'navigationModule', displayName: 'Navigation Module', description: 'On-board intelligence for course-keeping and decision-making.', attributeNames: ['Accuracy', 'Processing Power', 'Reliability'] },
-  { id: 5, key: 'payloadBay', displayName: 'Payload Bay', description: 'Cargo management determines what your rocket can carry and how securely.', attributeNames: ['Cargo Capacity', 'Securing Strength', 'Modularity'] },
-  { id: 6, key: 'thrusterArray', displayName: 'Thruster Array', description: 'Secondary propulsion for sustained thrust, fuel cycling, and failsafe systems.', attributeNames: ['Ion Output', 'Fuel Efficiency', 'Redundancy'] },
-  { id: 7, key: 'propulsionCables', displayName: 'Propulsion Cables', description: 'Power transmission network, the nervous system of the rocket.', attributeNames: ['Conductivity', 'Flexibility', 'Insulation'] },
-  { id: 8, key: 'shielding', displayName: 'Shielding', description: 'Defensive layer that protects the rocket from cosmic hazards.', attributeNames: ['Radiation Resistance', 'Impact Resistance', 'Weight'] },
-];
-
-const FALLBACK_BOX_TIERS: BoxTierConfig[] = [
-  { id: 'common', name: 'Void Crate', rarity: 'Common', tagline: 'The starting point', price: 10, rewards: ['Common part (x1.0)', 'Uncommon part (x1.25)', 'Rare chance'], possible: [{ label: 'Best Drop', value: 'Rare' }, { label: 'Win Chance', value: '~18%' }] },
-  { id: 'uncommon', name: 'Stellar Cache', rarity: 'Uncommon', tagline: 'Better odds, better loot', price: 25, rewards: ['Uncommon part (x1.25)', 'Rare chance', 'Epic chance'], possible: [{ label: 'Best Drop', value: 'Epic' }, { label: 'Win Chance', value: '~10%' }] },
-  { id: 'rare', name: 'Star Vault Box', rarity: 'Rare', tagline: 'Rarity starts here', price: 50, rewards: ['Rare part (x1.6)', 'Epic chance', 'Legendary chance'], possible: [{ label: 'Best Drop', value: 'Legendary' }, { label: 'Win Chance', value: '~6%' }] },
-  { id: 'epic', name: 'Astral Chest', rarity: 'Epic', tagline: 'Pulsing with energy', price: 100, rewards: ['Epic part (x2.0)', 'Legendary chance', 'Mythic chance'], possible: [{ label: 'Best Drop', value: 'Mythic' }, { label: 'Win Chance', value: '~3.5%' }] },
-  { id: 'legendary', name: 'Solaris Vault', rarity: 'Legendary', tagline: 'Shimmer of gold', price: 200, rewards: ['Legendary part (x2.5)', 'Mythic chance', 'Celestial chance'], possible: [{ label: 'Best Drop', value: 'Celestial' }, { label: 'Win Chance', value: '~1.8%' }] },
-  { id: 'mythic', name: 'Nova Reliquary', rarity: 'Mythic', tagline: 'Heat at the edge of chaos', price: 350, rewards: ['Mythic part (x3.2)', 'Celestial chance', 'Quantum chance'], possible: [{ label: 'Best Drop', value: 'Quantum' }, { label: 'Win Chance', value: '~0.7%' }] },
-  { id: 'celestial', name: 'Aurora Ark', rarity: 'Celestial', tagline: 'Blue-fire premium crate', price: 500, rewards: ['Celestial part (x4.0)', 'High quantum chance'], possible: [{ label: 'Best Drop', value: 'Quantum' }, { label: 'Win Chance', value: '~12%' }] },
-  { id: 'quantum', name: 'Prism Singularity', rarity: 'Quantum', tagline: 'Top-tier reality split', price: 750, rewards: ['Quantum part (x5.0)', 'Celestial fallback'], possible: [{ label: 'Best Drop', value: 'Quantum' }, { label: 'Win Chance', value: '~75%' }] },
-];
-
 function assertSupabaseConfigured(): void {
   if (!supabase) {
     throw new Error('Supabase is not configured in this environment.');
@@ -185,6 +152,7 @@ function normalizeRocketSectionRow(payload: RocketSectionRow): RocketSectionConf
     displayName: payload.display_name,
     description: payload.description,
     attributeNames: [payload.attr1_name, payload.attr2_name, payload.attr3_name],
+    illustration: { key: payload.key },
   };
 }
 
@@ -280,14 +248,7 @@ function normalizeInventoryPart(payload: InventoryPartPayload): InventoryPart {
     isEquipped: Boolean(payload.is_equipped),
     source: payload.source,
     createdAt: payload.created_at,
-  };
-}
-
-function getFallbackCatalog() {
-  return {
-    rarityTiers: FALLBACK_RARITY_TIERS,
-    rocketSections: FALLBACK_SECTIONS,
-    boxTiers: FALLBACK_BOX_TIERS,
+    illustration: { key: payload.section_key, alt: payload.name },
   };
 }
 
@@ -296,14 +257,12 @@ export async function fetchCatalog(): Promise<{
   rocketSections: RocketSectionConfig[];
   boxTiers: BoxTierConfig[];
 }> {
-  if (!supabase) {
-    return getFallbackCatalog();
-  }
+  assertSupabaseConfigured();
 
   const [rarityResult, sectionResult, boxResult] = await Promise.all([
-    supabase.from('rarity_tiers').select('*').order('id', { ascending: true }),
-    supabase.from('rocket_sections').select('*').order('id', { ascending: true }),
-    supabase.from('box_tiers').select('*').order('sort_order', { ascending: true }),
+    supabase!.from('rarity_tiers').select('*').order('id', { ascending: true }),
+    supabase!.from('rocket_sections').select('*').order('id', { ascending: true }),
+    supabase!.from('box_tiers').select('*').order('sort_order', { ascending: true }),
   ]);
 
   if (rarityResult.error) {

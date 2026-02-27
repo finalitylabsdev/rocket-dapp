@@ -1,5 +1,10 @@
+/**
+ * @deprecated This module uses hardcoded legacy part definitions and will be replaced
+ * when Rocket Lab consumes canonical inventory from the database.
+ */
+
 import { ArrowUp, CheckCircle2, Zap } from 'lucide-react';
-import RarityBadge, { type RarityTier, RARITY_CONFIG } from '../brand/RarityBadge';
+import RarityBadge, { type RarityTier, getRarityConfig } from '../brand/RarityBadge';
 import PhiSymbol from '../brand/PhiSymbol';
 
 export interface EquippedParts {
@@ -30,6 +35,7 @@ interface PartsGridProps {
   onUpgrade: (id: EquippedPartId) => void;
 }
 
+/** @deprecated Hardcoded legacy part definitions — will be replaced by canonical inventory. */
 const PARTS: Part[] = [
   {
     id: 'engine',
@@ -104,7 +110,7 @@ function PartCard({ part, equipped, level, onToggle, onUpgrade }: {
   onToggle: () => void;
   onUpgrade: () => void;
 }) {
-  const cfg = RARITY_CONFIG[part.rarity];
+  const cfg = getRarityConfig(part.rarity);
   const effectivePower = part.power + (level - 1) * 8;
   const levelProgress = (level / part.maxLevel) * 100;
 

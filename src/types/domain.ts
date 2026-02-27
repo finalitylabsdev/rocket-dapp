@@ -56,6 +56,12 @@ export const LEGACY_TO_CANONICAL_SECTION: Record<LegacyPartSlot, RocketSection> 
   landingStruts: 'propulsionCables',
 };
 
+export interface AssetReference {
+  key: string;
+  url?: string | null;
+  alt?: string | null;
+}
+
 export interface InventoryPart {
   id: string;
   name: string;
@@ -71,6 +77,7 @@ export interface InventoryPart {
   isEquipped?: boolean;
   source?: 'mystery_box' | 'auction_win' | 'admin';
   createdAt?: string;
+  illustration?: AssetReference | null;
 }
 
 export interface BoxTierConfig {
@@ -81,6 +88,7 @@ export interface BoxTierConfig {
   price: number;
   rewards: string[];
   possible: { label: string; value: string }[];
+  illustration?: AssetReference | null;
 }
 
 export interface RarityTierConfig {
@@ -94,6 +102,7 @@ export interface RarityTierConfig {
   border: string;
   glow: string;
   intensity: number;
+  illustration?: AssetReference | null;
 }
 
 export interface RocketSectionConfig {
@@ -102,6 +111,7 @@ export interface RocketSectionConfig {
   displayName: string;
   description: string | null;
   attributeNames: [string, string, string];
+  illustration?: AssetReference | null;
 }
 
 export interface AuctionBid {
