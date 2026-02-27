@@ -32,23 +32,18 @@ Run the SQL in:
 - `supabase/migrations/20260226224637_create_wallet_ledger.sql`
 - `supabase/migrations/20260226225530_add_app_logs_and_wallet_disconnect.sql`
 - `supabase/migrations/20260226232534_secure_wallet_auth_and_logs.sql`
+- `supabase/migrations/20260227000000_consolidate_drop_browser_tables.sql`
 
 This creates:
 - `leaderboard` table
-- RLS enabled
-- Public `SELECT` policy for `anon` and `authenticated`
-- Optional seed data
-- Browser/wallet ledger tables:
-  - `browser_profiles`
-  - `wallet_registry`
-  - `browser_wallets`
-  - `app_state_ledger` (append-only)
-- Generic application logs table:
-  - `app_logs` (`event_name`, `payload`, timestamps, browser_id/wallet_address linkage, `auth_user_id`)
-- RPC write entrypoint:
-  - `record_wallet_connect(p_browser_id, p_wallet_address, p_state, p_client_timestamp, p_user_agent)`
-  - `record_wallet_disconnect(p_browser_id, p_wallet_address, p_state, p_client_timestamp, p_user_agent)`
-  - `record_app_log(p_event_name, p_payload, p_wallet_address, p_browser_id, p_client_timestamp, p_user_agent)`
+- `wallet_registry` table
+- `app_logs` table (`event_name`, `payload`, timestamps, wallet_address linkage, `auth_user_id`)
+- RLS enabled on all tables
+- Public `SELECT` policy for `anon` and `authenticated` on `leaderboard`
+- RPC write entrypoints:
+  - `record_wallet_connect(p_wallet_address, p_client_timestamp, p_user_agent)`
+  - `record_wallet_disconnect(p_wallet_address, p_client_timestamp, p_user_agent)`
+  - `record_app_log(p_event_name, p_payload, p_wallet_address, p_client_timestamp, p_user_agent)`
   - RPCs require authenticated users, verify wallet ownership against `auth.identities`, and apply per-user rate limits
   - Direct table writes remain blocked by RLS
 
