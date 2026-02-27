@@ -64,7 +64,7 @@ export default function Footer() {
 
         <div className="pt-8 border-t border-border-subtle flex flex-col sm:flex-row items-center justify-between gap-4">
           <p className="text-zinc-600 text-sm font-mono">
-            © 2025 Entropy Protocol. This is a testnet — not financial advice.
+            © 2026 Entropy Protocol. This is a <b>Testnet</b> — not financial advice.
           </p>
           <div className="flex items-center gap-2">
             <div className="glow-dot" />
