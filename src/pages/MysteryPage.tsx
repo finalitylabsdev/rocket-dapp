@@ -4,9 +4,10 @@ import VaultTab from '../components/mystery/VaultTab';
 import BidsTab from '../components/mystery/BidsTab';
 import InventoryPanel from '../components/mystery/InventoryPanel';
 import type { InventoryPart } from '../types/domain';
+import { STAR_VAULT_ENABLED, NEBULA_BIDS_ENABLED } from '../config/flags';
 
 export default function MysteryPage() {
-  const [activeTab, setActiveTab] = useState<'vault' | 'bids'>('vault');
+  const [activeTab, setActiveTab] = useState<'vault' | 'bids'>(STAR_VAULT_ENABLED ? 'vault' : 'bids');
   const [preferredAuctionPartId, setPreferredAuctionPartId] = useState<string | null>(null);
 
   const handleSendToAuction = (part: InventoryPart) => {
@@ -34,11 +35,14 @@ export default function MysteryPage() {
 
         <div className="mb-6 flex gap-0 border border-border-subtle overflow-hidden">
           <button
-            onClick={() => setActiveTab('vault')}
+            onClick={() => STAR_VAULT_ENABLED && setActiveTab('vault')}
+            disabled={!STAR_VAULT_ENABLED}
             className={`flex-1 flex items-center justify-center gap-2 py-3 font-mono font-semibold text-sm transition-all duration-200 ${
-              activeTab === 'vault' ? '' : 'text-text-secondary hover:text-text-primary'
+              !STAR_VAULT_ENABLED
+                ? 'text-text-muted cursor-not-allowed opacity-50'
+                : activeTab === 'vault' ? '' : 'text-text-secondary hover:text-text-primary'
             }`}
-            style={activeTab === 'vault'
+            style={STAR_VAULT_ENABLED && activeTab === 'vault'
               ? { background: 'rgba(246,197,71,0.08)', color: '#F6C547', borderBottom: '2px solid #F6C547' }
               : undefined}
           >
@@ -46,11 +50,14 @@ export default function MysteryPage() {
             STAR VAULT
           </button>
           <button
-            onClick={() => setActiveTab('bids')}
+            onClick={() => NEBULA_BIDS_ENABLED && setActiveTab('bids')}
+            disabled={!NEBULA_BIDS_ENABLED}
             className={`flex-1 flex items-center justify-center gap-2 py-3 font-mono font-semibold text-sm transition-all duration-200 ${
-              activeTab === 'bids' ? '' : 'text-text-secondary hover:text-text-primary'
+              !NEBULA_BIDS_ENABLED
+                ? 'text-text-muted cursor-not-allowed opacity-50'
+                : activeTab === 'bids' ? '' : 'text-text-secondary hover:text-text-primary'
             }`}
-            style={activeTab === 'bids'
+            style={NEBULA_BIDS_ENABLED && activeTab === 'bids'
               ? { background: 'rgba(168,85,247,0.08)', color: '#A855F7', borderBottom: '2px solid #A855F7' }
               : undefined}
           >

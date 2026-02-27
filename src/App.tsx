@@ -10,6 +10,13 @@ import WelcomeBanner from './components/WelcomeBanner';
 import Footer from './components/Footer';
 import AppToaster from './components/AppToaster';
 import StarField from './components/brand/StarField';
+import ComingSoon from './components/ComingSoon';
+import {
+  DEX_ENABLED,
+  STAR_VAULT_ENABLED,
+  NEBULA_BIDS_ENABLED,
+  ROCKET_LAB_ENABLED,
+} from './config/flags';
 
 const DexPage = lazy(() => import('./pages/DexPage'));
 const MysteryPage = lazy(() => import('./pages/MysteryPage'));
@@ -79,11 +86,11 @@ export default function App() {
             <main>
               <Suspense fallback={<PageFallback />}>
                 {page === 'dex' ? (
-                  <DexPage />
+                  DEX_ENABLED ? <DexPage /> : <ComingSoon title="Entropy Exchange" subtitle="The decentralized exchange is not yet available." />
                 ) : page === 'mystery' ? (
-                  <MysteryPage />
+                  STAR_VAULT_ENABLED || NEBULA_BIDS_ENABLED ? <MysteryPage /> : <ComingSoon title="Star Vault & Nebula Bids" subtitle="Mystery boxes and auctions are not yet available." />
                 ) : page === 'lab' ? (
-                  <RocketLabPage />
+                  ROCKET_LAB_ENABLED ? <RocketLabPage /> : <ComingSoon title="Rocket Lab" subtitle="Rocket building and launches are not yet available." />
                 ) : page === 'leaderboard' ? (
                   <LeaderboardPage />
                 ) : (

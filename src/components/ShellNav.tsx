@@ -8,6 +8,12 @@ import { useWallet } from '../hooks/useWallet';
 import { useGameState } from '../context/GameState';
 import { useTheme } from '../context/ThemeContext';
 import type { Page } from '../App';
+import {
+  DEX_ENABLED,
+  STAR_VAULT_ENABLED,
+  NEBULA_BIDS_ENABLED,
+  ROCKET_LAB_ENABLED,
+} from '../config/flags';
 
 interface ShellNavProps {
   page: Page;
@@ -19,6 +25,13 @@ const PAGE_META: Record<Exclude<Page, 'home'>, { title: string; subtitle: string
   mystery:     { title: 'Star Vault & Nebula Bids', subtitle: 'App 3 · ɸ-net Testnet',        icon: Gift },
   lab:         { title: 'Rocket Lab',               subtitle: 'Build & Launch',                icon: FlaskConical },
   leaderboard: { title: 'Cosmic Jackpot',           subtitle: 'Season 1 · Rankings',           icon: Trophy },
+};
+
+const pageEnabled: Record<Exclude<Page, 'home'>, boolean> = {
+  dex: DEX_ENABLED,
+  mystery: STAR_VAULT_ENABLED || NEBULA_BIDS_ENABLED,
+  lab: ROCKET_LAB_ENABLED,
+  leaderboard: true,
 };
 
 export default function ShellNav({ page, onNavigate }: ShellNavProps) {
@@ -103,7 +116,14 @@ export default function ShellNav({ page, onNavigate }: ShellNavProps) {
                     </div>
                     <div>
                       <span className="font-mono font-bold text-text-primary text-base leading-none uppercase tracking-wider">{meta.title}</span>
-                      <div className="text-[10px] font-mono font-medium text-text-muted leading-none mt-0.5 uppercase tracking-wider">{meta.subtitle}</div>
+                      <div className="flex items-center gap-2 mt-0.5">
+                        <span className="text-[10px] font-mono font-medium text-text-muted leading-none uppercase tracking-wider">{meta.subtitle}</span>
+                        {!pageEnabled[page] && (
+                          <span className="text-[9px] font-mono font-bold px-1.5 py-0.5 uppercase tracking-wider bg-text-muted text-bg-base leading-none">
+                            Coming Soon
+                          </span>
+                        )}
+                      </div>
                     </div>
                   </div>
                 );

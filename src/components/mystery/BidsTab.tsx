@@ -14,6 +14,7 @@ import AuctionResultModal from './AuctionResultModal';
 import SubmitToAuctionPanel from './SubmitToAuctionPanel';
 import TopContributors from './TopContributors';
 import { APP3_INSET_STYLE, APP3_PANEL_STYLE, APP3_TEXT_MUTED_STYLE, APP3_TEXT_PRIMARY_STYLE, APP3_TEXT_SECONDARY_STYLE, formatFluxValue } from './ui';
+import { NEBULA_BIDS_ENABLED } from '../../config/flags';
 
 interface BidsTabProps {
   preferredPartId?: string | null;
@@ -24,7 +25,7 @@ interface BidsTabProps {
 export default function BidsTab({ preferredPartId, onPreferredPartHandled, onNavigateLab }: BidsTabProps) {
   const wallet = useWallet();
   const game = useGameState();
-  const { activeAuction, history, isLoading, error, refresh } = useAuctions(Boolean(wallet.address));
+  const { activeAuction, history, isLoading, error, refresh } = useAuctions(Boolean(wallet.address) && NEBULA_BIDS_ENABLED);
   const [selectedRoundId, setSelectedRoundId] = useState<number | null>(null);
   const [isPlacingBid, setIsPlacingBid] = useState(false);
   const [isSubmittingItem, setIsSubmittingItem] = useState(false);
@@ -107,6 +108,31 @@ export default function BidsTab({ preferredPartId, onPreferredPartHandled, onNav
       setIsPlacingBid(false);
     }
   };
+
+  if (!NEBULA_BIDS_ENABLED) {
+    return (
+      <section className="space-y-6">
+        <div className="p-6" style={APP3_PANEL_STYLE}>
+          <div className="flex items-center gap-3">
+            <span
+              className="h-10 w-10 flex items-center justify-center"
+              style={{ background: 'rgba(168,85,247,0.08)', border: '1px solid rgba(168,85,247,0.22)', color: '#C084FC' }}
+            >
+              <Gavel size={16} />
+            </span>
+            <div>
+              <p className="font-mono font-black text-lg uppercase tracking-wider" style={APP3_TEXT_PRIMARY_STYLE}>
+                Nebula Bids — Coming Soon
+              </p>
+              <p className="mt-1 text-sm font-mono" style={APP3_TEXT_MUTED_STYLE}>
+                Auctions are not yet available. Check back soon.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+    );
+  }
 
   if (!wallet.address) {
     return (
