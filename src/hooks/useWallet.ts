@@ -8,9 +8,14 @@ import {
   useRef,
   type ReactNode,
 } from 'react';
-import type { AppKit } from '@reown/appkit/react';
+import type { WalletState } from '@web3-onboard/core';
+import { useConnectWallet, useSetChain, useWallets } from '@web3-onboard/react';
 import { recordWalletConnect, recordWalletDisconnect } from '../lib/ledger';
-import { REOWN_EVM_NAMESPACE, isReownConfigured, loadReownAppKit } from '../lib/reownAppKit';
+import {
+  dismissWeb3OnboardModal,
+  WEB3_ONBOARD_MAINNET_CHAIN_DECIMAL,
+  WEB3_ONBOARD_MAINNET_CHAIN_ID,
+} from '../lib/web3Onboard';
 import { supabase } from '../lib/supabase';
 import {
   clearActiveEthereumWalletContext,
@@ -19,20 +24,30 @@ import {
   signInWithConnectedEthereumWallet,
 } from '../lib/web3Auth';
 
-type ReownAccountStatus = 'reconnecting' | 'connected' | 'disconnected' | 'connecting' | undefined;
-
-interface ReownState {
+interface OnboardState {
   address: string | null;
   chainId: number | null;
   isConnected: boolean;
-  status: ReownAccountStatus;
   walletProvider: Eip1193Provider | null;
 }
+
+interface WalletContextValue {
+  address: string | null;
+  isConnected: boolean;
+  connect: () => Promise<void>;
+  disconnect: () => Promise<void>;
+  isConnecting: boolean;
+  error: string | null;
+  displayAddress: string | null;
+}
+
+const WalletContext = createContext<WalletContextValue | null>(null);
 
 function formatAddress(address: string | null): string | null {
   if (!address) {
     return null;
   }
+
   return `${address.slice(0, 6)}...${address.slice(-4)}`;
 }
 
@@ -79,80 +94,42 @@ function parseConnectedChainId(value: string | number | undefined): number | nul
   return null;
 }
 
-interface WalletContextValue {
-  address: string | null;
-  isConnected: boolean;
-  connect: () => Promise<void>;
-  disconnect: () => Promise<void>;
-  isConnecting: boolean;
-  error: string | null;
-  displayAddress: string | null;
+function isEip1193Provider(value: unknown): value is Eip1193Provider {
+  return typeof value === 'object' && value !== null && typeof (value as Eip1193Provider).request === 'function';
 }
 
-const WalletContext = createContext<WalletContextValue | null>(null);
+function normalizeWalletProvider(value: unknown): Eip1193Provider | null {
+  return isEip1193Provider(value) ? value : null;
+}
+
+function buildOnboardState(wallet: WalletState | null): OnboardState {
+  const nextAddress = normalizeConnectedAddress(wallet?.accounts[0]?.address);
+  const nextChainId = parseConnectedChainId(wallet?.chains[0]?.id);
+  const nextProvider = normalizeWalletProvider(wallet?.provider);
+
+  return {
+    address: nextAddress,
+    chainId: nextChainId,
+    isConnected: Boolean(wallet && nextAddress && nextProvider),
+    walletProvider: nextProvider,
+  };
+}
 
 function useProvideWallet(): WalletContextValue {
-  const [reownState, setReownState] = useState<ReownState>({
-    address: null,
-    chainId: null,
-    isConnected: false,
-    status: 'disconnected',
-    walletProvider: null,
-  });
+  const connectedWallets = useWallets();
+  const [{ wallet, connecting }, connectWallet, disconnectWallet, , , setPrimaryWallet] = useConnectWallet();
+  const primaryWallet = wallet ?? connectedWallets[0] ?? null;
+  const onboardState = buildOnboardState(primaryWallet);
+  const [{ settingChain }, setChain] = useSetChain(primaryWallet?.label);
+
   const [address, setAddress] = useState<string | null>(null);
   const [isAuthenticating, setIsAuthenticating] = useState(false);
   const [isDisconnecting, setIsDisconnecting] = useState(false);
   const [isSessionHydrated, setIsSessionHydrated] = useState(!supabase);
-  const [shouldInitReown, setShouldInitReown] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const appKitRef = useRef<AppKit | null>(null);
   const failedAuthAddressRef = useRef<string | null>(null);
   const manualDisconnectRef = useRef(false);
-
-  const ensureReownAppKit = useCallback(async (): Promise<AppKit | null> => {
-    const appKit = await loadReownAppKit();
-    appKitRef.current = appKit;
-    return appKit;
-  }, []);
-
-  const syncReownState = useCallback(() => {
-    const appKit = appKitRef.current;
-
-    if (!appKit) {
-      setReownState({
-        address: null,
-        chainId: null,
-        isConnected: false,
-        status: 'disconnected',
-        walletProvider: null,
-      });
-      return;
-    }
-
-    const account = appKit.getAccount(REOWN_EVM_NAMESPACE);
-    const nextAddress = normalizeConnectedAddress(account?.address);
-    const nextChainId = parseConnectedChainId(appKit.getChainId());
-    const nextProvider = appKit.getProvider<Eip1193Provider>(REOWN_EVM_NAMESPACE) ?? null;
-
-    setReownState({
-      address: nextAddress,
-      chainId: nextChainId,
-      isConnected: Boolean(account?.isConnected && nextAddress),
-      status: account?.status,
-      walletProvider: nextProvider,
-    });
-  }, []);
-
-  const disconnectReown = useCallback(async () => {
-    const appKit = appKitRef.current ?? await ensureReownAppKit();
-    if (!appKit) {
-      return;
-    }
-
-    await appKit.disconnect(REOWN_EVM_NAMESPACE);
-    syncReownState();
-  }, [ensureReownAppKit, syncReownState]);
 
   const clearWalletSession = useCallback(async (message: string) => {
     clearActiveEthereumWalletContext();
@@ -168,8 +145,16 @@ function useProvideWallet(): WalletContextValue {
     setError(message);
   }, []);
 
+  const disconnectConnectedWallet = useCallback(async () => {
+    if (!primaryWallet) {
+      return;
+    }
+
+    await disconnectWallet({ label: primaryWallet.label });
+  }, [disconnectWallet, primaryWallet]);
+
   const authenticateConnectedWallet = useCallback(async (): Promise<boolean> => {
-    if (!reownState.walletProvider || !reownState.address || isAuthenticating) {
+    if (!onboardState.walletProvider || !onboardState.address || isAuthenticating) {
       return false;
     }
 
@@ -178,10 +163,19 @@ function useProvideWallet(): WalletContextValue {
     const previousAddress = address;
 
     try {
+      if (
+        onboardState.chainId !== null
+        && onboardState.chainId !== WEB3_ONBOARD_MAINNET_CHAIN_DECIMAL
+      ) {
+        const switched = await setChain({ chainId: WEB3_ONBOARD_MAINNET_CHAIN_ID });
+        if (!switched) {
+          throw new Error('Switch to Ethereum Mainnet to continue.');
+        }
+      }
+
       const nextAddress = await signInWithConnectedEthereumWallet(
-        reownState.walletProvider,
-        reownState.address,
-        reownState.chainId,
+        onboardState.walletProvider,
+        onboardState.address,
       );
       setAddress(nextAddress);
       failedAuthAddressRef.current = null;
@@ -193,14 +187,21 @@ function useProvideWallet(): WalletContextValue {
       return true;
     } catch (connectError) {
       const message = toErrorMessage(connectError);
-      failedAuthAddressRef.current = reownState.address;
+      failedAuthAddressRef.current = onboardState.address;
       setError(message);
       console.error('Wallet connect failed:', message);
       return false;
     } finally {
       setIsAuthenticating(false);
     }
-  }, [address, isAuthenticating, reownState.address, reownState.chainId, reownState.walletProvider]);
+  }, [
+    address,
+    isAuthenticating,
+    onboardState.address,
+    onboardState.chainId,
+    onboardState.walletProvider,
+    setChain,
+  ]);
 
   useEffect(() => {
     if (!supabase) {
@@ -218,25 +219,14 @@ function useProvideWallet(): WalletContextValue {
         console.error('Failed to load wallet session:', sessionError.message);
         setAddress(null);
       } else {
-        const sessionAddress = getWalletAddressFromUser(data.session?.user ?? null);
-        setAddress(sessionAddress);
-
-        if (sessionAddress && isReownConfigured) {
-          setShouldInitReown(true);
-        }
+        setAddress(getWalletAddressFromUser(data.session?.user ?? null));
       }
 
       setIsSessionHydrated(true);
     });
 
     const { data: authSubscription } = supabase.auth.onAuthStateChange((_event, session) => {
-      const sessionAddress = getWalletAddressFromUser(session?.user ?? null);
-      setAddress(sessionAddress);
-
-      if (sessionAddress && isReownConfigured) {
-        setShouldInitReown(true);
-      }
-
+      setAddress(getWalletAddressFromUser(session?.user ?? null));
       setIsSessionHydrated(true);
     });
 
@@ -247,85 +237,31 @@ function useProvideWallet(): WalletContextValue {
   }, []);
 
   useEffect(() => {
-    if (!isReownConfigured || !shouldInitReown) {
-      return;
-    }
-
-    let isMounted = true;
-    let cleanupFns: Array<() => void> = [];
-
-    void ensureReownAppKit().then((appKit) => {
-      if (!isMounted || !appKit) {
-        return;
-      }
-
-      syncReownState();
-
-      cleanupFns = [
-        appKit.subscribeAccount(() => {
-          syncReownState();
-        }, REOWN_EVM_NAMESPACE),
-        appKit.subscribeNetwork(() => {
-          syncReownState();
-        }),
-        appKit.subscribeProviders(() => {
-          syncReownState();
-        }),
-      ];
-    }).catch((loadError) => {
-      if (!isMounted) {
-        return;
-      }
-
-      const message = toErrorMessage(loadError);
-      setError(message);
-      console.error('Reown AppKit failed to initialize:', message);
-    });
-
-    return () => {
-      isMounted = false;
-      cleanupFns.forEach((cleanup) => cleanup());
-    };
-  }, [ensureReownAppKit, shouldInitReown, syncReownState]);
-
-  useEffect(() => {
-    if (!isReownConfigured) {
-      return;
-    }
-
-    if (reownState.walletProvider && reownState.address && reownState.isConnected) {
-      setActiveEthereumWalletContext(reownState.walletProvider, reownState.address);
+    if (onboardState.walletProvider && onboardState.address && onboardState.isConnected) {
+      setActiveEthereumWalletContext(onboardState.walletProvider, onboardState.address);
       return;
     }
 
     clearActiveEthereumWalletContext();
-  }, [reownState.address, reownState.isConnected, reownState.walletProvider]);
+  }, [onboardState.address, onboardState.isConnected, onboardState.walletProvider]);
 
   useEffect(() => {
-    if (!isReownConfigured) {
-      return;
-    }
-
-    if (!reownState.address || !reownState.isConnected) {
+    if (!onboardState.address || !onboardState.isConnected) {
       failedAuthAddressRef.current = null;
       return;
     }
 
-    if (failedAuthAddressRef.current && failedAuthAddressRef.current !== reownState.address) {
+    if (failedAuthAddressRef.current && failedAuthAddressRef.current !== onboardState.address) {
       failedAuthAddressRef.current = null;
     }
-  }, [reownState.address, reownState.isConnected]);
+  }, [onboardState.address, onboardState.isConnected]);
 
   useEffect(() => {
-    if (!isReownConfigured || !shouldInitReown) {
+    if (!isSessionHydrated || connecting) {
       return;
     }
 
-    if (!isSessionHydrated) {
-      return;
-    }
-
-    if (!reownState.isConnected || !reownState.address || !reownState.walletProvider) {
+    if (!onboardState.isConnected || !onboardState.address || !onboardState.walletProvider) {
       if (address && !manualDisconnectRef.current) {
         void clearWalletSession('Wallet disconnected. Reconnect to continue.');
       }
@@ -336,13 +272,13 @@ function useProvideWallet(): WalletContextValue {
       return;
     }
 
-    if (address && address !== reownState.address) {
+    if (address && address !== onboardState.address) {
       manualDisconnectRef.current = true;
 
       void (async () => {
         try {
           await clearWalletSession('Wallet account changed. Reconnect with the active wallet.');
-          await disconnectReown();
+          await disconnectConnectedWallet();
         } catch (disconnectError) {
           console.error('Wallet reconnect reset failed:', toErrorMessage(disconnectError));
         } finally {
@@ -353,44 +289,49 @@ function useProvideWallet(): WalletContextValue {
       return;
     }
 
-    if (!address && failedAuthAddressRef.current !== reownState.address) {
+    if (!address && failedAuthAddressRef.current !== onboardState.address) {
       void authenticateConnectedWallet();
     }
   }, [
     address,
     authenticateConnectedWallet,
     clearWalletSession,
-    disconnectReown,
+    connecting,
+    disconnectConnectedWallet,
     isSessionHydrated,
-    reownState.address,
-    reownState.isConnected,
-    reownState.walletProvider,
-    shouldInitReown,
+    onboardState.address,
+    onboardState.isConnected,
+    onboardState.walletProvider,
   ]);
 
-  const connect = useCallback(async () => {
-    if (!isReownConfigured) {
-      setError('Wallet connect is unavailable until VITE_REOWN_PROJECT_ID is configured.');
+  useEffect(() => {
+    if (!primaryWallet || !connecting) {
       return;
     }
 
-    setShouldInitReown(true);
+    const timeoutId = window.setTimeout(() => {
+      dismissWeb3OnboardModal();
+    }, 120);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
+  }, [connecting, primaryWallet]);
+
+  const connect = useCallback(async () => {
     failedAuthAddressRef.current = null;
     setError(null);
 
-    if (reownState.isConnected && reownState.walletProvider && reownState.address) {
+    if (onboardState.isConnected && onboardState.walletProvider && onboardState.address) {
       await authenticateConnectedWallet();
       return;
     }
 
     try {
-      const appKit = await ensureReownAppKit();
-      if (!appKit) {
-        throw new Error('Wallet connect is unavailable until VITE_REOWN_PROJECT_ID is configured.');
+      const nextWallets = await connectWallet();
+      if (nextWallets[0]) {
+        setPrimaryWallet(nextWallets[0]);
       }
-
-      await appKit.open({ view: 'Connect' });
-      syncReownState();
     } catch (connectError) {
       const message = toErrorMessage(connectError);
       setError(message);
@@ -398,11 +339,11 @@ function useProvideWallet(): WalletContextValue {
     }
   }, [
     authenticateConnectedWallet,
-    ensureReownAppKit,
-    reownState.address,
-    reownState.isConnected,
-    reownState.walletProvider,
-    syncReownState,
+    connectWallet,
+    onboardState.address,
+    onboardState.isConnected,
+    onboardState.walletProvider,
+    setPrimaryWallet,
   ]);
 
   const disconnect = useCallback(async () => {
@@ -422,10 +363,7 @@ function useProvideWallet(): WalletContextValue {
         }
       }
 
-      if (isReownConfigured && shouldInitReown && reownState.isConnected) {
-        await disconnectReown();
-      }
-
+      await disconnectConnectedWallet();
       clearActiveEthereumWalletContext();
       failedAuthAddressRef.current = null;
       setAddress(null);
@@ -437,18 +375,14 @@ function useProvideWallet(): WalletContextValue {
       manualDisconnectRef.current = false;
       setIsDisconnecting(false);
     }
-  }, [address, disconnectReown, reownState.isConnected, shouldInitReown]);
+  }, [address, disconnectConnectedWallet]);
 
   return {
     address,
     isConnected: !!address,
     connect,
     disconnect,
-    isConnecting:
-      isDisconnecting
-      || isAuthenticating
-      || reownState.status === 'connecting'
-      || reownState.status === 'reconnecting',
+    isConnecting: isDisconnecting || isAuthenticating || connecting || settingChain,
     error,
     displayAddress: formatAddress(address),
   };

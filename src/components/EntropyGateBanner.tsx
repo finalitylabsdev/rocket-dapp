@@ -114,7 +114,7 @@ export default function EntropyGateBanner({ isHome, onNavigateHome }: EntropyGat
             {ethLock.isLoading ? 'Checking' : 'Live Verify'}
           </div>
         )}
-        {!wallet.isConnected ? (
+        {!wallet.isConnected && !isHome ? (
           <button
             onClick={() => void wallet.connect()}
             disabled={wallet.isConnecting}

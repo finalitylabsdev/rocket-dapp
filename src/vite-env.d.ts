@@ -8,7 +8,7 @@ interface ImportMetaEnv {
   readonly VITE_ETH_LOCK_RECIPIENT?: string;
   readonly VITE_SIWE_URI?: string;
   readonly VITE_SIWE_DOMAIN?: string;
-  readonly VITE_REOWN_PROJECT_ID?: string;
+  readonly VITE_MAINNET_RPC_URL?: string;
 }
 
 interface ImportMeta {

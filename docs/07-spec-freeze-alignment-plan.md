@@ -140,12 +140,12 @@ Required:
 Current:
 - `src/context/EthLockState.tsx` runs one shared `useEthLock(wallet.address)` source for visible gate state across the shell and hero.
 - `src/components/EntropyGateBanner.tsx` keeps ETH lock status, next-step guidance, loading, verification, and config errors visible outside the home-only hero flow.
-- `src/hooks/useWallet.ts` uses Reown AppKit as the single wallet connect surface and clears stale Supabase wallet sessions when the provider disconnects, switches accounts, or fails reconciliation after chain changes.
+- `src/hooks/useWallet.ts` uses Web3-Onboard as the single wallet connect surface and clears stale Supabase wallet sessions when the provider disconnects, switches accounts, or fails reconciliation after chain changes.
 - Daily claim still has no streak/XP logic.
 
 Required:
 1. Keep the shared shell banner + hero flow as the single client-side authority path for visible ETH lock state.
-2. Keep Reown/AppKit as the only wallet connect modal; do not reintroduce a custom injected-wallet selector path.
+2. Keep Web3-Onboard as the only wallet connect modal; do not reintroduce a custom injected-wallet selector path.
 3. Add streak/XP model and milestones (7/14/30 days).
 4. Expand prize-trigger CTA conditions/copy beyond the current connect, lock, verify, and reconnect states.
 

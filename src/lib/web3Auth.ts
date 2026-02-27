@@ -1,5 +1,5 @@
 import type { User } from '@supabase/supabase-js';
-import { REOWN_EVM_NAMESPACE, loadReownAppKit } from './reownAppKit';
+import { getWeb3OnboardPrimaryWallet } from './web3Onboard';
 import { SUPABASE_PUBLISHABLE_KEY, SUPABASE_URL, supabase } from './supabase';
 
 const SIWE_STATEMENT = 'Sign in to Entropy Network.';
@@ -177,14 +177,14 @@ async function readConnectedAccount(
   return primaryAccount === expectedAddress ? primaryAccount : null;
 }
 
-async function syncActiveWalletFromReown(): Promise<void> {
-  const appKit = await loadReownAppKit();
-  if (!appKit) {
+function syncActiveWalletFromOnboard(): void {
+  const wallet = getWeb3OnboardPrimaryWallet();
+  if (!wallet) {
     return;
   }
 
-  const provider = appKit.getProvider<Eip1193Provider>(REOWN_EVM_NAMESPACE);
-  const address = normalizeWalletAddress(appKit.getAccount(REOWN_EVM_NAMESPACE)?.address);
+  const provider = wallet.provider;
+  const address = normalizeWalletAddress(wallet.accounts[0]?.address);
 
   if (!isEip1193Provider(provider) || !address) {
     return;
@@ -199,7 +199,7 @@ export async function getConnectedEthereumWalletContext(
   const normalizedExpectedAddress = normalizeWalletAddress(expectedAddress);
 
   if (!activeWalletProvider) {
-    await syncActiveWalletFromReown();
+    syncActiveWalletFromOnboard();
   }
 
   if (!activeWalletProvider) {
