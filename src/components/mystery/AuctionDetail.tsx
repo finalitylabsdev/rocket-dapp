@@ -17,11 +17,11 @@ function formatFluxValue(value: number): string {
 export default function AuctionDetail({ activeAuction, isPlacingBid, onPlaceBid }: AuctionDetailProps) {
   if (!activeAuction) {
     return (
-      <div className="p-5" style={{ background: '#06080F', border: '1px solid #1E2636' }}>
-        <p className="font-mono font-black text-lg uppercase tracking-wider" style={{ color: '#E8ECF4' }}>
+      <div className="p-5" style={{ background: 'var(--color-bg-base)', border: '1px solid var(--color-border-subtle)' }}>
+        <p className="font-mono font-black text-lg uppercase tracking-wider" style={{ color: 'var(--color-text-primary)' }}>
           Nebula Bids
         </p>
-        <p className="mt-3 text-sm font-mono" style={{ color: '#6B7280' }}>
+        <p className="mt-3 text-sm font-mono" style={{ color: 'var(--color-text-muted)' }}>
           No round is active right now. Check back when the next auction cycle opens.
         </p>
       </div>
@@ -30,11 +30,11 @@ export default function AuctionDetail({ activeAuction, isPlacingBid, onPlaceBid 
 
   if (activeAuction.status === 'accepting_submissions' || !activeAuction.part) {
     return (
-      <div className="p-5" style={{ background: '#06080F', border: '1px solid #1E2636' }}>
-        <p className="font-mono font-black text-lg uppercase tracking-wider" style={{ color: '#E8ECF4' }}>
+      <div className="p-5" style={{ background: 'var(--color-bg-base)', border: '1px solid var(--color-border-subtle)' }}>
+        <p className="font-mono font-black text-lg uppercase tracking-wider" style={{ color: 'var(--color-text-primary)' }}>
           Submission Window Open
         </p>
-        <p className="mt-3 text-sm font-mono" style={{ color: '#6B7280' }}>
+        <p className="mt-3 text-sm font-mono" style={{ color: 'var(--color-text-muted)' }}>
           Sellers are locking Rare-and-above parts right now. Once submissions close, the strongest eligible part enters bidding automatically.
         </p>
       </div>
@@ -45,13 +45,13 @@ export default function AuctionDetail({ activeAuction, isPlacingBid, onPlaceBid 
   const minBid = computeMinNextBid(activeAuction.currentHighestBid);
 
   return (
-    <div className="p-5" style={{ background: '#06080F', border: '1px solid #1E2636' }}>
+    <div className="p-5" style={{ background: 'var(--color-bg-base)', border: '1px solid var(--color-border-subtle)' }}>
       <div className="flex items-center justify-between gap-3">
         <div>
-          <p className="font-mono font-black text-lg uppercase tracking-wider" style={{ color: '#E8ECF4' }}>
+          <p className="font-mono font-black text-lg uppercase tracking-wider" style={{ color: 'var(--color-text-primary)' }}>
             {part.name}
           </p>
-          <p className="mt-1 text-[10px] font-mono uppercase tracking-wider" style={{ color: '#8A94A8' }}>
+          <p className="mt-1 text-[10px] font-mono uppercase tracking-wider" style={{ color: 'var(--color-text-secondary)' }}>
             {part.sectionName}
           </p>
         </div>
@@ -59,15 +59,15 @@ export default function AuctionDetail({ activeAuction, isPlacingBid, onPlaceBid 
       </div>
 
       <div className="mt-4 grid grid-cols-2 gap-3">
-        <div className="p-3" style={{ background: '#0C1018', border: '1px solid #1E2636' }}>
-          <p className="text-[10px] font-mono uppercase tracking-wider" style={{ color: '#8A94A8' }}>Current Bid</p>
-          <p className="mt-2 font-mono font-black text-xl" style={{ color: '#E8ECF4' }}>
+        <div className="p-3" style={{ background: 'var(--color-bg-card)', border: '1px solid var(--color-border-subtle)' }}>
+          <p className="text-[10px] font-mono uppercase tracking-wider" style={{ color: 'var(--color-text-secondary)' }}>Current Bid</p>
+          <p className="mt-2 font-mono font-black text-xl" style={{ color: 'var(--color-text-primary)' }}>
             {formatFluxValue(activeAuction.currentHighestBid)}
           </p>
         </div>
-        <div className="p-3" style={{ background: '#0C1018', border: '1px solid #1E2636' }}>
-          <p className="text-[10px] font-mono uppercase tracking-wider" style={{ color: '#8A94A8' }}>Part Value</p>
-          <p className="mt-2 font-mono font-black text-xl flex items-center gap-1" style={{ color: '#E8ECF4' }}>
+        <div className="p-3" style={{ background: 'var(--color-bg-card)', border: '1px solid var(--color-border-subtle)' }}>
+          <p className="text-[10px] font-mono uppercase tracking-wider" style={{ color: 'var(--color-text-secondary)' }}>Part Value</p>
+          <p className="mt-2 font-mono font-black text-xl flex items-center gap-1" style={{ color: 'var(--color-text-primary)' }}>
             <PhiSymbol size={12} color="currentColor" />
             {formatFluxValue(part.partValue)}
           </p>
@@ -78,10 +78,10 @@ export default function AuctionDetail({ activeAuction, isPlacingBid, onPlaceBid 
         {part.attributes.map((value, index) => (
           <div key={part.attributeNames[index]}>
             <div className="flex items-center justify-between text-[10px] font-mono uppercase tracking-wider mb-1">
-              <span style={{ color: '#8A94A8' }}>{part.attributeNames[index]}</span>
-              <span style={{ color: '#E8ECF4' }}>{value}</span>
+              <span style={{ color: 'var(--color-text-secondary)' }}>{part.attributeNames[index]}</span>
+              <span style={{ color: 'var(--color-text-primary)' }}>{value}</span>
             </div>
-            <div className="h-1.5 overflow-hidden" style={{ background: '#0C1018', border: '1px solid #1E2636' }}>
+            <div className="h-1.5 overflow-hidden" style={{ background: 'var(--color-bg-card)', border: '1px solid var(--color-border-subtle)' }}>
               <div
                 className="h-full"
                 style={{
@@ -101,12 +101,12 @@ export default function AuctionDetail({ activeAuction, isPlacingBid, onPlaceBid 
       />
 
       <div className="mt-5">
-        <p className="text-[10px] font-mono uppercase tracking-wider mb-2" style={{ color: '#8A94A8' }}>
+        <p className="text-[10px] font-mono uppercase tracking-wider mb-2" style={{ color: 'var(--color-text-secondary)' }}>
           Bid History
         </p>
         <div className="space-y-2 max-h-52 overflow-y-auto">
           {activeAuction.bids.length === 0 ? (
-            <div className="p-3 text-sm font-mono" style={{ background: '#0C1018', border: '1px solid #1E2636', color: '#6B7280' }}>
+            <div className="p-3 text-sm font-mono" style={{ background: 'var(--color-bg-card)', border: '1px solid var(--color-border-subtle)', color: 'var(--color-text-muted)' }}>
               Waiting for the first bid.
             </div>
           ) : (
@@ -114,12 +114,12 @@ export default function AuctionDetail({ activeAuction, isPlacingBid, onPlaceBid 
               <div
                 key={bid.id}
                 className="p-3 flex items-center justify-between gap-3"
-                style={{ background: '#0C1018', border: '1px solid #1E2636' }}
+                style={{ background: 'var(--color-bg-card)', border: '1px solid var(--color-border-subtle)' }}
               >
-                <span className="text-xs font-mono" style={{ color: '#8A94A8' }}>
+                <span className="text-xs font-mono" style={{ color: 'var(--color-text-secondary)' }}>
                   {bid.wallet.slice(0, 6)}...{bid.wallet.slice(-4)}
                 </span>
-                <span className="font-mono font-semibold text-xs" style={{ color: '#E8ECF4' }}>
+                <span className="font-mono font-semibold text-xs" style={{ color: 'var(--color-text-primary)' }}>
                   {formatFluxValue(bid.amount)} FLUX
                 </span>
               </div>

@@ -107,7 +107,7 @@ export default function BidsTab({ preferredPartId, onPreferredPartHandled }: Bid
   if (!wallet.address) {
     return (
       <section className="space-y-6">
-        <div className="p-6" style={{ background: '#06080F', border: '1px solid #1E2636' }}>
+        <div className="p-6" style={{ background: 'var(--color-bg-base)', border: '1px solid var(--color-border-subtle)' }}>
           <div className="flex items-center gap-3">
             <span
               className="h-10 w-10 flex items-center justify-center"
@@ -116,10 +116,10 @@ export default function BidsTab({ preferredPartId, onPreferredPartHandled }: Bid
               <Gavel size={16} />
             </span>
             <div>
-              <p className="font-mono font-black text-lg uppercase tracking-wider" style={{ color: '#E8ECF4' }}>
+              <p className="font-mono font-black text-lg uppercase tracking-wider" style={{ color: 'var(--color-text-primary)' }}>
                 Connect for Nebula Bids
               </p>
-              <p className="mt-1 text-sm font-mono" style={{ color: '#6B7280' }}>
+              <p className="mt-1 text-sm font-mono" style={{ color: 'var(--color-text-muted)' }}>
                 Bidding, submissions, and auction history require an authenticated wallet session.
               </p>
             </div>
@@ -161,20 +161,20 @@ export default function BidsTab({ preferredPartId, onPreferredPartHandled }: Bid
         </div>
 
         <div className="grid grid-cols-1 xl:grid-cols-[1fr_320px] gap-6">
-          <div className="p-4" style={{ background: '#06080F', border: '1px solid #1E2636' }}>
+          <div className="p-4" style={{ background: 'var(--color-bg-base)', border: '1px solid var(--color-border-subtle)' }}>
             <div className="flex items-center justify-between gap-3 mb-4">
               <div>
-                <p className="font-mono font-black text-sm uppercase tracking-wider" style={{ color: '#E8ECF4' }}>
+                <p className="font-mono font-black text-sm uppercase tracking-wider" style={{ color: 'var(--color-text-primary)' }}>
                   Recent Rounds
                 </p>
-                <p className="mt-1 text-[10px] font-mono uppercase tracking-wider" style={{ color: '#8A94A8' }}>
+                <p className="mt-1 text-[10px] font-mono uppercase tracking-wider" style={{ color: 'var(--color-text-secondary)' }}>
                   {isLoading ? 'Refreshing...' : `${history.length} records`}
                 </p>
               </div>
               <button
                 onClick={() => void refresh()}
                 className="px-3 py-2 text-[10px] font-mono font-semibold uppercase tracking-wider"
-                style={{ background: '#0C1018', border: '1px solid #1E2636', color: '#C084FC' }}
+                style={{ background: 'var(--color-bg-card)', border: '1px solid var(--color-border-subtle)', color: '#C084FC' }}
               >
                 Refresh
               </button>
@@ -182,7 +182,7 @@ export default function BidsTab({ preferredPartId, onPreferredPartHandled }: Bid
 
             <div className="space-y-2">
               {history.length === 0 ? (
-                <div className="p-3 text-sm font-mono" style={{ background: '#0C1018', border: '1px solid #1E2636', color: '#6B7280' }}>
+                <div className="p-3 text-sm font-mono" style={{ background: 'var(--color-bg-card)', border: '1px solid var(--color-border-subtle)', color: 'var(--color-text-muted)' }}>
                   No completed rounds yet.
                 </div>
               ) : (
@@ -190,13 +190,13 @@ export default function BidsTab({ preferredPartId, onPreferredPartHandled }: Bid
                   <div
                     key={entry.roundId}
                     className="p-3 flex items-center justify-between gap-3"
-                    style={{ background: '#0C1018', border: '1px solid #1E2636' }}
+                    style={{ background: 'var(--color-bg-card)', border: '1px solid var(--color-border-subtle)' }}
                   >
                     <div>
-                      <p className="font-mono font-semibold text-xs" style={{ color: '#E8ECF4' }}>
+                      <p className="font-mono font-semibold text-xs" style={{ color: 'var(--color-text-primary)' }}>
                         Round #{entry.roundId}
                       </p>
-                      <p className="mt-1 text-[10px] font-mono uppercase tracking-wider" style={{ color: '#8A94A8' }}>
+                      <p className="mt-1 text-[10px] font-mono uppercase tracking-wider" style={{ color: 'var(--color-text-secondary)' }}>
                         {entry.partName ?? 'No winning part'}
                       </p>
                     </div>

@@ -18,13 +18,13 @@ export default function InventoryPartCard({ part, onSendToAuction }: InventoryPa
   const canSendToAuction = Boolean(onSendToAuction) && !part.isLocked && part.rarityTierId >= AUCTION_MIN_RARITY_TIER;
 
   return (
-    <div className="p-4" style={{ background: '#06080F', border: '1px solid #1E2636' }}>
+    <div className="p-4" style={{ background: 'var(--color-bg-base)', border: '1px solid var(--color-border-subtle)' }}>
       <div className="flex items-start justify-between gap-3">
         <div>
-          <p className="font-mono font-black text-sm uppercase tracking-wider" style={{ color: '#E8ECF4' }}>
+          <p className="font-mono font-black text-sm uppercase tracking-wider" style={{ color: 'var(--color-text-primary)' }}>
             {part.name}
           </p>
-          <p className="text-[10px] mt-1 font-mono uppercase tracking-wider" style={{ color: '#4A5468' }}>
+          <p className="text-[10px] mt-1 font-mono uppercase tracking-wider" style={{ color: 'var(--color-text-muted)' }}>
             {part.sectionName}
           </p>
         </div>
@@ -35,10 +35,10 @@ export default function InventoryPartCard({ part, onSendToAuction }: InventoryPa
         {part.attributes.map((value, index) => (
           <div key={part.attributeNames[index]}>
             <div className="flex items-center justify-between text-[10px] font-mono uppercase tracking-wider mb-1">
-              <span style={{ color: '#8A94A8' }}>{part.attributeNames[index]}</span>
-              <span style={{ color: '#E8ECF4' }}>{value}</span>
+              <span style={{ color: 'var(--color-text-secondary)' }}>{part.attributeNames[index]}</span>
+              <span style={{ color: 'var(--color-text-primary)' }}>{value}</span>
             </div>
-            <div className="h-1.5 overflow-hidden" style={{ background: '#0C1018', border: '1px solid #1E2636' }}>
+            <div className="h-1.5 overflow-hidden" style={{ background: 'var(--color-bg-card)', border: '1px solid var(--color-border-subtle)' }}>
               <div
                 className="h-full"
                 style={{
@@ -52,15 +52,15 @@ export default function InventoryPartCard({ part, onSendToAuction }: InventoryPa
       </div>
 
       <div className="mt-3 flex items-center justify-between text-xs font-mono">
-        <span style={{ color: '#8A94A8' }}>Part Value</span>
-        <span className="flex items-center gap-1" style={{ color: '#E8ECF4' }}>
+        <span style={{ color: 'var(--color-text-secondary)' }}>Part Value</span>
+        <span className="flex items-center gap-1" style={{ color: 'var(--color-text-primary)' }}>
           <PhiSymbol size={10} color="currentColor" />
           {formatFluxValue(part.partValue)}
         </span>
       </div>
 
       {showMeta && (
-        <div className="mt-3 p-2 text-[10px] font-mono uppercase tracking-wider" style={{ background: '#0C1018', color: '#6B7280' }}>
+        <div className="mt-3 p-2 text-[10px] font-mono uppercase tracking-wider" style={{ background: 'var(--color-bg-card)', border: '1px solid var(--color-border-subtle)', color: 'var(--color-text-muted)' }}>
           <div className="flex items-center justify-between">
             <span>Status</span>
             <span>{part.isLocked ? 'Locked' : 'Available'}</span>
@@ -76,7 +76,7 @@ export default function InventoryPartCard({ part, onSendToAuction }: InventoryPa
         <button
           onClick={() => setShowMeta((current) => !current)}
           className="py-2 text-[10px] font-mono font-semibold uppercase tracking-wider"
-          style={{ background: '#0C1018', border: '1px solid #1E2636', color: '#8A94A8' }}
+          style={{ background: 'var(--color-bg-card)', border: '1px solid var(--color-border-subtle)', color: 'var(--color-text-secondary)' }}
         >
           {showMeta ? 'Hide Stats' : 'View Stats'}
         </button>

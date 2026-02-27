@@ -1,9 +1,10 @@
 import { useState } from 'react';
-import { ArrowLeft, Gift, Gavel, Zap } from 'lucide-react';
+import { ArrowLeft, Gift, Gavel, Moon, Sun, Zap } from 'lucide-react';
 import VaultTab from '../components/mystery/VaultTab';
 import BidsTab from '../components/mystery/BidsTab';
 import InventoryPanel from '../components/mystery/InventoryPanel';
 import { useGameState } from '../context/GameState';
+import { useTheme } from '../context/ThemeContext';
 import { useWallet } from '../hooks/useWallet';
 import type { InventoryPart } from '../types/domain';
 import PhiSymbol from '../components/brand/PhiSymbol';
@@ -15,6 +16,7 @@ interface MysteryPageProps {
 export default function MysteryPage({ onBack }: MysteryPageProps) {
   const { fluxBalance } = useGameState();
   const wallet = useWallet();
+  const { theme, toggleTheme } = useTheme();
   const [activeTab, setActiveTab] = useState<'vault' | 'bids'>('vault');
   const [preferredAuctionPartId, setPreferredAuctionPartId] = useState<string | null>(null);
 
@@ -44,19 +46,19 @@ export default function MysteryPage({ onBack }: MysteryPageProps) {
                   <Zap size={16} className="text-black" fill="black" />
                 </div>
                 <div>
-                  <span className="font-mono font-bold text-white text-base leading-none uppercase tracking-wider">Star Vault &amp; Nebula Bids</span>
-                  <div className="text-[10px] font-mono font-medium text-zinc-500 leading-none mt-0.5 uppercase tracking-wider">App 3 · ɸ-net Testnet</div>
+                  <span className="font-mono font-bold text-text-primary text-base leading-none uppercase tracking-wider">Star Vault &amp; Nebula Bids</span>
+                  <div className="text-[10px] font-mono font-medium text-text-muted leading-none mt-0.5 uppercase tracking-wider">App 3 · ɸ-net Testnet</div>
                 </div>
               </div>
             </div>
 
             <div className="flex items-center gap-3">
-              <div className="hidden sm:flex items-center gap-2 bg-zinc-900 border border-border-subtle px-3 py-2">
-                <PhiSymbol size={14} color="#E8ECF4" />
-                <span className="text-xs font-mono font-bold text-white">
+              <div className="hidden sm:flex items-center gap-2 bg-bg-card border border-border-subtle px-3 py-2">
+                <PhiSymbol size={14} color="var(--color-text-primary)" />
+                <span className="text-xs font-mono font-bold text-text-primary">
                   {fluxBalance.toFixed(2).replace(/\.00$/, '').replace(/(\.\d)0$/, '$1')}
                 </span>
-                <span className="text-xs font-mono text-zinc-500">FLUX</span>
+                <span className="text-xs font-mono text-text-muted">FLUX</span>
               </div>
               <button
                 onClick={toggleTheme}
@@ -94,10 +96,10 @@ export default function MysteryPage({ onBack }: MysteryPageProps) {
                 Crack open the cosmos. Bid on destiny.
               </span>
             </div>
-            <h1 className="font-mono font-black text-3xl md:text-5xl lg:text-6xl text-white mb-4 leading-[1.08] uppercase tracking-wider">
+            <h1 className="font-mono font-black text-3xl md:text-5xl lg:text-6xl text-text-primary mb-4 leading-[1.08] uppercase tracking-wider">
               Star Vault &amp; Nebula Bids
             </h1>
-            <p className="text-zinc-400 text-lg font-mono">
+            <p className="text-text-secondary text-lg font-mono">
               Server-backed rewards, live auctions, and one shared inventory cache.
             </p>
           </div>
@@ -106,7 +108,7 @@ export default function MysteryPage({ onBack }: MysteryPageProps) {
             <button
               onClick={() => setActiveTab('vault')}
               className={`flex-1 flex items-center justify-center gap-2 py-3 font-mono font-semibold text-sm transition-all duration-200 ${
-                activeTab === 'vault' ? '' : 'text-zinc-400 hover:text-zinc-200'
+                activeTab === 'vault' ? '' : 'text-text-secondary hover:text-text-primary'
               }`}
               style={activeTab === 'vault'
                 ? { background: 'rgba(246,197,71,0.08)', color: '#F6C547', borderBottom: '2px solid #F6C547' }
@@ -118,7 +120,7 @@ export default function MysteryPage({ onBack }: MysteryPageProps) {
             <button
               onClick={() => setActiveTab('bids')}
               className={`flex-1 flex items-center justify-center gap-2 py-3 font-mono font-semibold text-sm transition-all duration-200 ${
-                activeTab === 'bids' ? '' : 'text-zinc-400 hover:text-zinc-200'
+                activeTab === 'bids' ? '' : 'text-text-secondary hover:text-text-primary'
               }`}
               style={activeTab === 'bids'
                 ? { background: 'rgba(168,85,247,0.08)', color: '#A855F7', borderBottom: '2px solid #A855F7' }

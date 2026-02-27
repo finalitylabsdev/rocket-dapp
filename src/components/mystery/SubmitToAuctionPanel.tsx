@@ -42,7 +42,7 @@ export default function SubmitToAuctionPanel({
   const selectedPart = eligibleParts.find((part) => part.id === selectedPartId) ?? null;
 
   return (
-    <div className="p-4" style={{ background: '#06080F', border: '1px solid #1E2636' }}>
+    <div className="p-4" style={{ background: 'var(--color-bg-base)', border: '1px solid var(--color-border-subtle)' }}>
       <div className="flex items-center gap-2 mb-3">
         <span
           className="h-9 w-9 flex items-center justify-center"
@@ -51,17 +51,17 @@ export default function SubmitToAuctionPanel({
           <Upload size={14} />
         </span>
         <div>
-          <p className="font-mono font-black text-sm uppercase tracking-wider" style={{ color: '#E8ECF4' }}>
+          <p className="font-mono font-black text-sm uppercase tracking-wider" style={{ color: 'var(--color-text-primary)' }}>
             Submit to Auction
           </p>
-          <p className="text-[10px] mt-1 font-mono uppercase tracking-wider" style={{ color: '#8A94A8' }}>
+          <p className="text-[10px] mt-1 font-mono uppercase tracking-wider" style={{ color: 'var(--color-text-secondary)' }}>
             Rare and above only
           </p>
         </div>
       </div>
 
       {eligibleParts.length === 0 ? (
-        <p className="text-sm font-mono" style={{ color: '#6B7280' }}>
+        <p className="text-sm font-mono" style={{ color: 'var(--color-text-muted)' }}>
           No eligible parts right now. Open more boxes or wait for a higher-rarity drop.
         </p>
       ) : (
@@ -70,7 +70,7 @@ export default function SubmitToAuctionPanel({
             value={selectedPartId}
             onChange={(event) => setSelectedPartId(event.target.value)}
             className="w-full px-3 py-3 text-xs font-mono uppercase tracking-wider"
-            style={{ background: '#0C1018', border: '1px solid #1E2636', color: '#E8ECF4' }}
+            style={{ background: 'var(--color-bg-card)', border: '1px solid var(--color-border-subtle)', color: 'var(--color-text-primary)' }}
           >
             {eligibleParts.map((part) => (
               <option key={part.id} value={part.id}>
@@ -80,13 +80,13 @@ export default function SubmitToAuctionPanel({
           </select>
 
           {selectedPart && (
-            <div className="mt-3 p-3" style={{ background: '#0C1018', border: '1px solid #1E2636' }}>
+            <div className="mt-3 p-3" style={{ background: 'var(--color-bg-card)', border: '1px solid var(--color-border-subtle)' }}>
               <div className="flex items-center justify-between gap-2">
                 <div>
-                  <p className="font-mono font-semibold text-sm" style={{ color: '#E8ECF4' }}>
+                  <p className="font-mono font-semibold text-sm" style={{ color: 'var(--color-text-primary)' }}>
                     {selectedPart.name}
                   </p>
-                  <p className="text-[10px] mt-1 font-mono uppercase tracking-wider" style={{ color: '#8A94A8' }}>
+                  <p className="text-[10px] mt-1 font-mono uppercase tracking-wider" style={{ color: 'var(--color-text-secondary)' }}>
                     {selectedPart.sectionName}
                   </p>
                 </div>

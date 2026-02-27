@@ -27,10 +27,10 @@ function AttributeBars({ part }: { part: InventoryPart }) {
       {part.attributes.map((value, index) => (
         <div key={part.attributeNames[index]}>
           <div className="flex items-center justify-between text-[10px] font-mono uppercase tracking-wider mb-1">
-            <span style={{ color: '#8A94A8' }}>{part.attributeNames[index]}</span>
-            <span style={{ color: '#E8ECF4' }}>{value}</span>
+            <span style={{ color: 'var(--color-text-secondary)' }}>{part.attributeNames[index]}</span>
+            <span style={{ color: 'var(--color-text-primary)' }}>{value}</span>
           </div>
-          <div className="h-1.5 overflow-hidden" style={{ background: '#111826', border: '1px solid #1E2636' }}>
+          <div className="h-1.5 overflow-hidden" style={{ background: 'var(--color-bg-inset)', border: '1px solid var(--color-border-subtle)' }}>
             <div
               className="h-full"
               style={{
@@ -112,7 +112,7 @@ export default function BoxCard({ tier }: { tier: BoxTierConfig }) {
     <div
       className="relative flex flex-col overflow-hidden"
       style={{
-        background: '#06080F',
+        background: 'var(--color-bg-base)',
         border: `1px solid ${state === 'revealed' ? `${cfg.color}66` : cfg.border}`,
       }}
     >
@@ -125,21 +125,21 @@ export default function BoxCard({ tier }: { tier: BoxTierConfig }) {
         <div className="flex items-start justify-between mb-4 gap-3">
           <div>
             <RarityBadge tier={tier.rarity} />
-            <h3 className="mt-2 font-mono font-black text-lg leading-none uppercase tracking-wider" style={{ color: '#E8ECF4' }}>
+            <h3 className="mt-2 font-mono font-black text-lg leading-none uppercase tracking-wider text-text-primary">
               {tier.name}
             </h3>
-            <p className="text-[11px] mt-1 font-mono" style={{ color: '#4A5468' }}>
+            <p className="text-[11px] mt-1 font-mono text-text-muted">
               {tier.tagline}
             </p>
           </div>
           <div className="text-right shrink-0">
             <div className="flex items-center gap-1 justify-end">
               <PhiSymbol size={15} color={cfg.color} />
-              <span className="font-mono font-black text-xl" style={{ color: '#E8ECF4' }}>
+              <span className="font-mono font-black text-xl text-text-primary">
                 {formatFluxValue(tier.price)}
               </span>
             </div>
-            <p className="text-[10px] mt-0.5 font-mono uppercase" style={{ color: '#4A5468' }}>FLUX</p>
+            <p className="text-[10px] mt-0.5 font-mono uppercase text-text-muted">FLUX</p>
           </div>
         </div>
 
@@ -155,7 +155,7 @@ export default function BoxCard({ tier }: { tier: BoxTierConfig }) {
               border: `1px solid ${getRarityConfig(reward.rarity).border}`,
             }}
           >
-            <p className="text-[10px] font-mono font-semibold uppercase tracking-wider" style={{ color: '#4A5468' }}>
+            <p className="text-[10px] font-mono font-semibold uppercase tracking-wider text-text-muted">
               You Received
             </p>
             <p className="mt-2 font-mono font-black text-lg uppercase" style={{ color: getRarityConfig(reward.rarity).color }}>
@@ -163,21 +163,21 @@ export default function BoxCard({ tier }: { tier: BoxTierConfig }) {
             </p>
             <div className="mt-2 flex items-center justify-between gap-2">
               <RarityBadge tier={reward.rarity} size="xs" />
-              <span className="text-[10px] font-mono uppercase" style={{ color: '#8A94A8' }}>
+              <span className="text-[10px] font-mono uppercase text-text-secondary">
                 {reward.sectionName}
               </span>
             </div>
             <AttributeBars part={reward} />
             <div className="mt-3 flex items-center justify-between text-xs font-mono">
-              <span style={{ color: '#8A94A8' }}>Part Value</span>
-              <span style={{ color: '#E8ECF4' }}>
+              <span style={{ color: 'var(--color-text-secondary)' }}>Part Value</span>
+              <span style={{ color: 'var(--color-text-primary)' }}>
                 <PhiSymbol size={10} color="currentColor" /> {formatFluxValue(reward.partValue)}
               </span>
             </div>
           </div>
         ) : (
           <div className="mb-4 flex-1">
-            <p className="text-[10px] font-mono font-bold mb-2 uppercase tracking-widest" style={{ color: '#4A5468' }}>
+            <p className="text-[10px] font-mono font-bold mb-2 uppercase tracking-widest text-text-muted">
               Possible Drops
             </p>
             <div className="space-y-2">
@@ -189,7 +189,7 @@ export default function BoxCard({ tier }: { tier: BoxTierConfig }) {
                   >
                     <div className="h-1 w-1" style={{ background: cfg.color }} />
                   </div>
-                  <span className="text-[11px] font-mono" style={{ color: '#8A94A8' }}>
+                  <span className="text-[11px] font-mono text-text-secondary">
                     {rewardLabel}
                   </span>
                 </div>
@@ -200,9 +200,9 @@ export default function BoxCard({ tier }: { tier: BoxTierConfig }) {
 
         <div className="grid grid-cols-2 gap-2 mb-4">
           {tier.possible.map((item) => (
-            <div key={item.label} className="p-2 text-center" style={{ background: '#0C1018', border: '1px solid #1E2636' }}>
-              <p className="font-mono font-bold text-xs" style={{ color: '#E8ECF4' }}>{item.value}</p>
-              <p className="text-[9px] font-mono mt-0.5 uppercase" style={{ color: '#4A5468' }}>{item.label}</p>
+            <div key={item.label} className="p-2 text-center" style={{ background: 'var(--color-bg-card)', border: '1px solid var(--color-border-subtle)' }}>
+              <p className="font-mono font-bold text-xs text-text-primary">{item.value}</p>
+              <p className="text-[9px] font-mono mt-0.5 uppercase text-text-muted">{item.label}</p>
             </div>
           ))}
         </div>
@@ -211,7 +211,7 @@ export default function BoxCard({ tier }: { tier: BoxTierConfig }) {
           <button
             onClick={handleReset}
             className="w-full py-3 font-mono font-bold text-sm flex items-center justify-center gap-2 uppercase tracking-wider"
-            style={{ background: '#0C1018', border: '1px solid #2A3348', color: '#8A94A8' }}
+            style={{ background: 'var(--color-bg-card)', border: '1px solid var(--color-border-default)', color: 'var(--color-text-secondary)' }}
           >
             <RotateCcw size={13} />
             Open Another

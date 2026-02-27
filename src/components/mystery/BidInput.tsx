@@ -34,14 +34,14 @@ export default function BidInput({ minBid, isSubmitting, onSubmit }: BidInputPro
   return (
     <div className="mt-4">
       <div className="flex items-center justify-between text-[10px] font-mono uppercase tracking-wider mb-2">
-        <span style={{ color: '#8A94A8' }}>Minimum Valid Bid</span>
-        <span style={{ color: '#E8ECF4' }}>{formatFluxValue(minBid)} FLUX</span>
+        <span style={{ color: 'var(--color-text-secondary)' }}>Minimum Valid Bid</span>
+        <span style={{ color: 'var(--color-text-primary)' }}>{formatFluxValue(minBid)} FLUX</span>
       </div>
 
       <div className="grid grid-cols-[1fr_auto] gap-2">
         <div
           className="flex items-center gap-2 px-3"
-          style={{ background: '#0C1018', border: '1px solid #1E2636' }}
+          style={{ background: 'var(--color-bg-card)', border: '1px solid var(--color-border-subtle)' }}
         >
           <PhiSymbol size={12} color="#C084FC" />
           <input
@@ -52,7 +52,7 @@ export default function BidInput({ minBid, isSubmitting, onSubmit }: BidInputPro
             value={amount}
             onChange={(event) => setAmount(event.target.value)}
             className="w-full py-3 bg-transparent outline-none font-mono text-sm"
-            style={{ color: '#E8ECF4' }}
+            style={{ color: 'var(--color-text-primary)' }}
           />
         </div>
         <button

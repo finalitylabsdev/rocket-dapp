@@ -12,19 +12,19 @@ export default function AuctionResultModal({ result, onClose }: AuctionResultMod
 
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center px-4" style={{ background: 'rgba(2,6,12,0.78)' }}>
-      <div className="w-full max-w-md p-6" style={{ background: '#06080F', border: '1px solid rgba(168,85,247,0.22)' }}>
-        <p className="font-mono font-black text-xl uppercase tracking-wider" style={{ color: '#E8ECF4' }}>
+      <div className="w-full max-w-md p-6" style={{ background: 'var(--color-bg-base)', border: '1px solid rgba(168,85,247,0.22)' }}>
+        <p className="font-mono font-black text-xl uppercase tracking-wider" style={{ color: 'var(--color-text-primary)' }}>
           Auction Closed
         </p>
-        <p className="mt-3 text-sm font-mono" style={{ color: '#8A94A8' }}>
+        <p className="mt-3 text-sm font-mono" style={{ color: 'var(--color-text-secondary)' }}>
           Round #{result.roundId}
         </p>
 
-        <div className="mt-4 p-4" style={{ background: '#0C1018', border: '1px solid #1E2636' }}>
-          <p className="font-mono font-semibold text-sm" style={{ color: '#E8ECF4' }}>
+        <div className="mt-4 p-4" style={{ background: 'var(--color-bg-card)', border: '1px solid var(--color-border-subtle)' }}>
+          <p className="font-mono font-semibold text-sm" style={{ color: 'var(--color-text-primary)' }}>
             {result.partName ?? 'No submission selected'}
           </p>
-          <p className="mt-1 text-[10px] font-mono uppercase tracking-wider" style={{ color: '#8A94A8' }}>
+          <p className="mt-1 text-[10px] font-mono uppercase tracking-wider" style={{ color: 'var(--color-text-secondary)' }}>
             {result.sectionName ?? 'Nebula Bids'}
           </p>
           <p className="mt-3 text-xs font-mono" style={{ color: '#C084FC' }}>
