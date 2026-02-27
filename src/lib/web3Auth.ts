@@ -24,6 +24,12 @@ interface SessionTokens {
   refreshToken: string;
 }
 
+export interface EthereumWalletContext {
+  provider: Eip1193Provider;
+  address: string;
+  chainId: number;
+}
+
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null;
 }
@@ -375,6 +381,17 @@ async function requestAccount(provider: Eip1193Provider): Promise<{ address: str
   };
 }
 
+export async function getEthereumWalletContext(): Promise<EthereumWalletContext> {
+  const provider = await resolveEthereumProvider();
+  const account = await requestAccount(provider);
+
+  return {
+    provider,
+    address: account.address,
+    chainId: account.chainId,
+  };
+}
+
 async function signMessage(provider: Eip1193Provider, address: string, message: string): Promise<string> {
   let primaryError: unknown;
 
@@ -506,7 +523,9 @@ export function getWalletAddressFromUser(user: User | null): string | null {
   }
 
   for (const identity of user.identities ?? []) {
-    const providerMatch = normalizeWalletAddress(identity.provider_id);
+    const providerMatch = normalizeWalletAddress(
+      isRecord(identity) ? identity.provider_id ?? identity.provider : identity.provider,
+    );
     if (providerMatch) {
       return providerMatch;
     }
@@ -544,8 +563,7 @@ export async function signInWithEthereumWallet(): Promise<string> {
     throw new Error(`Supabase is not configured in this environment.${detail}`);
   }
 
-  const provider = await resolveEthereumProvider();
-  const { address, chainId } = await requestAccount(provider);
+  const { provider, address, chainId } = await getEthereumWalletContext();
   const message = buildSiweMessage(address, chainId);
   const signature = await signMessage(provider, address, message);
   const tokens = await exchangeWeb3SignatureForSession(message, signature);

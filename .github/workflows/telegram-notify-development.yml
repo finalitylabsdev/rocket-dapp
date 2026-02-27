@@ -1,15 +1,16 @@
-name: Notify Telegram On Development Push
+name: Notify Telegram On Push
 
 on:
   push:
     branches:
       - development
+      - main
 
 jobs:
   notify:
     name: Send Telegram Notification
     runs-on: ubuntu-latest
-    environment: development
+    environment: ${{ github.ref_name == 'main' && 'production' || 'development' }}
 
     steps:
       - name: Validate required token

@@ -1,13 +1,13 @@
 import { useEffect, useState } from 'react';
 import { Zap, ExternalLink, ChevronDown, Lock, Clock } from 'lucide-react';
 import { useGameState } from '../context/GameState';
+import { useEthLock } from '../hooks/useEthLock';
 import { useWallet } from '../hooks/useWallet';
 import PhiSymbol from './brand/PhiSymbol';
 import {
   EFFECTIVE_DAILY_CLAIM_FLUX,
   FAUCET_INTERVAL_MS,
   FAUCET_INTERVAL_SECONDS,
-  WHITELIST_ETH,
 } from '../config/spec';
 
 interface HeroProps {
@@ -35,6 +35,7 @@ function formatClaimWindow(seconds: number): string {
 export default function Hero({ onOpenDex }: HeroProps) {
   const game = useGameState();
   const wallet = useWallet();
+  const ethLock = useEthLock(wallet.address);
   const [now, setNow] = useState(() => Date.now());
 
   useEffect(() => {
@@ -46,7 +47,24 @@ export default function Hero({ onOpenDex }: HeroProps) {
   const cooldownRemaining = game.lastDailyClaim
     ? Math.max(0, FAUCET_INTERVAL_MS - (now - game.lastDailyClaim))
     : 0;
-  const canClaim = !game.lastDailyClaim || cooldownRemaining === 0;
+  const canClaim = ethLock.isLocked && (!game.lastDailyClaim || cooldownRemaining === 0);
+  const isWaitingForVerification = ethLock.status === 'sent' || ethLock.status === 'verifying';
+
+  const lockCallToActionDisabled =
+    ethLock.isSubmitting
+    || ethLock.isLoading
+    || isWaitingForVerification
+    || !ethLock.lockRecipient;
+
+  const handleSubmitLock = async () => {
+    await ethLock.submitLock();
+  };
+
+  useEffect(() => {
+    if (ethLock.isLocked && !game.lockedEth) {
+      game.lockEth();
+    }
+  }, [ethLock.isLocked, game.lockEth, game.lockedEth]);
 
   return (
     <section className="relative min-h-screen flex flex-col overflow-hidden pt-20">
@@ -91,10 +109,24 @@ export default function Hero({ onOpenDex }: HeroProps) {
                   <Zap size={16} />
                   {wallet.isConnecting ? 'Connecting...' : 'Connect Wallet'}
                 </button>
-              ) : !game.lockedEth ? (
-                <button onClick={game.lockEth} className="btn-primary text-base px-7 py-3.5">
+              ) : !ethLock.isLocked ? (
+                <button
+                  onClick={() => void handleSubmitLock()}
+                  disabled={lockCallToActionDisabled}
+                  className="btn-primary text-base px-7 py-3.5 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
                   <Lock size={16} />
-                  {`Lock ${WHITELIST_ETH} ETH`}
+                  {ethLock.isSubmitting
+                    ? 'Submitting ETH lock...'
+                    : ethLock.status === 'sent'
+                      ? 'Transaction sent...'
+                      : ethLock.status === 'verifying'
+                        ? 'Verifying on-chain...'
+                        : ethLock.status === 'error'
+                          ? `Retry ${ethLock.lockAmountLabel} ETH`
+                    : ethLock.isLoading
+                      ? 'Checking lock status...'
+                      : `Lock ${ethLock.lockAmountLabel} ETH`}
                 </button>
               ) : (
                 <button
@@ -120,6 +152,26 @@ export default function Hero({ onOpenDex }: HeroProps) {
                 <ExternalLink size={15} />
               </button>
             </div>
+            {(wallet.error || ethLock.error) && (
+              <div className="space-y-2">
+                {wallet.error && (
+                  <p className="text-xs font-mono text-rose-400">{wallet.error}</p>
+                )}
+                {ethLock.error && (
+                  <p className="text-xs font-mono text-rose-400">{ethLock.error}</p>
+                )}
+              </div>
+            )}
+            {wallet.isConnected && !ethLock.isLocked && (
+              <p className={`text-xs font-mono ${ethLock.status === 'error' ? 'text-rose-400' : 'text-zinc-500'}`}>
+                {ethLock.statusDetail}
+              </p>
+            )}
+            {wallet.isConnected && !ethLock.isLocked && !ethLock.lockRecipient && (
+              <p className="text-xs font-mono text-amber-300">
+                Configure <code>VITE_ETH_LOCK_RECIPIENT</code> to enable ETH lock submissions.
+              </p>
+            )}
 
             <div className="flex items-center gap-6 pt-2">
               {wallet.isConnected && (
@@ -160,7 +212,7 @@ export default function Hero({ onOpenDex }: HeroProps) {
                 </div>
                 <div className="grid grid-cols-3 gap-3">
                   <div className="bg-zinc-900 p-3 text-center border border-border-subtle">
-                    <p className="font-mono font-bold text-white text-lg">{WHITELIST_ETH}</p>
+                    <p className="font-mono font-bold text-white text-lg">{ethLock.lockAmountLabel}</p>
                     <p className="text-[10px] text-zinc-500 mt-0.5 font-mono">ETH TO LOCK</p>
                   </div>
                   <div className="bg-zinc-900 p-3 text-center border border-border-subtle">
@@ -172,11 +224,47 @@ export default function Hero({ onOpenDex }: HeroProps) {
                     <p className="text-[10px] text-zinc-500 mt-0.5 font-mono">CLAIM WINDOW</p>
                   </div>
                 </div>
-                {game.lockedEth && (
+                {ethLock.isLocked ? (
                   <div className="flex items-center justify-center gap-2 p-3 border" style={{ background: 'rgba(74,222,128,0.06)', borderColor: 'rgba(74,222,128,0.2)' }}>
                     <Lock size={14} style={{ color: '#4ADE80' }} />
                     <span className="text-sm font-mono font-bold" style={{ color: '#4ADE80' }}>ETH LOCKED</span>
                     <span className="text-xs text-zinc-500 ml-auto font-mono">{game.fluxBalance} Flux available</span>
+                  </div>
+                ) : (
+                  <div
+                    className="p-3 border flex items-center gap-2"
+                    style={{
+                      background: ethLock.status === 'error' ? 'rgba(251,113,133,0.08)' : 'rgba(250,204,21,0.06)',
+                      borderColor: ethLock.status === 'error' ? 'rgba(251,113,133,0.28)' : 'rgba(250,204,21,0.24)',
+                    }}
+                  >
+                    <Lock size={14} style={{ color: ethLock.status === 'error' ? '#FB7185' : '#FACC15' }} />
+                    <span className="text-sm font-mono font-bold" style={{ color: ethLock.status === 'error' ? '#FB7185' : '#FACC15' }}>
+                      {ethLock.status === 'error'
+                        ? 'ETH LOCK ERROR'
+                        : ethLock.status === 'verifying'
+                          ? 'ETH LOCK VERIFYING'
+                          : ethLock.status === 'sent'
+                            ? 'ETH TX SENT'
+                            : 'ETH LOCK PENDING'}
+                    </span>
+                    {wallet.isConnected ? (
+                      <button
+                        onClick={() => void handleSubmitLock()}
+                        disabled={lockCallToActionDisabled}
+                        className="ml-auto border border-amber-300/30 px-2.5 py-1 text-[10px] font-mono font-semibold uppercase tracking-wider text-amber-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        {ethLock.isSubmitting
+                          ? 'Submitting...'
+                          : isWaitingForVerification
+                            ? 'Verifying...'
+                            : ethLock.status === 'error'
+                              ? `Retry ${ethLock.lockAmountLabel} ETH`
+                              : `Submit ${ethLock.lockAmountLabel} ETH`}
+                      </button>
+                    ) : (
+                      <span className="text-xs text-zinc-500 ml-auto font-mono">Connect wallet to continue</span>
+                    )}
                   </div>
                 )}
               </div>
