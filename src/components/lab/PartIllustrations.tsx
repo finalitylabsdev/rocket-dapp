@@ -275,7 +275,7 @@ export function SolarWingsIllustration({ equipped, rarity, size = 72 }: Illustra
         />
       ))}
 
-      {[[72, 16, 12, 8], [62, 20, 4, 8], [50, 24, -4, 8], [72, 40, 12, 8], [62, 44, 4, 8], [50, 48, -4, 8]].map(([cx, cy, _w, h], i) => (
+      {[[72, 16, 12, 8], [62, 20, 4, 8], [50, 24, -4, 8], [72, 40, 12, 8], [62, 44, 4, 8], [50, 48, -4, 8]].map(([cx, cy, , h], i) => (
         <rect key={`r${i}`} x={cx - 12} y={cy} width={12} height={h} rx="1"
           fill="url(#sw-cell)"
           stroke={equipped ? a.primary : '#1a2030'}

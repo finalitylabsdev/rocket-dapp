@@ -59,9 +59,103 @@ export const LEGACY_TO_CANONICAL_SECTION: Record<LegacyPartSlot, RocketSection> 
 export interface InventoryPart {
   id: string;
   name: string;
-  slot: PartSlot;
+  slot: RocketSection;
   rarity: RarityTier;
   power: number;
-  attributes?: [number, number, number];
+  attributes: [number, number, number];
+  attributeNames: [string, string, string];
+  partValue: number;
+  sectionName: string;
+  rarityTierId: number;
+  isLocked?: boolean;
+  isEquipped?: boolean;
+  source?: 'mystery_box' | 'auction_win' | 'admin';
+  createdAt?: string;
 }
 
+export interface BoxTierConfig {
+  id: string;
+  name: string;
+  rarity: RarityTier;
+  tagline: string;
+  price: number;
+  rewards: string[];
+  possible: { label: string; value: string }[];
+}
+
+export interface RarityTierConfig {
+  id: number;
+  name: RarityTier;
+  multiplier: number;
+  baseBoxPriceFlux: number;
+  approximateDropRate: number;
+  color: string;
+  bg: string;
+  border: string;
+  glow: string;
+  intensity: number;
+}
+
+export interface RocketSectionConfig {
+  id: number;
+  key: RocketSection;
+  displayName: string;
+  description: string | null;
+  attributeNames: [string, string, string];
+}
+
+export interface AuctionBid {
+  id: number;
+  wallet: string;
+  amount: number;
+  createdAt: string;
+}
+
+export interface AuctionPartInfo {
+  id: string;
+  name: string;
+  sectionName: string;
+  rarity: RarityTier;
+  rarityTierId: number;
+  attributes: [number, number, number];
+  attributeNames: [string, string, string];
+  partValue: number;
+  submittedBy: string;
+}
+
+export type AuctionRoundStatus =
+  | 'accepting_submissions'
+  | 'bidding'
+  | 'finalizing'
+  | 'completed'
+  | 'no_submissions';
+
+export interface AuctionRound {
+  roundId: number;
+  status: AuctionRoundStatus;
+  startsAt: string;
+  submissionEndsAt: string;
+  endsAt: string;
+  biddingOpensAt: string | null;
+  part: AuctionPartInfo | null;
+  bids: AuctionBid[];
+  currentHighestBid: number;
+  bidCount: number;
+}
+
+export interface AuctionHistoryEntry {
+  roundId: number;
+  status: Extract<AuctionRoundStatus, 'completed' | 'no_submissions'>;
+  startsAt: string;
+  endsAt: string;
+  finalPrice: number;
+  winnerWallet: string | null;
+  partName: string | null;
+  rarity: RarityTier | null;
+  partValue: number;
+  sectionName: string | null;
+  sellerWallet: string | null;
+}
+
+export type InventorySortKey = 'section' | 'rarity' | 'value' | 'name';
+export type InventorySortDir = 'asc' | 'desc';
