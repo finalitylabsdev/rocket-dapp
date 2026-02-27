@@ -568,6 +568,20 @@ export async function getEthereumWalletContext(): Promise<EthereumWalletContext>
   };
 }
 
+export async function signConnectedEthereumMessage(
+  expectedAddress: string,
+  message: string,
+): Promise<{ address: string; chainId: number | null; signature: string }> {
+  const { provider, address, chainId } = await getConnectedEthereumWalletContext(expectedAddress);
+  const signature = await signMessage(provider, address, message);
+
+  return {
+    address,
+    chainId,
+    signature,
+  };
+}
+
 async function signMessage(provider: Eip1193Provider, address: string, message: string): Promise<string> {
   let primaryError: unknown;
 

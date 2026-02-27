@@ -1,4 +1,12 @@
-import { createContext, useContext, useState, useEffect, useMemo, type ReactNode } from 'react';
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+  type ReactNode,
+} from 'react';
 import {
   ALL_PART_SLOTS,
   LEGACY_PART_SLOTS,
@@ -10,9 +18,12 @@ import {
 } from '../types/domain';
 import {
   EFFECTIVE_DAILY_CLAIM_FLUX,
+  FAUCET_INTERVAL_SECONDS,
   FAUCET_INTERVAL_MS,
   WHITELIST_BONUS_FLUX,
 } from '../config/spec';
+import { adjustFluxBalance, claimFluxFromFaucet, formatFluxError, syncFluxBalance } from '../lib/flux';
+import { useWallet } from '../hooks/useWallet';
 
 export type { InventoryPart, PartSlot, RarityTier, RocketSection } from '../types/domain';
 
@@ -25,13 +36,16 @@ interface GameState {
   scores: number[];
   lockedEth: boolean;
   lastDailyClaim: number | null;
-  lockEth: () => void;
-  claimDailyFlux: () => boolean;
-  spendFlux: (amount: number) => boolean;
+  isFluxSyncing: boolean;
+  isClaimingFlux: boolean;
+  refreshFluxBalance: () => Promise<void>;
+  claimDailyFlux: () => Promise<boolean>;
+  spendFlux: (amount: number, reason?: string, payload?: Record<string, unknown>) => Promise<boolean>;
+  creditFlux: (amount: number, reason?: string, payload?: Record<string, unknown>) => Promise<boolean>;
   addPart: (part: InventoryPart) => void;
   equipPart: (slot: PartSlot, part: InventoryPart) => void;
   unequipPart: (slot: PartSlot) => void;
-  upgradePart: (slot: PartSlot) => boolean;
+  upgradePart: (slot: PartSlot) => Promise<boolean>;
   recordScore: (score: number) => void;
 }
 
@@ -118,38 +132,145 @@ function load() {
 const GameStateContext = createContext<GameState | null>(null);
 
 export function GameStateProvider({ children }: { children: ReactNode }) {
+  const wallet = useWallet();
   const [state, setState] = useState(load);
+  const [isFluxSyncing, setIsFluxSyncing] = useState(false);
+  const [isClaimingFlux, setIsClaimingFlux] = useState(false);
 
   useEffect(() => {
     const { fluxBalance, inventory, equipped, levels, scores, lockedEth, lastDailyClaim } = state;
     localStorage.setItem(STORAGE_KEY, JSON.stringify({ fluxBalance, inventory, equipped, levels, scores, lockedEth, lastDailyClaim }));
   }, [state]);
 
-  const lockEth = () => setState((s) => {
-    if (s.lockedEth) return s;
-    return {
-      ...s,
-      lockedEth: true,
-      fluxBalance: s.fluxBalance + WHITELIST_BONUS_FLUX,
-    };
-  });
-
-  const claimDailyFlux = () => {
-    const now = Date.now();
-    if (state.lastDailyClaim && now - state.lastDailyClaim < FAUCET_INTERVAL_MS) return false;
+  const applyRemoteFluxBalance = useCallback((nextBalance: {
+    availableBalance: number;
+    lastFaucetClaimedAt: string | null;
+    whitelistBonusGrantedAt: string | null;
+  }) => {
     setState((s) => ({
       ...s,
-      fluxBalance: s.fluxBalance + EFFECTIVE_DAILY_CLAIM_FLUX,
-      lastDailyClaim: now,
+      fluxBalance: nextBalance.availableBalance,
+      lastDailyClaim: nextBalance.lastFaucetClaimedAt
+        ? new Date(nextBalance.lastFaucetClaimedAt).getTime()
+        : null,
+      lockedEth: nextBalance.whitelistBonusGrantedAt !== null,
     }));
-    return true;
-  };
+  }, []);
 
-  const spendFlux = (amount: number) => {
-    if (state.fluxBalance < amount) return false;
-    setState(s => ({ ...s, fluxBalance: s.fluxBalance - amount }));
-    return true;
-  };
+  const refreshFluxBalance = useCallback(async () => {
+    if (!wallet.address) {
+      return;
+    }
+
+    setIsFluxSyncing(true);
+
+    try {
+      const balance = await syncFluxBalance(wallet.address, WHITELIST_BONUS_FLUX);
+      applyRemoteFluxBalance(balance);
+    } catch (error) {
+      console.error('Failed to refresh Flux balance:', formatFluxError(error, 'Failed to refresh Flux balance.'));
+    } finally {
+      setIsFluxSyncing(false);
+    }
+  }, [applyRemoteFluxBalance, wallet.address]);
+
+  useEffect(() => {
+    if (!wallet.address) {
+      setIsFluxSyncing(false);
+      setIsClaimingFlux(false);
+      setState((s) => ({
+        ...s,
+        fluxBalance: 0,
+        lockedEth: false,
+        lastDailyClaim: null,
+      }));
+      return;
+    }
+
+    void refreshFluxBalance();
+  }, [refreshFluxBalance, wallet.address]);
+
+  const claimDailyFlux = useCallback(async () => {
+    if (!wallet.address || isClaimingFlux) {
+      return false;
+    }
+
+    const now = Date.now();
+    if (state.lastDailyClaim && now - state.lastDailyClaim < FAUCET_INTERVAL_MS) {
+      return false;
+    }
+
+    setIsClaimingFlux(true);
+
+    try {
+      const balance = await claimFluxFromFaucet(
+        wallet.address,
+        EFFECTIVE_DAILY_CLAIM_FLUX,
+        FAUCET_INTERVAL_SECONDS,
+        WHITELIST_BONUS_FLUX,
+      );
+      applyRemoteFluxBalance(balance);
+      return true;
+    } catch (error) {
+      console.error('Failed to claim Flux:', formatFluxError(error, 'Failed to claim Flux.'));
+      return false;
+    } finally {
+      setIsClaimingFlux(false);
+    }
+  }, [applyRemoteFluxBalance, isClaimingFlux, state.lastDailyClaim, wallet.address]);
+
+  const mutateFluxBalance = useCallback(async (
+    delta: number,
+    reason: string,
+    payload: Record<string, unknown> = {},
+  ) => {
+    if (delta === 0) {
+      return true;
+    }
+
+    if (delta < 0 && state.fluxBalance < Math.abs(delta)) {
+      return false;
+    }
+
+    if (!wallet.address) {
+      return false;
+    }
+
+    try {
+      const balance = await adjustFluxBalance(
+        wallet.address,
+        delta,
+        reason,
+        payload,
+        WHITELIST_BONUS_FLUX,
+      );
+      applyRemoteFluxBalance(balance);
+      return true;
+    } catch (error) {
+      console.error('Failed to update Flux balance:', formatFluxError(error, 'Failed to update Flux balance.'));
+      return false;
+    }
+  }, [applyRemoteFluxBalance, state.fluxBalance, wallet.address]);
+
+  const spendFlux = useCallback(async (
+    amount: number,
+    reason = 'flux_spend',
+    payload: Record<string, unknown> = {},
+  ) => mutateFluxBalance(
+    -amount,
+    reason,
+    { ...payload, amount_flux: amount },
+  ), [mutateFluxBalance]);
+
+  const creditFlux = useCallback(async (
+    amount: number,
+    reason = 'flux_credit',
+    payload: Record<string, unknown> = {},
+  ) => mutateFluxBalance(
+    amount,
+    reason,
+    { ...payload, amount_flux: amount },
+  ), [mutateFluxBalance]);
 
   const addPart = (part: InventoryPart) => setState(s => ({ ...s, inventory: [...s.inventory, part] }));
 
@@ -165,11 +286,19 @@ export function GameStateProvider({ children }: { children: ReactNode }) {
     return { ...s, equipped: { ...s.equipped, [slot]: null }, inventory: [...s.inventory, part] };
   });
 
-  const upgradePart = (slot: PartSlot) => {
+  const upgradePart = async (slot: PartSlot) => {
     if (state.levels[slot] >= 3) return false;
     const cost = 20 + state.levels[slot] * 15;
-    if (state.fluxBalance < cost) return false;
-    setState(s => ({ ...s, levels: { ...s.levels, [slot]: s.levels[slot] + 1 }, fluxBalance: s.fluxBalance - cost }));
+    const didSpend = await spendFlux(
+      cost,
+      'legacy_part_upgrade',
+      {
+        slot,
+        next_level: state.levels[slot] + 1,
+      },
+    );
+    if (!didSpend) return false;
+    setState(s => ({ ...s, levels: { ...s.levels, [slot]: s.levels[slot] + 1 } }));
     return true;
   };
 
@@ -185,9 +314,12 @@ export function GameStateProvider({ children }: { children: ReactNode }) {
       value={{
         ...state,
         canonicalEquipped,
-        lockEth,
+        isFluxSyncing,
+        isClaimingFlux,
+        refreshFluxBalance,
         claimDailyFlux,
         spendFlux,
+        creditFlux,
         addPart,
         equipPart,
         unequipPart,
