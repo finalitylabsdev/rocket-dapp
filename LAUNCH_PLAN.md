@@ -1,6 +1,6 @@
 # Launch Plan
 
-> Version: 0.1.0
+> Version: 0.2.0
 > Date: 2026-02-27
 > Status: Active
 > Scope reference: `SCOPE.md`
@@ -25,26 +25,44 @@ The goal is to launch with a database-authoritative gameplay system that is expl
 - ETH lock submission and verification pipeline
 - ETH lock database foundation
 - FLUX ledger and balance foundation
+- Canonical Star Vault catalog, inventory RPCs, and atomic box-open flow in Supabase
+- Canonical Nebula Bids submissions, active-round reads, bidding, and scheduler-driven settlement in Supabase
+- App 3 split UI for Star Vault, Nebula Bids, and shared inventory
+- Realtime-backed inventory and auction refresh wiring
 - Basic multi-page product shell
-- Prototype Star Vault screen
+- Core App 3 screen structure and navigation
 - Basic brand and visual primitives
 
 ### Partially Implemented, Must Harden
 
 - `GameState` still mixes real server balance with local gameplay authority
-- Inventory and equipped parts remain local-state driven
-- Star Vault still uses hardcoded tiers, hardcoded drop tables, and client-side RNG
-- Shared UI shell exists only as a prototype, not as the persistent shell required by scope
+- Inventory ownership is server-backed, but equipped state and other downstream gameplay state still have local-only persistence
+- Star Vault still has client fallback catalog data when Supabase is unavailable, so launch hardening must treat DB reads as the normal path and fallback only as a compatibility mode
+- Shared UI shell exists for App 3, but not yet as the persistent cross-app shell required by scope
 - Asset systems are still placeholder-heavy
-- Rocket Lab and part typing still carry legacy model assumptions
+- Rocket Lab and part typing still carry legacy model assumptions and compatibility shims
+- Auction operations still lack launch-grade monitoring, admin tooling, and rollout controls
 
-### Not Started for Launch
+### Still Missing for Launch
 
-- Canonical server-backed Star Vault model
-- Server-backed inventory ownership
-- Nebula Bids backend and frontend
-- Auction scheduler and settlement engine
-- Chain-ready reconciliation layer for gameplay state
+- The persistent cross-app shell outside the current App 3 surface
+- The canonical asset and metadata pipeline for launch visuals
+- App 4 compatibility work for the new 8-part inventory model
+- Ops controls, feature flags, and launch rehearsal tooling
+- Full DB-versus-chain reconciliation workflows for later authority cutover
+
+## Stage Progress Snapshot
+
+- Stage 0: Complete enough for implementation. The repo now clearly treats Supabase as the launch authority for App 3.
+- Stage 1: In progress. Wallet auth and ETH lock exist, but reconnect, session drift, and support-grade audit review still need launch hardening.
+- Stage 2: Core path landed. The canonical Star Vault and auction schema now exists in the new catalog, inventory, and auction migrations.
+- Stage 3: Core App 3 ledger flows landed. FLUX now powers box opening and bidding, but the remaining work is idempotency review, reconciliation, and operator visibility.
+- Stage 4: Functional. Star Vault is server-backed, but fallback catalog behavior and failure-mode hardening still need review before launch.
+- Stage 5: Functional. Nebula Bids can run through real submissions, bids, and scheduler ticks, but it still needs live-service hardening.
+- Stage 6: Partially complete. App 3 now has the Star Vault/Nebula split and a shared inventory surface, but not the full product shell.
+- Stage 7: Not started in any meaningful launch-ready form beyond placeholders and compatibility data.
+- Stage 8: Not started beyond type-level prep.
+- Stage 9: Not started.
 
 ## Launch Rules
 
@@ -242,18 +260,16 @@ Do not do yet:
 - Do not split authority between DB and chain for the same gameplay flow
 - Do not partially tokenise isolated flows while the rest remains mutable and off-chain
 
-## Recommended Execution Order
+## Remaining Recommended Execution Order
 
-1. Stage 0: Freeze the hybrid boundary
-2. Stage 1: Harden identity, wallet proof, and ETH lock
-3. Stage 2: Build the canonical DB model
-4. Stage 3: Promote FLUX into the full gameplay ledger
-5. Stage 4: Replace the Star Vault prototype with server authority
-6. Stage 5: Build Nebula Bids end-to-end
-7. Stage 6: Deliver the shared shell and App 3 UX
-8. Stage 7: Establish the canonical asset and metadata pipeline
-9. Stage 8: Add App 4 compatibility only
-10. Stage 9: Add ops controls and rehearse the launch
+1. Stage 1: Harden identity, wallet proof, and ETH lock
+2. Stage 3: Audit and harden the FLUX ledger paths now used by App 3
+3. Stage 4: Remove launch-risk fallback behavior from Star Vault and validate failure handling
+4. Stage 5: Add monitoring, operator controls, and rerun safety around live auctions
+5. Stage 6: Deliver the shared shell and the remaining App 3 UX integration work
+6. Stage 7: Establish the canonical asset and metadata pipeline
+7. Stage 8: Add App 4 compatibility only
+8. Stage 9: Add ops controls and rehearse the launch
 
 ## Go/No-Go Launch Standard
 

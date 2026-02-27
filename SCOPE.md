@@ -1,15 +1,15 @@
 # Scope
 
-> Version: 0.2.0
+> Version: 0.2.1
 > Date: 2026-02-27
 > Status: Active
 > Primary references: `docs/04-system-overview.md`, `docs/05-app_overview.md`, `docs/06-design_brand.md`, `docs/10-star-vault-nebula-bids-implementation.md`, `docs/roles/01-asset-designer.md`, `docs/roles/02-uiux-interface-designer.md`
 
 ## Purpose
 
-Define the current implementation scope for moving Entropy from a strong prototype into a coherent product baseline, with immediate focus on **Star Vault** and **Nebula Bids** while capturing the UI and asset dependencies required to make that work end-to-end.
+Define the current implementation scope for moving Entropy from a strong prototype into a coherent product baseline, with immediate focus on launch-hardening the newly integrated **Star Vault** and **Nebula Bids** systems while capturing the UI and asset dependencies required to make that work end-to-end.
 
-This document is intentionally concise. `docs/10-star-vault-nebula-bids-implementation.md` remains the detailed execution plan. This file defines what is in scope at the product level.
+This document is intentionally concise. `docs/10-star-vault-nebula-bids-implementation.md` remains the detailed implementation reference for the App 3 systems. This file defines what is in scope at the product level.
 
 ## Current Baseline
 
@@ -17,26 +17,26 @@ The codebase already has:
 
 - A functional multi-page prototype for Gate, Exchange, Star Vault, Rocket Lab, and Leaderboard.
 - Server-backed wallet auth, ETH lock, and FLUX balance/ledger foundations in Supabase.
-- A local-only Star Vault prototype with hardcoded box tiers, hardcoded drop logic, and local inventory state.
+- A server-backed Star Vault catalog, atomic box-open flow, and wallet-scoped inventory model for App 3.
+- A working Nebula Bids backend/frontend path with submissions, active rounds, bidding, and scheduler-driven round transitions.
 - A partial visual system with a phi mark, rarity badges, a starfield treatment, and placeholder rocket/box art.
 
-The codebase does not yet have:
+The codebase still does not yet have:
 
-- A server-authoritative Star Vault inventory model.
-- Any real Nebula Bids backend or frontend.
 - A shared global app shell that matches the design brief across all apps.
 - The canonical asset set needed for final Star Vault, Nebula Bids, and the 8-section rocket system.
 - A clearly enforced cross-app implementation boundary that preserves the four-app journey and shared token/prize flow defined by the frozen specs.
+- Launch-grade ops/admin tooling for running auctions as a live service.
 
 ## In Scope
 
-### 1. Server-authoritative Star Vault and Nebula Bids
+### 1. Launch-hardening for server-authoritative Star Vault and Nebula Bids
 
-Deliver the App 3 gameplay loop defined in `docs/10` as the primary engineering priority:
+Treat the newly landed App 3 gameplay loop from `docs/10` as the primary engineering priority, but shift focus from greenfield build-out to launch hardening:
 
-- Replace hardcoded Star Vault catalog, rarity config, and RNG with Supabase tables, RPCs, and wallet-scoped inventory.
-- Make FLUX spend + box open atomic so users cannot lose FLUX without receiving a persisted part.
-- Build Nebula Bids end-to-end: submissions, auction selection, bidding, escrow/refunds, settlement, and round scheduling.
+- Validate the Supabase-backed catalog, rarity config, RNG, and wallet-scoped inventory paths across reconnects, retries, and failure states.
+- Keep FLUX spend + box open atomic so users cannot lose FLUX without receiving a persisted part.
+- Harden Nebula Bids end-to-end: submissions, auction selection, bidding, escrow/refunds, settlement, and round scheduling.
 - Treat Supabase as the temporary source of truth for FLUX, inventory, and auction state until on-chain settlement exists.
 
 ### 2. Shared shell and App 3 UX completion
@@ -44,7 +44,7 @@ Deliver the App 3 gameplay loop defined in `docs/10` as the primary engineering 
 Implement the minimum product shell required for App 3 to feel integrated with the rest of Entropy:
 
 - Introduce one persistent navigation and wallet HUD across the app, instead of page-specific headers.
-- Add the proper App 3 split between **Star Vault** and **Nebula Bids**, including inventory and auction-focused UI states.
+- Complete the App 3 split between **Star Vault** and **Nebula Bids**, including inventory and auction-focused UI states.
 - Align core global UX primitives with the design brief: app-aware navigation, mobile tab behavior, consistent dialogs, and coherent toast placement/behavior.
 - Apply shared styling decisions at the system level where they directly affect App 3 usability and consistency, including the platform-wide living starfield treatment.
 - Restore the minimum cross-app journey cues needed for coherence: quick navigation between apps, clear next-step handoffs, and a lightweight onboarding path.
@@ -76,7 +76,7 @@ Preserve the frozen system rules that App 3 depends on, even where today’s imp
 - Keep timing, rarity eligibility, and auction cadence as stable interfaces so the current Supabase implementation can later be aligned with on-chain rules without a product reset.
 - Expose App 3 data in a way that supports future realtime listeners, metadata-backed images, and system-status surfaces rather than hardwiring purely local UI assumptions.
 
-## Out of Scope for Version 0.1.0
+## Out of Scope for This Scope Version
 
 The following are not part of this scope version unless required as direct dependencies of the items above:
 
