@@ -1,7 +1,8 @@
-import { ArrowLeft, Gift, Zap } from 'lucide-react';
+import { ArrowLeft, Gift, Sun, Moon, Zap } from 'lucide-react';
 import BoxSection from '../components/mystery/BoxSection';
 import { useGameState } from '../context/GameState';
 import { useWallet } from '../hooks/useWallet';
+import { useTheme } from '../context/ThemeContext';
 import PhiSymbol from '../components/brand/PhiSymbol';
 
 interface MysteryPageProps {
@@ -11,6 +12,7 @@ interface MysteryPageProps {
 export default function MysteryPage({ onBack }: MysteryPageProps) {
   const { fluxBalance } = useGameState();
   const wallet = useWallet();
+  const { theme, toggleTheme } = useTheme();
 
   return (
     <div className="min-h-screen bg-bg-base relative">
@@ -20,10 +22,10 @@ export default function MysteryPage({ onBack }: MysteryPageProps) {
             <div className="flex items-center gap-4">
               <button
                 onClick={onBack}
-                className="flex items-center gap-2 text-zinc-500 hover:text-white transition-colors group"
+                className="flex items-center gap-2 text-text-muted hover:text-text-primary transition-colors group"
               >
-                <div className="w-8 h-8 bg-zinc-900 border border-border-default group-hover:border-border-strong flex items-center justify-center transition-all">
-                  <ArrowLeft size={15} className="text-zinc-400 group-hover:text-white" />
+                <div className="w-8 h-8 bg-bg-card border border-border-default group-hover:border-border-strong flex items-center justify-center transition-all">
+                  <ArrowLeft size={15} className="text-text-secondary group-hover:text-text-primary" />
                 </div>
                 <span className="text-sm font-mono font-medium hidden sm:inline">BACK</span>
               </button>
@@ -33,22 +35,29 @@ export default function MysteryPage({ onBack }: MysteryPageProps) {
                   <Zap size={16} className="text-black" fill="black" />
                 </div>
                 <div>
-                  <span className="font-mono font-bold text-white text-base leading-none uppercase tracking-wider">Star Vault</span>
-                  <div className="text-[10px] font-mono font-medium text-zinc-500 leading-none mt-0.5 uppercase tracking-wider">App 3 · ɸ-net Testnet</div>
+                  <span className="font-mono font-bold text-text-primary text-base leading-none uppercase tracking-wider">Star Vault</span>
+                  <div className="text-[10px] font-mono font-medium text-text-muted leading-none mt-0.5 uppercase tracking-wider">App 3 · ɸ-net Testnet</div>
                 </div>
               </div>
             </div>
 
             <div className="flex items-center gap-3">
-              <div className="hidden sm:flex items-center gap-2 bg-zinc-900 border border-border-subtle px-3 py-2">
-                <PhiSymbol size={14} color="#E8ECF4" />
-                <span className="text-xs font-mono font-bold text-white">{fluxBalance}</span>
-                <span className="text-xs font-mono text-zinc-500">FLUX</span>
+              <div className="hidden sm:flex items-center gap-2 bg-bg-card border border-border-subtle px-3 py-2">
+                <PhiSymbol size={14} color="var(--color-text-primary)" />
+                <span className="text-xs font-mono font-bold text-text-primary">{fluxBalance}</span>
+                <span className="text-xs font-mono text-text-muted">FLUX</span>
               </div>
+              <button
+                onClick={toggleTheme}
+                className="flex items-center justify-center w-9 h-9 text-text-secondary hover:text-text-primary hover:bg-bg-card transition-all duration-200"
+                aria-label="Toggle theme"
+              >
+                {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
+              </button>
               {wallet.isConnected ? (
-                <div className="hidden sm:flex items-center gap-2 bg-zinc-900 border border-border-subtle px-3 py-2">
+                <div className="hidden sm:flex items-center gap-2 bg-bg-card border border-border-subtle px-3 py-2">
                   <div className="glow-dot" />
-                  <span className="text-xs font-mono font-semibold text-zinc-300">{wallet.displayAddress}</span>
+                  <span className="text-xs font-mono font-semibold text-text-primary">{wallet.displayAddress}</span>
                 </div>
               ) : (
                 <button
@@ -74,10 +83,10 @@ export default function MysteryPage({ onBack }: MysteryPageProps) {
                 Gamified Rewards
               </span>
             </div>
-            <h1 className="font-mono font-black text-3xl md:text-5xl lg:text-6xl text-white mb-4 leading-[1.08] uppercase tracking-wider">
+            <h1 className="font-mono font-black text-3xl md:text-5xl lg:text-6xl text-text-primary mb-4 leading-[1.08] uppercase tracking-wider">
               Star Vault
             </h1>
-            <p className="text-zinc-400 text-lg font-mono">
+            <p className="text-text-secondary text-lg font-mono">
               Crack open the cosmos.
             </p>
           </div>

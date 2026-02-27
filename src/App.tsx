@@ -48,7 +48,7 @@ export default function App() {
         ) : page === 'leaderboard' ? (
           <LeaderboardPage onBack={() => navigate('home')} />
         ) : (
-          <div className="min-h-screen font-inter" style={{ background: '#06080F' }}>
+          <div className="min-h-screen font-inter" style={{ background: 'var(--color-bg-base)' }}>
             <StarField />
             <div className="relative z-10">
               <Navbar onNavigate={navigate} />

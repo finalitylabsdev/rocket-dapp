@@ -618,7 +618,7 @@ export default function RocketPreview({ equipped, model, launching, onLaunchComp
       <div className="absolute bottom-4 left-0 right-0 flex justify-center">
         <div className="flex items-center gap-1.5">
           {Object.entries(equipped).map(([key, on]) => (
-            <div key={key} className={`w-1.5 h-1.5 rounded-full transition-all duration-500 ${on ? 'bg-dot-green' : 'bg-zinc-800'}`} />
+            <div key={key} className={`w-1.5 h-1.5 rounded-full transition-all duration-500 ${on ? 'bg-dot-green' : 'bg-bg-inset'}`} />
           ))}
         </div>
       </div>

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ArrowLeft, FlaskConical, Star, Rocket } from 'lucide-react';
+import { ArrowLeft, FlaskConical, Star, Sun, Moon, Rocket } from 'lucide-react';
 import { toast } from 'sonner';
 import RocketPreview from '../components/lab/RocketPreview';
 import PartsGrid, {
@@ -12,6 +12,7 @@ import { ROCKET_MODELS } from '../components/lab/RocketModels';
 import LaunchSequence from '../components/lab/LaunchSequence';
 import { useGameState } from '../context/GameState';
 import { useWallet } from '../hooks/useWallet';
+import { useTheme } from '../context/ThemeContext';
 import PhiSymbol from '../components/brand/PhiSymbol';
 
 interface RocketLabPageProps {
@@ -53,6 +54,7 @@ function computeLaunchReward(
 export default function RocketLabPage({ onBack }: RocketLabPageProps) {
   const game = useGameState();
   const wallet = useWallet();
+  const { theme, toggleTheme } = useTheme();
   const selectedModel = 'standard' as const;
 
   const [equipped, setEquipped] = useState<EquippedParts>({
@@ -189,31 +191,28 @@ export default function RocketLabPage({ onBack }: RocketLabPageProps) {
   const bestScore = game.scores.length > 0 ? Math.max(...game.scores) : 0;
 
   return (
-    <div className="min-h-screen relative overflow-hidden" style={{ background: '#06080F' }}>
+    <div className="min-h-screen relative overflow-hidden" style={{ background: 'var(--color-bg-base)' }}>
 
       <nav
         className="fixed top-0 left-0 right-0 z-50"
-        style={{ background: 'rgba(12,16,24,0.85)', backdropFilter: 'blur(24px)', borderBottom: '1px solid #1E2636' }}
+        style={{ background: 'var(--color-bg-toast)', backdropFilter: 'blur(24px)', borderBottom: '1px solid var(--color-border-subtle)' }}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16 md:h-20">
             <div className="flex items-center gap-4">
               <button
                 onClick={onBack}
-                className="flex items-center gap-2 transition-colors group"
-                style={{ color: '#4A5468' }}
-                onMouseEnter={(e) => (e.currentTarget.style.color = '#E8ECF4')}
-                onMouseLeave={(e) => (e.currentTarget.style.color = '#4A5468')}
+                className="flex items-center gap-2 transition-colors group text-text-muted hover:text-text-primary"
               >
                 <div
                   className="w-8 h-8 flex items-center justify-center transition-all"
-                  style={{ background: '#0C1018', border: '1px solid #1E2636' }}
+                  style={{ background: 'var(--color-bg-card)', border: '1px solid var(--color-border-subtle)' }}
                 >
-                  <ArrowLeft size={15} style={{ color: '#8A94A8' }} />
+                  <ArrowLeft size={15} className="text-text-secondary" />
                 </div>
                 <span className="text-sm font-mono font-medium hidden sm:inline uppercase tracking-wider">Back</span>
               </button>
-              <div className="h-5 w-px" style={{ background: '#1E2636' }} />
+              <div className="h-5 w-px" style={{ background: 'var(--color-border-subtle)' }} />
               <div className="flex items-center gap-3">
                 <div
                   className="w-8 h-8 flex items-center justify-center"
@@ -222,20 +221,27 @@ export default function RocketLabPage({ onBack }: RocketLabPageProps) {
                   <FlaskConical size={16} style={{ color: '#94A3B8' }} />
                 </div>
                 <div>
-                  <span className="font-mono font-bold text-base leading-none uppercase tracking-wider" style={{ color: '#E8ECF4' }}>Rocket Lab</span>
-                  <div className="text-[10px] font-mono font-medium leading-none mt-0.5 uppercase tracking-wider" style={{ color: '#4A5468' }}>Build & Launch</div>
+                  <span className="font-mono font-bold text-base leading-none uppercase tracking-wider text-text-primary">Rocket Lab</span>
+                  <div className="text-[10px] font-mono font-medium leading-none mt-0.5 uppercase tracking-wider text-text-muted">Build & Launch</div>
                 </div>
               </div>
             </div>
             <div className="flex items-center gap-3">
               <div
                 className="hidden sm:flex items-center gap-2 px-3 py-2"
-                style={{ background: '#0C1018', border: '1px solid #1E2636' }}
+                style={{ background: 'var(--color-bg-card)', border: '1px solid var(--color-border-subtle)' }}
               >
-                <PhiSymbol size={13} color="#E8ECF4" />
-                <span className="text-xs font-mono font-bold" style={{ color: '#E8ECF4' }}>{game.fluxBalance}</span>
-                <span className="text-xs font-mono" style={{ color: '#4A5468' }}>FLUX</span>
+                <PhiSymbol size={13} color="var(--color-text-primary)" />
+                <span className="text-xs font-mono font-bold text-text-primary">{game.fluxBalance}</span>
+                <span className="text-xs font-mono text-text-muted">FLUX</span>
               </div>
+              <button
+                onClick={toggleTheme}
+                className="flex items-center justify-center w-9 h-9 text-text-secondary hover:text-text-primary hover:bg-bg-card transition-all duration-200"
+                aria-label="Toggle theme"
+              >
+                {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
+              </button>
             </div>
           </div>
         </div>
@@ -251,36 +257,36 @@ export default function RocketLabPage({ onBack }: RocketLabPageProps) {
                 Rocket Lab
               </span>
             </div>
-            <h1 className="font-mono font-black text-3xl md:text-5xl lg:text-6xl mb-3 leading-[1.08] uppercase tracking-wider" style={{ color: '#E8ECF4' }}>
+            <h1 className="font-mono font-black text-3xl md:text-5xl lg:text-6xl mb-3 leading-[1.08] uppercase tracking-wider text-text-primary">
               Rocket Lab
             </h1>
-            <p className="text-lg font-mono" style={{ color: '#4A5468' }}>
+            <p className="text-lg font-mono text-text-muted">
               Build. Launch. Dominate the cosmos.
             </p>
             {bestScore > 0 && (
               <div className="flex items-center justify-center gap-4 mt-4">
-                <div className="flex items-center gap-2 px-4 py-2" style={{ background: '#0C1018', border: '1px solid #1E2636' }}>
+                <div className="flex items-center gap-2 px-4 py-2" style={{ background: 'var(--color-bg-card)', border: '1px solid var(--color-border-subtle)' }}>
                   <Rocket size={14} style={{ color: '#F97316' }} />
-                  <span className="font-mono font-bold text-sm" style={{ color: '#E8ECF4' }}>{game.scores.length}</span>
-                  <span className="text-xs font-mono" style={{ color: '#4A5468' }}>LAUNCHES</span>
+                  <span className="font-mono font-bold text-sm text-text-primary">{game.scores.length}</span>
+                  <span className="text-xs font-mono text-text-muted">LAUNCHES</span>
                 </div>
-                <div className="flex items-center gap-2 px-4 py-2" style={{ background: '#0C1018', border: '1px solid #1E2636' }}>
+                <div className="flex items-center gap-2 px-4 py-2" style={{ background: 'var(--color-bg-card)', border: '1px solid var(--color-border-subtle)' }}>
                   <Star size={14} style={{ color: '#FACC15' }} />
-                  <span className="font-mono font-bold text-sm" style={{ color: '#E8ECF4' }}>{bestScore.toLocaleString()}</span>
-                  <span className="text-xs font-mono" style={{ color: '#4A5468' }}>BEST GS</span>
+                  <span className="font-mono font-bold text-sm text-text-primary">{bestScore.toLocaleString()}</span>
+                  <span className="text-xs font-mono text-text-muted">BEST GS</span>
                 </div>
               </div>
             )}
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-[260px_1fr_300px] gap-5 items-start">
-            <div className="overflow-hidden" style={{ background: '#0C1018', border: '1px solid #1E2636' }}>
-              <div className="px-5 pt-5 pb-2" style={{ borderBottom: '1px solid #1E2636' }}>
+            <div className="overflow-hidden" style={{ background: 'var(--color-bg-card)', border: '1px solid var(--color-border-subtle)' }}>
+              <div className="px-5 pt-5 pb-2" style={{ borderBottom: '1px solid var(--color-border-subtle)' }}>
                 <div className="flex items-center justify-between">
-                  <p className="font-mono font-bold text-sm uppercase tracking-wider" style={{ color: '#E8ECF4' }}>Preview</p>
+                  <p className="font-mono font-bold text-sm uppercase tracking-wider text-text-primary">Preview</p>
                   <div className="flex items-center gap-1.5">
-                    <Star size={11} style={{ color: '#4A5468' }} />
-                    <span className="font-mono text-xs" style={{ color: '#4A5468' }}>
+                    <Star size={11} className="text-text-muted" />
+                    <span className="font-mono text-xs text-text-muted">
                       {equippedCount}/{totalParts}
                     </span>
                   </div>
@@ -294,7 +300,7 @@ export default function RocketLabPage({ onBack }: RocketLabPageProps) {
               />
             </div>
 
-            <div className="p-5" style={{ background: '#0C1018', border: '1px solid #1E2636' }}>
+            <div className="p-5" style={{ background: 'var(--color-bg-card)', border: '1px solid var(--color-border-subtle)' }}>
               <PartsGrid
                 equipped={equipped}
                 levels={levels}
@@ -312,26 +318,26 @@ export default function RocketLabPage({ onBack }: RocketLabPageProps) {
                 launching={launching}
               />
 
-              <div className="p-4" style={{ background: '#0C1018', border: '1px solid #1E2636' }}>
-                <p className="font-mono text-xs font-bold mb-3 uppercase tracking-widest" style={{ color: '#4A5468' }}>YOUR LAUNCH HISTORY</p>
+              <div className="p-4" style={{ background: 'var(--color-bg-card)', border: '1px solid var(--color-border-subtle)' }}>
+                <p className="font-mono text-xs font-bold mb-3 uppercase tracking-widest text-text-muted">YOUR LAUNCH HISTORY</p>
                 {game.scores.length === 0 ? (
-                  <p className="text-xs py-2 font-mono" style={{ color: '#4A5468' }}>No launches yet. Equip parts and launch!</p>
+                  <p className="text-xs py-2 font-mono text-text-muted">No launches yet. Equip parts and launch!</p>
                 ) : (
                   game.scores.slice(-5).reverse().map((score, i) => (
                     <div
                       key={i}
                       className="flex items-center justify-between py-2"
-                      style={{ borderBottom: '1px solid #1E2636' }}
+                      style={{ borderBottom: '1px solid var(--color-border-subtle)' }}
                     >
                       <div className="flex items-center gap-2.5">
-                        <span className="font-mono font-black text-sm w-5 text-center" style={{ color: i === 0 ? '#FACC15' : '#4A5468' }}>
+                        <span className="font-mono font-black text-sm w-5 text-center" style={{ color: i === 0 ? '#FACC15' : 'var(--color-text-muted)' }}>
                           {game.scores.length - i}
                         </span>
-                        <span className="font-mono text-xs uppercase" style={{ color: '#4A5468' }}>Launch</span>
+                        <span className="font-mono text-xs uppercase text-text-muted">Launch</span>
                       </div>
                       <div className="flex items-center gap-1">
-                        <span className="font-mono font-bold text-xs" style={{ color: '#E8ECF4' }}>{score.toLocaleString()}</span>
-                        <span className="font-mono text-[10px]" style={{ color: '#4A5468' }}>GS</span>
+                        <span className="font-mono font-bold text-xs text-text-primary">{score.toLocaleString()}</span>
+                        <span className="font-mono text-[10px] text-text-muted">GS</span>
                       </div>
                     </div>
                   ))

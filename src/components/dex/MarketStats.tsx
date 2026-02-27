@@ -22,7 +22,7 @@ export default function MarketStats() {
       <div className="bg-bg-card border border-border-subtle p-5">
         <div className="flex items-center gap-2 mb-4">
           <Activity size={15} className="text-dot-green" />
-          <h3 className="font-mono font-bold text-white text-sm uppercase tracking-wider">Live Market</h3>
+          <h3 className="font-mono font-bold text-text-primary text-sm uppercase tracking-wider">Live Market</h3>
           <div className="ml-auto flex items-center gap-1">
             <div className="glow-dot" />
             <span className="text-[10px] text-dot-green font-mono font-semibold uppercase">Live</span>
@@ -38,20 +38,20 @@ export default function MarketStats() {
             return (
               <div
                 key={token.symbol}
-                className="flex items-center justify-between p-3 bg-zinc-900 border border-border-subtle hover:border-border-default hover:bg-bg-card-hover transition-all duration-200 cursor-pointer group"
+                className="flex items-center justify-between p-3 bg-bg-inset border border-border-subtle hover:border-border-default hover:bg-bg-card-hover transition-all duration-200 cursor-pointer group"
               >
                 <div className="flex items-center gap-2.5">
                   <TokenIcon symbol={token.symbol} size="lg" />
                   <div>
-                    <p className="font-mono font-bold text-white text-sm leading-none">{token.symbol}</p>
-                    <p className="text-zinc-600 text-[10px] mt-0.5">{token.name}</p>
+                    <p className="font-mono font-bold text-text-primary text-sm leading-none">{token.symbol}</p>
+                    <p className="text-text-muted text-[10px] mt-0.5">{token.name}</p>
                   </div>
                 </div>
                 <div className="text-right">
-                  <p className="font-mono font-bold text-white text-sm leading-none">
+                  <p className="font-mono font-bold text-text-primary text-sm leading-none">
                     {isLoading ? '--' : formatUsdPrice(price)}
                   </p>
-                  <div className={`flex items-center justify-end gap-0.5 mt-0.5 ${up ? 'text-dot-green' : 'text-zinc-400'}`}>
+                  <div className={`flex items-center justify-end gap-0.5 mt-0.5 ${up ? 'text-dot-green' : 'text-text-secondary'}`}>
                     {up ? <ChevronUp size={11} /> : <ChevronDown size={11} />}
                     <span className="text-[10px] font-mono font-semibold">
                       {isLoading ? '--' : `${up ? '+' : ''}${change.toFixed(2)}%`}
@@ -65,36 +65,36 @@ export default function MarketStats() {
       </div>
 
       <div className="bg-bg-card border border-border-subtle p-5">
-        <h3 className="font-mono font-bold text-white text-sm mb-4 flex items-center gap-2 uppercase tracking-wider">
-          <BarChart3 size={15} className="text-zinc-400" />
+        <h3 className="font-mono font-bold text-text-primary text-sm mb-4 flex items-center gap-2 uppercase tracking-wider">
+          <BarChart3 size={15} className="text-text-secondary" />
           Protocol Stats
         </h3>
         <div className="space-y-3">
           {[
             { label: '24h Volume', value: '$14.2M', icon: <TrendingUp size={13} className="text-dot-green" /> },
-            { label: 'Total Liquidity', value: '$8.56M', icon: <Droplets size={13} className="text-zinc-400" /> },
-            { label: 'All-Time Volume', value: '$142M', icon: <BarChart3 size={13} className="text-zinc-400" /> },
-            { label: 'Active Pairs', value: '12', icon: <Activity size={13} className="text-zinc-400" /> },
+            { label: 'Total Liquidity', value: '$8.56M', icon: <Droplets size={13} className="text-text-secondary" /> },
+            { label: 'All-Time Volume', value: '$142M', icon: <BarChart3 size={13} className="text-text-secondary" /> },
+            { label: 'Active Pairs', value: '12', icon: <Activity size={13} className="text-text-secondary" /> },
           ].map((stat) => (
             <div key={stat.label} className="flex items-center justify-between py-2.5 border-b border-border-subtle last:border-0">
               <div className="flex items-center gap-2">
                 {stat.icon}
-                <span className="text-sm text-zinc-500 font-mono">{stat.label}</span>
+                <span className="text-sm text-text-muted font-mono">{stat.label}</span>
               </div>
-              <span className="font-mono font-bold text-white text-sm">{stat.value}</span>
+              <span className="font-mono font-bold text-text-primary text-sm">{stat.value}</span>
             </div>
           ))}
         </div>
       </div>
 
       <div className="bg-bg-card border border-border-subtle p-5">
-        <h3 className="font-mono font-bold text-white text-sm mb-4 uppercase tracking-wider">Your Position</h3>
+        <h3 className="font-mono font-bold text-text-primary text-sm mb-4 uppercase tracking-wider">Your Position</h3>
         <div className="text-center py-4">
-          <div className="w-12 h-12 bg-zinc-900 border border-border-default flex items-center justify-center mx-auto mb-3">
-            <Droplets size={20} className="text-zinc-600" />
+          <div className="w-12 h-12 bg-bg-inset border border-border-default flex items-center justify-center mx-auto mb-3">
+            <Droplets size={20} className="text-text-muted" />
           </div>
-          <p className="text-zinc-500 text-sm font-mono">No liquidity positions</p>
-          <p className="text-zinc-600 text-xs font-mono">Connect wallet to view your positions</p>
+          <p className="text-text-muted text-sm font-mono">No liquidity positions</p>
+          <p className="text-text-muted text-xs font-mono">Connect wallet to view your positions</p>
         </div>
       </div>
     </div>

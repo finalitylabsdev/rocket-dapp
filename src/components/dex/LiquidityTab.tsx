@@ -21,22 +21,22 @@ function SmallTokenSelect({ value, onChange, exclude }: { value: string; onChang
     <div className="relative">
       <button
         onClick={() => setOpen((p) => !p)}
-        className="flex items-center gap-2 bg-zinc-800 hover:bg-zinc-700 border border-border-default hover:border-border-strong px-3 py-2 transition-all duration-150"
+        className="flex items-center gap-2 bg-bg-inset hover:bg-bg-card-hover border border-border-default hover:border-border-strong px-3 py-2 transition-all duration-150"
       >
         <TokenIcon symbol={value} size="sm" />
-        <span className="font-mono font-bold text-white text-sm">{value}</span>
-        <ChevronDown size={13} className="text-zinc-400" />
+        <span className="font-mono font-bold text-text-primary text-sm">{value}</span>
+        <ChevronDown size={13} className="text-text-secondary" />
       </button>
       {open && (
-        <div className="absolute top-full left-0 mt-2 w-40 bg-zinc-900 border border-border-default z-50 overflow-hidden">
+        <div className="absolute top-full left-0 mt-2 w-40 bg-bg-card border border-border-default z-50 overflow-hidden">
           {TOKENS.filter((t) => t !== exclude).map((t) => (
             <button
               key={t}
               onClick={() => { onChange(t); setOpen(false); }}
-              className={`w-full flex items-center gap-3 px-4 py-3 hover:bg-zinc-800 transition-colors text-left ${value === t ? 'bg-zinc-800' : ''}`}
+              className={`w-full flex items-center gap-3 px-4 py-3 hover:bg-bg-card-hover transition-colors text-left ${value === t ? 'bg-bg-card-hover' : ''}`}
             >
               <TokenIcon symbol={t} size="sm" />
-              <span className="font-mono font-semibold text-white text-sm">{t}</span>
+              <span className="font-mono font-semibold text-text-primary text-sm">{t}</span>
             </button>
           ))}
         </div>
@@ -75,23 +75,23 @@ export default function LiquidityTab() {
 
   return (
     <div className="space-y-5">
-      <div className="bg-zinc-900/60 border border-border-subtle p-4">
+      <div className="bg-bg-card/60 border border-border-subtle p-4">
         <div className="flex items-start gap-2">
-          <Info size={14} className="text-zinc-500 mt-0.5 flex-shrink-0" />
-          <p className="text-xs text-zinc-500 leading-relaxed">
-            Add liquidity to earn <span className="text-zinc-300 font-semibold">0.3%</span> of all swaps on this pair, proportional to your pool share.
+          <Info size={14} className="text-text-muted mt-0.5 flex-shrink-0" />
+          <p className="text-xs text-text-muted leading-relaxed">
+            Add liquidity to earn <span className="text-text-primary font-semibold">0.3%</span> of all swaps on this pair, proportional to your pool share.
           </p>
         </div>
       </div>
 
       <div>
-        <p className="text-xs text-zinc-500 font-mono font-medium mb-2 uppercase tracking-wider">Select Pair</p>
-        <div className="bg-zinc-900 border border-border-default p-4">
+        <p className="text-xs text-text-muted font-mono font-medium mb-2 uppercase tracking-wider">Select Pair</p>
+        <div className="bg-bg-card border border-border-default p-4">
           <div className="flex items-center gap-3">
             <SmallTokenSelect value={tokenA} onChange={setTokenA} exclude={tokenB} />
             <div className="flex-1 flex justify-center">
-              <div className="w-7 h-7 bg-zinc-800 border border-border-default flex items-center justify-center">
-                <Plus size={14} className="text-zinc-400" />
+              <div className="w-7 h-7 bg-bg-inset border border-border-default flex items-center justify-center">
+                <Plus size={14} className="text-text-secondary" />
               </div>
             </div>
             <SmallTokenSelect value={tokenB} onChange={setTokenB} exclude={tokenA} />
@@ -100,57 +100,57 @@ export default function LiquidityTab() {
       </div>
 
       <div className="space-y-3">
-        <p className="text-xs text-zinc-500 font-mono font-medium uppercase tracking-wider">Deposit Amounts</p>
+        <p className="text-xs text-text-muted font-mono font-medium uppercase tracking-wider">Deposit Amounts</p>
 
-        <div className="bg-zinc-900 border border-border-default hover:border-border-strong p-4 transition-colors">
+        <div className="bg-bg-card border border-border-default hover:border-border-strong p-4 transition-colors">
           <div className="flex items-center justify-between gap-3">
             <input
               type="number"
               value={amountA}
               onChange={(e) => handleAmountA(e.target.value)}
               placeholder="0.00"
-              className="flex-1 bg-transparent text-xl font-mono font-bold text-white placeholder:text-zinc-700 focus:outline-none min-w-0"
+              className="flex-1 bg-transparent text-xl font-mono font-bold text-text-primary placeholder:text-text-faint focus:outline-none min-w-0"
             />
-            <div className="flex items-center gap-2 bg-zinc-800 px-2.5 py-1.5">
+            <div className="flex items-center gap-2 bg-bg-inset px-2.5 py-1.5">
               <TokenIcon symbol={tokenA} size="xs" />
-              <span className="font-mono font-bold text-white text-sm">{tokenA}</span>
+              <span className="font-mono font-bold text-text-primary text-sm">{tokenA}</span>
             </div>
           </div>
           <div className="flex justify-between mt-2">
-            <span className="text-xs text-zinc-600 font-mono">Balance: 4,200.00</span>
-            <button className="text-xs text-zinc-400 hover:text-white font-mono font-semibold transition-colors">MAX</button>
+            <span className="text-xs text-text-muted font-mono">Balance: 4,200.00</span>
+            <button className="text-xs text-text-secondary hover:text-text-primary font-mono font-semibold transition-colors">MAX</button>
           </div>
         </div>
 
         <div className="flex justify-center">
-          <div className="w-7 h-7 bg-zinc-800 border border-border-default flex items-center justify-center">
-            <Plus size={14} className="text-zinc-500" />
+          <div className="w-7 h-7 bg-bg-inset border border-border-default flex items-center justify-center">
+            <Plus size={14} className="text-text-muted" />
           </div>
         </div>
 
-        <div className="bg-zinc-900 border border-border-default hover:border-border-strong p-4 transition-colors">
+        <div className="bg-bg-card border border-border-default hover:border-border-strong p-4 transition-colors">
           <div className="flex items-center justify-between gap-3">
             <input
               type="number"
               value={amountB}
               onChange={(e) => setAmountB(e.target.value)}
               placeholder="0.00"
-              className="flex-1 bg-transparent text-xl font-mono font-bold text-white placeholder:text-zinc-700 focus:outline-none min-w-0"
+              className="flex-1 bg-transparent text-xl font-mono font-bold text-text-primary placeholder:text-text-faint focus:outline-none min-w-0"
             />
-            <div className="flex items-center gap-2 bg-zinc-800 px-2.5 py-1.5">
+            <div className="flex items-center gap-2 bg-bg-inset px-2.5 py-1.5">
               <TokenIcon symbol={tokenB} size="xs" />
-              <span className="font-mono font-bold text-white text-sm">{tokenB}</span>
+              <span className="font-mono font-bold text-text-primary text-sm">{tokenB}</span>
             </div>
           </div>
           <div className="flex justify-between mt-2">
-            <span className="text-xs text-zinc-600 font-mono">Balance: 0.00</span>
-            <button className="text-xs text-zinc-400 hover:text-white font-mono font-semibold transition-colors">MAX</button>
+            <span className="text-xs text-text-muted font-mono">Balance: 0.00</span>
+            <button className="text-xs text-text-secondary hover:text-text-primary font-mono font-semibold transition-colors">MAX</button>
           </div>
         </div>
       </div>
 
-      <div className="bg-zinc-900/60 border border-border-subtle p-4 space-y-2.5">
-        <p className="text-xs font-mono font-semibold text-zinc-400 mb-3 uppercase tracking-wider">Pool Information</p>
+      <div className="bg-bg-card/60 border border-border-subtle p-4 space-y-2.5">
+        <p className="text-xs font-mono font-semibold text-text-secondary mb-3 uppercase tracking-wider">Pool Information</p>
         {[
           { label: `${tokenA} per ${tokenB}`, value: rateBtoA.toFixed(rateBtoA >= 1 ? 2 : 6) },
           { label: `${tokenB} per ${tokenA}`, value: rateAtoB.toFixed(rateAtoB >= 1 ? 2 : 6) },
@@ -158,8 +158,8 @@ export default function LiquidityTab() {
           { label: 'Pool Liquidity', value: `$${poolTotal.toLocaleString()}` },
         ].map((row) => (
           <div key={row.label} className="flex items-center justify-between text-sm">
-            <span className="text-zinc-500 font-mono">{row.label}</span>
-            <span className="text-zinc-200 font-mono font-medium">{row.value}</span>
+            <span className="text-text-muted font-mono">{row.label}</span>
+            <span className="text-text-primary font-mono font-medium">{row.value}</span>
           </div>
         ))}
       </div>
@@ -169,8 +169,8 @@ export default function LiquidityTab() {
         className="w-full py-4 font-mono font-bold text-base transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed uppercase tracking-wider"
         style={{
           background: 'transparent',
-          color: amountA && parseFloat(amountA) > 0 ? '#4ADE80' : '#555555',
-          border: amountA && parseFloat(amountA) > 0 ? '1px solid #4ADE80' : '1px solid #2A3348',
+          color: amountA && parseFloat(amountA) > 0 ? '#4ADE80' : 'var(--color-text-faint)',
+          border: amountA && parseFloat(amountA) > 0 ? '1px solid #4ADE80' : '1px solid var(--color-border-default)',
         }}
       >
         {amountA && parseFloat(amountA) > 0 ? 'Add Liquidity' : 'Enter amounts'}

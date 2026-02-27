@@ -102,7 +102,7 @@ export default function QuickActions({ onOpenDex, onOpenMystery, onOpenLab, onOp
           }`}
         >
           <h2 className="section-title mb-3">Your Dashboard</h2>
-          <p className="text-zinc-500 max-w-xl mx-auto">
+          <p className="text-text-muted max-w-xl mx-auto">
             One end-to-end journey — from locking ETH to winning it back. Every app feeds the next.
           </p>
         </div>
@@ -129,21 +129,21 @@ export default function QuickActions({ onOpenDex, onOpenMystery, onOpenLab, onOp
               )}
 
               <div className="p-5 flex flex-col h-full">
-                <div className="w-11 h-11 bg-zinc-800 border border-border-default flex items-center justify-center mb-4">
+                <div className="w-11 h-11 bg-bg-inset border border-border-default flex items-center justify-center mb-4">
                   {card.icon}
                 </div>
 
-                <h3 className="font-mono font-bold text-white text-base leading-tight mb-1 uppercase tracking-wider">
+                <h3 className="font-mono font-bold text-text-primary text-base leading-tight mb-1 uppercase tracking-wider">
                   {card.title}
                 </h3>
-                <p className="text-xs font-mono font-semibold text-zinc-400 mb-2">{card.tagline}</p>
-                <p className="text-sm text-zinc-500 leading-relaxed flex-1 mb-4">{card.description}</p>
+                <p className="text-xs font-mono font-semibold text-text-secondary mb-2">{card.tagline}</p>
+                <p className="text-sm text-text-muted leading-relaxed flex-1 mb-4">{card.description}</p>
 
                 <div className="grid grid-cols-2 gap-2 mb-4">
                   {card.stats.map((stat, j) => (
-                    <div key={j} className="bg-zinc-900 p-2 text-center border border-border-subtle">
-                      <p className="font-mono font-bold text-white text-sm leading-none">{stat.value}</p>
-                      <p className="text-[10px] text-zinc-500 mt-0.5 leading-none font-mono uppercase">{stat.label}</p>
+                    <div key={j} className="bg-bg-inset p-2 text-center border border-border-subtle">
+                      <p className="font-mono font-bold text-text-primary text-sm leading-none">{stat.value}</p>
+                      <p className="text-[10px] text-text-muted mt-0.5 leading-none font-mono uppercase">{stat.label}</p>
                     </div>
                   ))}
                 </div>

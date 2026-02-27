@@ -197,7 +197,7 @@ function BoxCard({ tier }: { tier: BoxTier }) {
     <div
       className="relative flex flex-col overflow-hidden transition-all duration-300"
       style={{
-        background: '#06080F',
+        background: 'var(--color-bg-base)',
         border: `1px solid ${state === 'revealed' ? cfg.color + '60' : cfg.border}`,
       }}
     >
@@ -212,19 +212,19 @@ function BoxCard({ tier }: { tier: BoxTier }) {
             <div className="flex items-center gap-2 mb-1.5">
               <RarityBadge tier={tier.rarity} />
             </div>
-            <h3 className="font-mono font-black text-lg leading-none uppercase tracking-wider" style={{ color: '#E8ECF4' }}>
+            <h3 className="font-mono font-black text-lg leading-none uppercase tracking-wider text-text-primary">
               {tier.name}
             </h3>
-            <p className="text-[11px] mt-1 font-mono" style={{ color: '#4A5468' }}>{tier.tagline}</p>
+            <p className="text-[11px] mt-1 font-mono text-text-muted">{tier.tagline}</p>
           </div>
           <div className="text-right flex-shrink-0">
             <div className="flex items-center gap-1 justify-end">
               <PhiSymbol size={16} color={cfg.color} />
-              <span className="font-mono font-black text-xl" style={{ color: '#E8ECF4' }}>
+              <span className="font-mono font-black text-xl text-text-primary">
                 {tier.price.toLocaleString()}
               </span>
             </div>
-            <p className="text-[10px] font-mono font-medium mt-0.5 uppercase" style={{ color: '#4A5468' }}>FLUX</p>
+            <p className="text-[10px] font-mono font-medium mt-0.5 uppercase text-text-muted">FLUX</p>
           </div>
         </div>
 
@@ -237,16 +237,16 @@ function BoxCard({ tier }: { tier: BoxTier }) {
             className="mb-4 p-4 text-center"
             style={{ background: RARITY_CONFIG[reward.part.rarity].bg, border: `1px solid ${RARITY_CONFIG[reward.part.rarity].border}` }}
           >
-            <p className="text-[10px] font-mono font-semibold mb-1.5 uppercase tracking-wider" style={{ color: '#4A5468' }}>YOU RECEIVED</p>
+            <p className="text-[10px] font-mono font-semibold mb-1.5 uppercase tracking-wider text-text-muted">YOU RECEIVED</p>
             <p className="font-mono font-black text-lg uppercase" style={{ color: RARITY_CONFIG[reward.part.rarity].color }}>{reward.part.name}</p>
             <div className="flex items-center justify-center gap-2 mt-1">
               <RarityBadge tier={reward.part.rarity} size="xs" />
-              <span className="text-xs font-mono font-medium" style={{ color: '#8A94A8' }}>PWR {reward.part.power}</span>
+              <span className="text-xs font-mono font-medium text-text-secondary">PWR {reward.part.power}</span>
             </div>
           </div>
         ) : (
           <div className="mb-4 space-y-1.5 flex-1">
-            <p className="text-[10px] font-mono font-bold mb-2 uppercase tracking-widest" style={{ color: '#4A5468' }}>POSSIBLE DROPS</p>
+            <p className="text-[10px] font-mono font-bold mb-2 uppercase tracking-widest text-text-muted">POSSIBLE DROPS</p>
             {tier.rewards.map((r) => (
               <div key={r} className="flex items-center gap-2">
                 <div
@@ -255,7 +255,7 @@ function BoxCard({ tier }: { tier: BoxTier }) {
                 >
                   <div className="w-1 h-1" style={{ background: cfg.color }} />
                 </div>
-                <span className="text-[11px] font-mono" style={{ color: '#8A94A8' }}>{r}</span>
+                <span className="text-[11px] font-mono text-text-secondary">{r}</span>
               </div>
             ))}
           </div>
@@ -263,9 +263,9 @@ function BoxCard({ tier }: { tier: BoxTier }) {
 
         <div className="grid grid-cols-2 gap-2 mb-4">
           {tier.possible.map((p) => (
-            <div key={p.label} className="p-2 text-center" style={{ background: '#0C1018', border: '1px solid #1E2636' }}>
-              <p className="font-mono font-bold text-xs" style={{ color: '#E8ECF4' }}>{p.value}</p>
-              <p className="text-[9px] font-mono mt-0.5 uppercase" style={{ color: '#4A5468' }}>{p.label}</p>
+            <div key={p.label} className="p-2 text-center" style={{ background: 'var(--color-bg-card)', border: '1px solid var(--color-border-subtle)' }}>
+              <p className="font-mono font-bold text-xs text-text-primary">{p.value}</p>
+              <p className="text-[9px] font-mono mt-0.5 uppercase text-text-muted">{p.label}</p>
             </div>
           ))}
         </div>
@@ -274,7 +274,7 @@ function BoxCard({ tier }: { tier: BoxTier }) {
           <button
             onClick={handleReset}
             className="w-full py-3 font-mono font-bold text-sm flex items-center justify-center gap-2 transition-all duration-200 active:scale-95 uppercase tracking-wider"
-            style={{ background: '#0C1018', border: '1px solid #2A3348', color: '#8A94A8' }}
+            style={{ background: 'var(--color-bg-card)', border: '1px solid var(--color-border-default)', color: 'var(--color-text-secondary)' }}
           >
             <RotateCcw size={13} />
             Open Another
@@ -290,9 +290,9 @@ function BoxCard({ tier }: { tier: BoxTier }) {
               border: `1px solid ${cfg.border}`,
               letterSpacing: '0.05em',
             } : {
-              background: '#0C1018',
-              color: '#4A5468',
-              border: '1px solid #1E2636',
+              background: 'var(--color-bg-card)',
+              color: 'var(--color-text-muted)',
+              border: '1px solid var(--color-border-subtle)',
             }}
           >
             {state === 'idle' ? (
@@ -320,7 +320,7 @@ export default function BoxSection() {
         <div>
           <span className="tag mb-2 inline-flex">Star Vault Boxes</span>
           <h2 className="section-title">Open a Star Vault Box</h2>
-          <p className="text-sm mt-2 max-w-sm font-mono" style={{ color: '#4A5468' }}>
+          <p className="text-sm mt-2 max-w-sm font-mono text-text-muted">
             Spend Flux to open boxes and win rocket parts across all 8 rarity tiers.
           </p>
         </div>

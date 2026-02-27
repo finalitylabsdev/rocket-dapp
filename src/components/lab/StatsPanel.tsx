@@ -68,18 +68,18 @@ function StatBar({ label, value, icon, color }: {
         <div className="flex items-center gap-2">
           <div
             className="w-6 h-6 flex items-center justify-center"
-            style={{ background: '#06080F', border: '1px solid #1E2636' }}
+            style={{ background: 'var(--color-bg-base)', border: '1px solid var(--color-border-subtle)' }}
           >
             {icon}
           </div>
-          <span className="text-sm font-mono font-medium uppercase tracking-wider" style={{ color: '#8A94A8' }}>{label}</span>
+          <span className="text-sm font-mono font-medium uppercase tracking-wider text-text-secondary">{label}</span>
         </div>
         <div className="flex items-center gap-1.5">
-          <span className="font-mono font-bold text-sm" style={{ color: '#E8ECF4' }}>{value}</span>
-          <span className="font-mono text-xs" style={{ color: '#4A5468' }}>/100</span>
+          <span className="font-mono font-bold text-sm text-text-primary">{value}</span>
+          <span className="font-mono text-xs text-text-muted">/100</span>
         </div>
       </div>
-      <div className="h-2 overflow-hidden" style={{ background: '#06080F', border: '1px solid #1E2636' }}>
+      <div className="h-2 overflow-hidden" style={{ background: 'var(--color-bg-base)', border: '1px solid var(--color-border-subtle)' }}>
         <div
           className="h-full transition-all duration-700 ease-out"
           style={{
@@ -101,33 +101,33 @@ export default function StatsPanel({ equipped, levels, model, onLaunch, launchin
   const modelDef = ROCKET_MODELS.find((m) => m.id === model)!;
 
   return (
-    <div className="border overflow-hidden" style={{ background: '#06080F', border: '1px solid #1E2636' }}>
-      <div className="p-5" style={{ borderBottom: '1px solid #1E2636' }}>
+    <div className="border overflow-hidden" style={{ background: 'var(--color-bg-base)', border: '1px solid var(--color-border-subtle)' }}>
+      <div className="p-5" style={{ borderBottom: '1px solid var(--color-border-subtle)' }}>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2.5">
             <div
               className="w-8 h-8 flex items-center justify-center"
-              style={{ background: '#0C1018', border: '1px solid #1E2636' }}
+              style={{ background: 'var(--color-bg-card)', border: '1px solid var(--color-border-subtle)' }}
             >
-              <TrendingUp size={15} style={{ color: '#8A94A8' }} />
+              <TrendingUp size={15} className="text-text-secondary" />
             </div>
             <div>
-              <p className="font-mono font-bold text-sm uppercase tracking-wider" style={{ color: '#E8ECF4' }}>Rocket Stats</p>
-              <p className="font-mono text-[11px]" style={{ color: '#4A5468' }}>{equippedCount}/{totalParts} equipped</p>
+              <p className="font-mono font-bold text-sm uppercase tracking-wider text-text-primary">Rocket Stats</p>
+              <p className="font-mono text-[11px] text-text-muted">{equippedCount}/{totalParts} equipped</p>
             </div>
           </div>
           <div
             className="flex items-center gap-1.5 px-2.5 py-1.5"
-            style={{ background: '#0C1018', border: '1px solid #1E2636' }}
+            style={{ background: 'var(--color-bg-card)', border: '1px solid var(--color-border-subtle)' }}
           >
-            <Target size={11} style={{ color: '#8A94A8' }} />
-            <span className="font-mono font-black text-sm" style={{ color: '#E8ECF4' }}>{stats.winProb}%</span>
-            <span className="font-mono text-[10px]" style={{ color: '#4A5468' }}>WIN</span>
+            <Target size={11} className="text-text-secondary" />
+            <span className="font-mono font-black text-sm text-text-primary">{stats.winProb}%</span>
+            <span className="font-mono text-[10px] text-text-muted">WIN</span>
           </div>
         </div>
       </div>
 
-      <div className="p-5 space-y-4" style={{ borderBottom: '1px solid #1E2636' }}>
+      <div className="p-5 space-y-4" style={{ borderBottom: '1px solid var(--color-border-subtle)' }}>
         <StatBar
           label="Stability"
           value={stats.stability}
@@ -167,10 +167,10 @@ export default function StatsPanel({ equipped, levels, model, onLaunch, launchin
             <div
               key={item.label}
               className="p-2.5 text-center"
-              style={{ background: '#0C1018', border: '1px solid #1E2636' }}
+              style={{ background: 'var(--color-bg-card)', border: '1px solid var(--color-border-subtle)' }}
             >
-              <p className="font-mono font-bold text-sm" style={{ color: '#E8ECF4' }}>{item.value}</p>
-              <p className="text-[10px] font-mono mt-0.5 uppercase" style={{ color: '#4A5468' }}>{item.label}</p>
+              <p className="font-mono font-bold text-sm text-text-primary">{item.value}</p>
+              <p className="text-[10px] font-mono mt-0.5 uppercase text-text-muted">{item.label}</p>
             </div>
           ))}
         </div>
@@ -181,11 +181,11 @@ export default function StatsPanel({ equipped, levels, model, onLaunch, launchin
         >
           <div className="w-2 h-2 flex-shrink-0" style={{ background: modelDef.accentColor }} />
           <span className="text-xs font-mono font-medium uppercase" style={{ color: modelDef.accentColor }}>{modelDef.name}</span>
-          <span className="text-xs font-mono ml-auto" style={{ color: '#4A5468' }}>{modelDef.tagline}</span>
+          <span className="text-xs font-mono ml-auto text-text-muted">{modelDef.tagline}</span>
         </div>
 
         {!canLaunch && (
-          <p className="text-center text-xs font-mono mb-3" style={{ color: '#4A5468' }}>
+          <p className="text-center text-xs font-mono mb-3 text-text-muted">
             Equip at least 3 parts to launch
           </p>
         )}
@@ -199,9 +199,9 @@ export default function StatsPanel({ equipped, levels, model, onLaunch, launchin
             color: '#F97316',
             border: '1px solid #F97316',
           } : {
-            background: '#0C1018',
-            color: '#4A5468',
-            border: '1px solid #1E2636',
+            background: 'var(--color-bg-card)',
+            color: 'var(--color-text-muted)',
+            border: '1px solid var(--color-border-subtle)',
           }}
         >
           {launching ? (
@@ -211,7 +211,7 @@ export default function StatsPanel({ equipped, levels, model, onLaunch, launchin
             </>
           ) : (
             <>
-              <Rocket size={18} style={{ color: canLaunch ? '#F97316' : '#4A5468' }} fill={canLaunch ? '#F97316' : 'none'} />
+              <Rocket size={18} style={{ color: canLaunch ? '#F97316' : 'var(--color-text-muted)' }} fill={canLaunch ? '#F97316' : 'none'} />
               Launch Rocket
               {allEquipped && (
                 <span className="absolute right-4 text-xs font-mono font-bold" style={{ color: '#F97316' }}>
