@@ -62,7 +62,7 @@ The goal is to launch with a database-authoritative gameplay system that is expl
 
 - [x] Canonical asset and metadata pipeline for launch visuals (metadata-driven launch path shipped; asset URL swaps remain iterative art work)
 - [x] Real App 4 compatibility for the canonical 8-part inventory model (Rocket Lab now consumes the canonical 8-slot inventory through a read-only adapter)
-- [ ] Feature flags for staged rollout
+- [x] Feature flags for staged rollout (`src/config/flags.ts` with `VITE_FLAG_*` env vars; UI gating in App, QuickActions, ShellNav, BidsTab; rollout docs in `docs/12-staged-rollout.md`)
 - [ ] Launch rehearsal — internal, closed beta, public gates
 - [x] Full DB-versus-chain reconciliation workflows for later authority cutover (`reconciliation_snapshots` + `run_flux_reconciliation()` RPC shipped; chain-side comparison deferred until chain authority exists)
 
@@ -184,11 +184,11 @@ These checklists describe the current codebase state as of the version/date abov
 - [x] Auction operator diagnostics panel in Nebula Bids UI
 - [x] SQL diagnostic views for round lifecycle, ledger reconciliation, scheduler health
 - [x] Deployment runbook with secrets, cron, monitoring, failure recovery, and explicit manual pre-launch steps
-- [ ] Feature flags for staged rollout
+- [x] Feature flags for staged rollout (`src/config/flags.ts` with `VITE_FLAG_*` env vars; UI gating and rollout docs shipped)
 - [ ] Support and audit tooling for wallet-level dispute review
 - [ ] Launch rehearsal — internal, closed beta, public gates
 
-**4/7 done. Ops visibility and runbook are in place. Rehearsal and feature flags are not started.**
+**5/7 done. Ops visibility, runbook, and feature flags are in place. Rehearsal and support tooling are not started.**
 
 ## Launch Rules
 
