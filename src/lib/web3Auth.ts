@@ -87,10 +87,29 @@ function parseChainId(raw: unknown): number {
   return 1;
 }
 
+function getConfiguredSiweUri(): string {
+  const rawValue = import.meta.env.VITE_SIWE_URI;
+
+  if (typeof rawValue === 'string' && rawValue.trim().length > 0) {
+    return new URL(rawValue).toString();
+  }
+
+  return new URL('/', window.location.origin).toString();
+}
+
+function getConfiguredSiweDomain(uri: string): string {
+  const rawValue = import.meta.env.VITE_SIWE_DOMAIN;
+
+  if (typeof rawValue === 'string' && rawValue.trim().length > 0) {
+    return rawValue.trim();
+  }
+
+  return new URL(uri).host;
+}
+
 function buildSiweMessage(address: string, chainId: number): string {
-  const currentUrl = new URL(window.location.href);
-  const domain = currentUrl.host;
-  const uri = `${currentUrl.origin}${currentUrl.pathname}`;
+  const uri = getConfiguredSiweUri();
+  const domain = getConfiguredSiweDomain(uri);
   const issuedAt = new Date().toISOString();
   const nonce = getRandomHex(16);
 
