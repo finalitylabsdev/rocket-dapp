@@ -152,11 +152,11 @@ These checklists describe the current codebase state as of the version/date abov
 - [x] Core loading / retry / empty / degraded states exist in App 3
 - [x] Build one persistent cross-app navigation shell and wallet HUD
 - [x] Remove per-page duplicated nav chrome
-- [ ] Add clearer next-step / four-app journey cues
-- [ ] Add lightweight onboarding path
-- [ ] Replace placeholder docs links / dead-end navigation
+- [x] Add clearer next-step / four-app journey cues
+- [x] Add lightweight onboarding path
+- [x] Replace placeholder docs links / dead-end navigation
 
-**5/8 done. Shared shell and core App 3 state handling are in place. Remaining work is docs/navigation polish, journey guidance, and onboarding.**
+**8/8 done. Shared shell, App 3 state handling, journey cues, onboarding, and navigation polish are all in place.**
 
 ### Stage 7: Establish the Canonical Asset and Metadata Pipeline
 

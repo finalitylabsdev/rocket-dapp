@@ -62,11 +62,12 @@ export default function MysteryPage() {
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6 items-start">
           <div>
             {activeTab === 'vault' ? (
-              <VaultTab />
+              <VaultTab onNavigateBids={() => setActiveTab('bids')} />
             ) : (
               <BidsTab
                 preferredPartId={preferredAuctionPartId}
                 onPreferredPartHandled={() => setPreferredAuctionPartId(null)}
+                onNavigateLab={() => { window.location.hash = 'lab'; }}
               />
             )}
           </div>

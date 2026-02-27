@@ -1,9 +1,12 @@
 import { Suspense, lazy, useState, useEffect, useCallback } from 'react';
-import { GameStateProvider } from './context/GameState';
+import { Gift } from 'lucide-react';
+import { GameStateProvider, useGameState } from './context/GameState';
 import { WalletProvider } from './hooks/useWallet';
 import ShellNav from './components/ShellNav';
 import Hero from './components/Hero';
 import QuickActions from './components/QuickActions';
+import JourneyCue from './components/JourneyCue';
+import WelcomeBanner from './components/WelcomeBanner';
 import Footer from './components/Footer';
 import AppToaster from './components/AppToaster';
 import StarField from './components/brand/StarField';
@@ -24,6 +27,30 @@ function PageFallback() {
 function pageFromHash(): Page {
   const hash = window.location.hash.replace('#', '') as Page;
   return VALID_PAGES.has(hash) ? hash : 'home';
+}
+
+function HomeContent({ navigate }: { navigate: (p: Page) => void }) {
+  const game = useGameState();
+  const showFluxCue = game.fluxBalance > 0 && game.inventory.length === 0;
+
+  return (
+    <>
+      <WelcomeBanner />
+      <Hero onOpenDex={() => navigate('dex')} />
+      {showFluxCue && (
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-4 mb-4">
+          <JourneyCue
+            icon={<Gift size={16} />}
+            message={`You have ${game.fluxBalance} FLUX! Open a Star Vault box to earn rocket parts.`}
+            actionLabel="Open Star Vault"
+            onAction={() => navigate('mystery')}
+            tone="gold"
+          />
+        </div>
+      )}
+      <QuickActions onOpenDex={() => navigate('dex')} onOpenMystery={() => navigate('mystery')} onOpenLab={() => navigate('lab')} onOpenLeaderboard={() => navigate('leaderboard')} />
+    </>
+  );
 }
 
 export default function App() {
@@ -60,10 +87,7 @@ export default function App() {
                 ) : page === 'leaderboard' ? (
                   <LeaderboardPage />
                 ) : (
-                  <>
-                    <Hero onOpenDex={() => navigate('dex')} />
-                    <QuickActions onOpenDex={() => navigate('dex')} onOpenMystery={() => navigate('mystery')} onOpenLab={() => navigate('lab')} onOpenLeaderboard={() => navigate('leaderboard')} />
-                  </>
+                  <HomeContent navigate={navigate} />
                 )}
               </Suspense>
             </main>

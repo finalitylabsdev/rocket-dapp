@@ -1,6 +1,10 @@
+import { Gavel } from 'lucide-react';
 import BoxCard from './BoxCard';
+import JourneyCue from '../JourneyCue';
+import { useGameState } from '../../context/GameState';
 import { useBoxTiers } from '../../hooks/useBoxTiers';
 import { useRarityConfig } from '../../hooks/useRarityConfig';
+import { AUCTION_MIN_RARITY_TIER } from '../../config/spec';
 import { APP3_INSET_STYLE, APP3_PANEL_STYLE } from './ui';
 
 function LoadingCard() {
@@ -54,9 +58,17 @@ function StatusBanner({
   );
 }
 
-export default function VaultTab() {
+interface VaultTabProps {
+  onNavigateBids?: () => void;
+}
+
+export default function VaultTab({ onNavigateBids }: VaultTabProps) {
+  const game = useGameState();
   const rarityConfig = useRarityConfig();
   const { boxTiers, isLoading, error, readState, refresh } = useBoxTiers();
+  const hasAuctionEligiblePart = game.inventory.some(
+    (p) => p.rarityTierId >= AUCTION_MIN_RARITY_TIER && !p.isLocked && !p.isEquipped,
+  );
   const showRetry = (!isLoading && readState !== 'ready') || (!rarityConfig.isLoading && rarityConfig.readState !== 'catalog');
   const isCatalogDegraded = readState === 'degraded';
   const isCatalogStale = readState === 'stale';
@@ -141,6 +153,18 @@ export default function VaultTab() {
           {isLoading && boxTiers.length === 0
             ? Array.from({ length: 4 }, (_, index) => <LoadingCard key={index} />)
             : boxTiers.map((tier) => <BoxCard key={tier.id} tier={tier} />)}
+        </div>
+      )}
+
+      {hasAuctionEligiblePart && onNavigateBids && (
+        <div className="mt-6">
+          <JourneyCue
+            icon={<Gavel size={16} />}
+            message="You have an auction-eligible part! Submit it to Nebula Bids for FLUX."
+            actionLabel="Go to Bids"
+            onAction={onNavigateBids}
+            tone="purple"
+          />
         </div>
       )}
     </section>

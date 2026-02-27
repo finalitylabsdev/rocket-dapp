@@ -149,7 +149,14 @@ export default function QuickActions({ onOpenDex, onOpenMystery, onOpenLab, onOp
                 </div>
 
                 <button
-                  onClick={card.id === 'dex' ? onOpenDex : card.id === 'mystery' ? onOpenMystery : card.id === 'lab' ? onOpenLab : card.id === 'leaderboard' ? onOpenLeaderboard : undefined}
+                  onClick={
+                    card.id === 'dex' ? onOpenDex
+                    : card.id === 'mystery' ? onOpenMystery
+                    : card.id === 'lab' ? onOpenLab
+                    : card.id === 'leaderboard' ? onOpenLeaderboard
+                    : card.id === 'faucet' ? () => window.scrollTo({ top: 0, behavior: 'smooth' })
+                    : undefined
+                  }
                   className="w-full border border-dot-green text-dot-green hover:bg-dot-green/10 font-mono font-semibold text-sm py-2.5 transition-all duration-200 flex items-center justify-center gap-1.5 active:scale-95 uppercase tracking-wider"
                 >
                   {card.buttonLabel}
