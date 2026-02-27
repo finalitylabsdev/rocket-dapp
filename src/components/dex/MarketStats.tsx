@@ -1,55 +1,18 @@
 import { TrendingUp, BarChart3, Droplets, Activity, ChevronUp, ChevronDown } from 'lucide-react';
 import { useIntersectionObserver } from '../../hooks/useCountUp';
+import { usePrices, getTokenUsdPrice, getTokenChange, formatUsdPrice } from '../../hooks/usePrices';
+import TokenIcon from './TokenIcon';
 
 const TOKEN_DATA = [
-  {
-    symbol: 'FLUX',
-    name: 'Flux Token',
-    price: '$0.0420',
-    change: '+5.43%',
-    up: true,
-    volume: '$128,409',
-    liquidity: '$842,000',
-    label: 'F',
-    bg: 'bg-zinc-200',
-  },
-  {
-    symbol: 'wETH',
-    name: 'Wrapped Ethereum',
-    price: '$2,847',
-    change: '+1.21%',
-    up: true,
-    volume: '$9.2M',
-    liquidity: '$4.12M',
-    label: 'Ξ',
-    bg: 'bg-zinc-300',
-  },
-  {
-    symbol: 'wBTC',
-    name: 'Wrapped Bitcoin',
-    price: '$67,420',
-    change: '-0.87%',
-    up: false,
-    volume: '$42.1M',
-    liquidity: '$2.34M',
-    label: '₿',
-    bg: 'bg-zinc-400',
-  },
-  {
-    symbol: 'UVD',
-    name: 'Universe Dollar',
-    price: '$1.0000',
-    change: '+0.01%',
-    up: true,
-    volume: '$3.8M',
-    liquidity: '$1.25M',
-    label: 'U',
-    bg: 'bg-zinc-500',
-  },
+  { symbol: 'FLUX', name: 'Flux Token', volume: '$128,409', liquidity: '$842,000' },
+  { symbol: 'wETH', name: 'Wrapped Ethereum', volume: '$9.2M', liquidity: '$4.12M' },
+  { symbol: 'wBTC', name: 'Wrapped Bitcoin', volume: '$42.1M', liquidity: '$2.34M' },
+  { symbol: 'UVD', name: 'Universe Dollar', volume: '$3.8M', liquidity: '$1.25M' },
 ];
 
 export default function MarketStats() {
   const { ref, isVisible } = useIntersectionObserver(0.1);
+  const { prices, isLoading } = usePrices();
 
   return (
     <div
@@ -67,29 +30,37 @@ export default function MarketStats() {
         </div>
 
         <div className="space-y-3">
-          {TOKEN_DATA.map((token) => (
-            <div
-              key={token.symbol}
-              className="flex items-center justify-between p-3 bg-zinc-900 border border-border-subtle hover:border-border-default hover:bg-bg-card-hover transition-all duration-200 cursor-pointer group"
-            >
-              <div className="flex items-center gap-2.5">
-                <div className={`w-8 h-8 ${token.bg} flex items-center justify-center text-black font-mono font-black text-xs flex-shrink-0`}>
-                  {token.label}
+          {TOKEN_DATA.map((token) => {
+            const price = getTokenUsdPrice(prices, token.symbol);
+            const change = getTokenChange(prices, token.symbol);
+            const up = change >= 0;
+
+            return (
+              <div
+                key={token.symbol}
+                className="flex items-center justify-between p-3 bg-zinc-900 border border-border-subtle hover:border-border-default hover:bg-bg-card-hover transition-all duration-200 cursor-pointer group"
+              >
+                <div className="flex items-center gap-2.5">
+                  <TokenIcon symbol={token.symbol} size="lg" />
+                  <div>
+                    <p className="font-mono font-bold text-white text-sm leading-none">{token.symbol}</p>
+                    <p className="text-zinc-600 text-[10px] mt-0.5">{token.name}</p>
+                  </div>
                 </div>
-                <div>
-                  <p className="font-mono font-bold text-white text-sm leading-none">{token.symbol}</p>
-                  <p className="text-zinc-600 text-[10px] mt-0.5">{token.name}</p>
+                <div className="text-right">
+                  <p className="font-mono font-bold text-white text-sm leading-none">
+                    {isLoading ? '--' : formatUsdPrice(price)}
+                  </p>
+                  <div className={`flex items-center justify-end gap-0.5 mt-0.5 ${up ? 'text-dot-green' : 'text-zinc-400'}`}>
+                    {up ? <ChevronUp size={11} /> : <ChevronDown size={11} />}
+                    <span className="text-[10px] font-mono font-semibold">
+                      {isLoading ? '--' : `${up ? '+' : ''}${change.toFixed(2)}%`}
+                    </span>
+                  </div>
                 </div>
               </div>
-              <div className="text-right">
-                <p className="font-mono font-bold text-white text-sm leading-none">{token.price}</p>
-                <div className={`flex items-center justify-end gap-0.5 mt-0.5 ${token.up ? 'text-dot-green' : 'text-zinc-400'}`}>
-                  {token.up ? <ChevronUp size={11} /> : <ChevronDown size={11} />}
-                  <span className="text-[10px] font-mono font-semibold">{token.change}</span>
-                </div>
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
 

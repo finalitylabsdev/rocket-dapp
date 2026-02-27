@@ -27,8 +27,10 @@ const defaultFaucetIntervalSeconds = DEV_FAST_ECONOMY ? 5 : 86_400;
 const defaultWhitelistBonusFlux = DEV_FAST_ECONOMY ? 300 : 0;
 const defaultDailyClaimFlux = DEV_FAST_ECONOMY ? 20 : 1;
 const defaultBoxPriceMultiplier = DEV_FAST_ECONOMY ? 0.4 : 1;
+const defaultWhitelistEth = 0.001;
 
-export const WHITELIST_ETH = 0.05;
+export const WHITELIST_ETH =
+  readPositiveNumberEnv('VITE_SPEC_WHITELIST_ETH') ?? defaultWhitelistEth;
 export const FAUCET_INTERVAL_SECONDS =
   readPositiveNumberEnv('VITE_SPEC_FAUCET_INTERVAL_SECONDS') ?? defaultFaucetIntervalSeconds;
 export const FAUCET_INTERVAL_MS = FAUCET_INTERVAL_SECONDS * 1000;

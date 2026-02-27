@@ -168,10 +168,10 @@ function BoxCard({ tier }: { tier: BoxTier }) {
   const [error, setError] = useState<string | null>(null);
   const cfg = RARITY_CONFIG[tier.rarity];
 
-  const handleOpen = () => {
+  const handleOpen = async () => {
     if (state !== 'idle') return;
     setError(null);
-    if (!game.spendFlux(tier.price)) {
+    if (!await game.spendFlux(tier.price)) {
       setError('Insufficient Flux');
       return;
     }
@@ -281,7 +281,7 @@ function BoxCard({ tier }: { tier: BoxTier }) {
           </button>
         ) : (
           <button
-            onClick={handleOpen}
+              onClick={() => void handleOpen()}
             disabled={state !== 'idle'}
             className="w-full py-3 font-mono font-bold text-sm flex items-center justify-center gap-2 transition-all duration-200 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed uppercase tracking-wider"
             style={state === 'idle' ? {

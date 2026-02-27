@@ -1,33 +1,48 @@
 /*
-  # Secure wallet auth ledger + harden log writes
+  # Consolidate schema: drop browser tables & deduplicate logging
 
   ## Summary
-  - Binds connect/disconnect log writes to authenticated Supabase users
-  - Verifies the requested wallet belongs to the current Auth identity
-  - Adds per-user rate limiting in RPC functions to reduce spam writes
-  - Adds `auth_user_id` linkage for `app_state_ledger` and `app_logs`
-  - Adds generic `record_app_log` RPC for future product event logging
+  Wallet authentication is fully handled via Supabase Auth (auth.identities),
+  making browser fingerprinting (browser_profiles, browser_wallets) redundant.
+  The app_state_ledger duplicates every event already written to app_logs.
+
+  This migration removes the 3 redundant tables and simplifies the RPCs.
+
+  Before: 6 tables, 3 RPCs that double-log events
+  After:  3 tables (leaderboard, wallet_registry, app_logs), 3 simplified RPCs
+
+  ## Execution order (FK-safe)
+  1. Drop old RPC functions (old signatures reference dropped tables)
+  2. Drop browser_wallets (junction table, no dependents)
+  3. Drop app_state_ledger (no dependents)
+  4. Drop browser_id column + index from app_logs
+  5. Drop browser_profiles (now safe, nothing references it)
+  6. Recreate 3 simplified RPC functions
+  7. REVOKE/GRANT permissions
 */
 
-ALTER TABLE app_state_ledger
-  ALTER COLUMN browser_id DROP NOT NULL;
+-- 1. Drop old RPC functions (must drop before tables they reference)
+DROP FUNCTION IF EXISTS public.record_wallet_connect(uuid, text, jsonb, timestamptz, text);
+DROP FUNCTION IF EXISTS public.record_wallet_disconnect(uuid, text, jsonb, timestamptz, text);
+DROP FUNCTION IF EXISTS public.record_app_log(text, jsonb, text, uuid, timestamptz, text);
 
-ALTER TABLE app_state_ledger
-  ADD COLUMN IF NOT EXISTS auth_user_id uuid REFERENCES auth.users(id) ON DELETE SET NULL;
+-- 2. Drop browser_wallets (junction table, no dependents)
+DROP TABLE IF EXISTS browser_wallets;
 
-ALTER TABLE app_logs
-  ADD COLUMN IF NOT EXISTS auth_user_id uuid REFERENCES auth.users(id) ON DELETE SET NULL;
+-- 3. Drop app_state_ledger (no dependents)
+DROP TABLE IF EXISTS app_state_ledger;
 
-CREATE INDEX IF NOT EXISTS app_state_ledger_auth_user_created_idx
-  ON app_state_ledger (auth_user_id, created_at DESC);
+-- 4. Drop browser_id column + index from app_logs
+DROP INDEX IF EXISTS app_logs_browser_created_idx;
+ALTER TABLE app_logs DROP COLUMN IF EXISTS browser_id;
 
-CREATE INDEX IF NOT EXISTS app_logs_auth_user_created_idx
-  ON app_logs (auth_user_id, created_at DESC);
+-- 5. Drop browser_profiles (now safe, nothing references it)
+DROP TABLE IF EXISTS browser_profiles;
+
+-- 6. Recreate simplified RPC functions
 
 CREATE OR REPLACE FUNCTION public.record_wallet_connect(
-  p_browser_id uuid,
   p_wallet_address text,
-  p_state jsonb DEFAULT '{}'::jsonb,
   p_client_timestamp timestamptz DEFAULT NULL,
   p_user_agent text DEFAULT NULL
 )
@@ -38,9 +53,9 @@ SET search_path = public
 AS $$
 DECLARE
   v_wallet text;
-  v_ledger_event_id bigint;
   v_user_id uuid;
   v_recent_auth_events integer;
+  v_log_id bigint;
 BEGIN
   v_user_id := auth.uid();
 
@@ -85,52 +100,13 @@ BEGIN
     RAISE EXCEPTION 'rate limit exceeded for wallet auth events';
   END IF;
 
-  IF p_browser_id IS NOT NULL THEN
-    INSERT INTO browser_profiles (browser_id, first_seen_at, last_seen_at, user_agent)
-    VALUES (p_browser_id, now(), now(), p_user_agent)
-    ON CONFLICT (browser_id) DO UPDATE
-    SET
-      last_seen_at = EXCLUDED.last_seen_at,
-      user_agent = COALESCE(EXCLUDED.user_agent, browser_profiles.user_agent);
-  END IF;
-
   INSERT INTO wallet_registry (wallet_address, first_seen_at, last_seen_at)
   VALUES (v_wallet, now(), now())
   ON CONFLICT (wallet_address) DO UPDATE
-  SET
-    last_seen_at = EXCLUDED.last_seen_at;
-
-  IF p_browser_id IS NOT NULL THEN
-    INSERT INTO browser_wallets (browser_id, wallet_address, first_seen_at, last_seen_at)
-    VALUES (p_browser_id, v_wallet, now(), now())
-    ON CONFLICT (browser_id, wallet_address) DO UPDATE
-    SET
-      last_seen_at = EXCLUDED.last_seen_at;
-  END IF;
-
-  INSERT INTO app_state_ledger (
-    event_type,
-    browser_id,
-    wallet_address,
-    auth_user_id,
-    state,
-    client_timestamp,
-    user_agent
-  )
-  VALUES (
-    'wallet_connected',
-    p_browser_id,
-    v_wallet,
-    v_user_id,
-    COALESCE(p_state, '{}'::jsonb),
-    COALESCE(p_client_timestamp, now()),
-    p_user_agent
-  )
-  RETURNING id INTO v_ledger_event_id;
+  SET last_seen_at = EXCLUDED.last_seen_at;
 
   INSERT INTO app_logs (
     event_name,
-    browser_id,
     wallet_address,
     auth_user_id,
     payload,
@@ -139,26 +115,20 @@ BEGIN
   )
   VALUES (
     'wallet_login',
-    p_browser_id,
     v_wallet,
     v_user_id,
-    jsonb_build_object(
-      'state', COALESCE(p_state, '{}'::jsonb),
-      'ledger_event_id', v_ledger_event_id,
-      'browser_linked', p_browser_id IS NOT NULL
-    ),
+    '{}'::jsonb,
     COALESCE(p_client_timestamp, now()),
     p_user_agent
-  );
+  )
+  RETURNING id INTO v_log_id;
 
-  RETURN v_ledger_event_id;
+  RETURN v_log_id;
 END;
 $$;
 
 CREATE OR REPLACE FUNCTION public.record_wallet_disconnect(
-  p_browser_id uuid,
   p_wallet_address text,
-  p_state jsonb DEFAULT '{}'::jsonb,
   p_client_timestamp timestamptz DEFAULT NULL,
   p_user_agent text DEFAULT NULL
 )
@@ -169,9 +139,9 @@ SET search_path = public
 AS $$
 DECLARE
   v_wallet text;
-  v_ledger_event_id bigint;
   v_user_id uuid;
   v_recent_auth_events integer;
+  v_log_id bigint;
 BEGIN
   v_user_id := auth.uid();
 
@@ -216,52 +186,13 @@ BEGIN
     RAISE EXCEPTION 'rate limit exceeded for wallet auth events';
   END IF;
 
-  IF p_browser_id IS NOT NULL THEN
-    INSERT INTO browser_profiles (browser_id, first_seen_at, last_seen_at, user_agent)
-    VALUES (p_browser_id, now(), now(), p_user_agent)
-    ON CONFLICT (browser_id) DO UPDATE
-    SET
-      last_seen_at = EXCLUDED.last_seen_at,
-      user_agent = COALESCE(EXCLUDED.user_agent, browser_profiles.user_agent);
-  END IF;
-
   INSERT INTO wallet_registry (wallet_address, first_seen_at, last_seen_at)
   VALUES (v_wallet, now(), now())
   ON CONFLICT (wallet_address) DO UPDATE
-  SET
-    last_seen_at = EXCLUDED.last_seen_at;
-
-  IF p_browser_id IS NOT NULL THEN
-    INSERT INTO browser_wallets (browser_id, wallet_address, first_seen_at, last_seen_at)
-    VALUES (p_browser_id, v_wallet, now(), now())
-    ON CONFLICT (browser_id, wallet_address) DO UPDATE
-    SET
-      last_seen_at = EXCLUDED.last_seen_at;
-  END IF;
-
-  INSERT INTO app_state_ledger (
-    event_type,
-    browser_id,
-    wallet_address,
-    auth_user_id,
-    state,
-    client_timestamp,
-    user_agent
-  )
-  VALUES (
-    'wallet_disconnected',
-    p_browser_id,
-    v_wallet,
-    v_user_id,
-    COALESCE(p_state, '{}'::jsonb),
-    COALESCE(p_client_timestamp, now()),
-    p_user_agent
-  )
-  RETURNING id INTO v_ledger_event_id;
+  SET last_seen_at = EXCLUDED.last_seen_at;
 
   INSERT INTO app_logs (
     event_name,
-    browser_id,
     wallet_address,
     auth_user_id,
     payload,
@@ -270,19 +201,15 @@ BEGIN
   )
   VALUES (
     'wallet_logout',
-    p_browser_id,
     v_wallet,
     v_user_id,
-    jsonb_build_object(
-      'state', COALESCE(p_state, '{}'::jsonb),
-      'ledger_event_id', v_ledger_event_id,
-      'browser_linked', p_browser_id IS NOT NULL
-    ),
+    '{}'::jsonb,
     COALESCE(p_client_timestamp, now()),
     p_user_agent
-  );
+  )
+  RETURNING id INTO v_log_id;
 
-  RETURN v_ledger_event_id;
+  RETURN v_log_id;
 END;
 $$;
 
@@ -290,7 +217,6 @@ CREATE OR REPLACE FUNCTION public.record_app_log(
   p_event_name text,
   p_payload jsonb DEFAULT '{}'::jsonb,
   p_wallet_address text DEFAULT NULL,
-  p_browser_id uuid DEFAULT NULL,
   p_client_timestamp timestamptz DEFAULT NULL,
   p_user_agent text DEFAULT NULL
 )
@@ -357,32 +283,13 @@ BEGIN
     INSERT INTO wallet_registry (wallet_address, first_seen_at, last_seen_at)
     VALUES (v_wallet, now(), now())
     ON CONFLICT (wallet_address) DO UPDATE
-    SET
-      last_seen_at = EXCLUDED.last_seen_at;
+    SET last_seen_at = EXCLUDED.last_seen_at;
   ELSE
     v_wallet := NULL;
   END IF;
 
-  IF p_browser_id IS NOT NULL THEN
-    INSERT INTO browser_profiles (browser_id, first_seen_at, last_seen_at, user_agent)
-    VALUES (p_browser_id, now(), now(), p_user_agent)
-    ON CONFLICT (browser_id) DO UPDATE
-    SET
-      last_seen_at = EXCLUDED.last_seen_at,
-      user_agent = COALESCE(EXCLUDED.user_agent, browser_profiles.user_agent);
-
-    IF v_wallet IS NOT NULL THEN
-      INSERT INTO browser_wallets (browser_id, wallet_address, first_seen_at, last_seen_at)
-      VALUES (p_browser_id, v_wallet, now(), now())
-      ON CONFLICT (browser_id, wallet_address) DO UPDATE
-      SET
-        last_seen_at = EXCLUDED.last_seen_at;
-    END IF;
-  END IF;
-
   INSERT INTO app_logs (
     event_name,
-    browser_id,
     wallet_address,
     auth_user_id,
     payload,
@@ -391,7 +298,6 @@ BEGIN
   )
   VALUES (
     v_event_name,
-    p_browser_id,
     v_wallet,
     v_user_id,
     COALESCE(p_payload, '{}'::jsonb),
@@ -404,14 +310,16 @@ BEGIN
 END;
 $$;
 
-REVOKE ALL ON FUNCTION public.record_wallet_connect(uuid, text, jsonb, timestamptz, text) FROM PUBLIC;
-REVOKE ALL ON FUNCTION public.record_wallet_connect(uuid, text, jsonb, timestamptz, text) FROM anon;
-GRANT EXECUTE ON FUNCTION public.record_wallet_connect(uuid, text, jsonb, timestamptz, text) TO authenticated;
+-- 7. REVOKE/GRANT permissions (authenticated only)
 
-REVOKE ALL ON FUNCTION public.record_wallet_disconnect(uuid, text, jsonb, timestamptz, text) FROM PUBLIC;
-REVOKE ALL ON FUNCTION public.record_wallet_disconnect(uuid, text, jsonb, timestamptz, text) FROM anon;
-GRANT EXECUTE ON FUNCTION public.record_wallet_disconnect(uuid, text, jsonb, timestamptz, text) TO authenticated;
+REVOKE ALL ON FUNCTION public.record_wallet_connect(text, timestamptz, text) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.record_wallet_connect(text, timestamptz, text) FROM anon;
+GRANT EXECUTE ON FUNCTION public.record_wallet_connect(text, timestamptz, text) TO authenticated;
 
-REVOKE ALL ON FUNCTION public.record_app_log(text, jsonb, text, uuid, timestamptz, text) FROM PUBLIC;
-REVOKE ALL ON FUNCTION public.record_app_log(text, jsonb, text, uuid, timestamptz, text) FROM anon;
-GRANT EXECUTE ON FUNCTION public.record_app_log(text, jsonb, text, uuid, timestamptz, text) TO authenticated;
+REVOKE ALL ON FUNCTION public.record_wallet_disconnect(text, timestamptz, text) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.record_wallet_disconnect(text, timestamptz, text) FROM anon;
+GRANT EXECUTE ON FUNCTION public.record_wallet_disconnect(text, timestamptz, text) TO authenticated;
+
+REVOKE ALL ON FUNCTION public.record_app_log(text, jsonb, text, timestamptz, text) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.record_app_log(text, jsonb, text, timestamptz, text) FROM anon;
+GRANT EXECUTE ON FUNCTION public.record_app_log(text, jsonb, text, timestamptz, text) TO authenticated;

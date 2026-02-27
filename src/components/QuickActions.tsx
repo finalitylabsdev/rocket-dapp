@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { ArrowLeftRight, Gift, Rocket, Trophy, Lock, ChevronRight } from 'lucide-react';
 import { useIntersectionObserver } from '../hooks/useCountUp';
+import { WHITELIST_ETH } from '../config/spec';
+import { formatEthAmount } from '../lib/ethLock';
 
 interface ActionCard {
   id: string;
@@ -20,11 +22,11 @@ const cards: ActionCard[] = [
     badge: 'Start Here',
     title: 'Entropy Gate',
     tagline: 'Lock ETH → Claim Flux',
-    description: 'Lock 0.05 ETH once to whitelist your wallet. Claim 1 Flux every 24 hours. Funds the ETH prize pool forever.',
+    description: `Lock ${formatEthAmount(WHITELIST_ETH)} ETH once to whitelist your wallet. Claim 1 Flux every 24 hours. Funds the ETH prize pool forever.`,
     buttonLabel: 'Claim Your Flux',
     stats: [
       { label: 'Daily Claim', value: '1 Flux' },
-      { label: 'Lock Amount', value: '0.05 ETH' },
+      { label: 'Lock Amount', value: `${formatEthAmount(WHITELIST_ETH)} ETH` },
     ],
   },
   {

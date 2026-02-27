@@ -1,0 +1,2 @@
+[functions.verify-eth-lock]
+verify_jwt = false

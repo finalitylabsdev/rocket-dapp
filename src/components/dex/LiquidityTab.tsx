@@ -1,14 +1,9 @@
 import { useState } from 'react';
 import { ChevronDown, Plus, Info } from 'lucide-react';
+import TokenIcon from './TokenIcon';
+import { usePrices, getRate, getTokenUsdPrice } from '../../hooks/usePrices';
 
 const TOKENS = ['FLUX', 'wETH', 'wBTC', 'UVD'];
-
-const TOKEN_ICONS: Record<string, { bg: string; label: string }> = {
-  FLUX: { bg: 'bg-zinc-200', label: 'F' },
-  wETH: { bg: 'bg-zinc-300', label: 'Ξ' },
-  wBTC: { bg: 'bg-zinc-400', label: '₿' },
-  UVD:  { bg: 'bg-zinc-500', label: 'U' },
-};
 
 const POOL_TOTALS: Record<string, number> = {
   'FLUX-wETH': 842000,
@@ -21,7 +16,6 @@ const POOL_TOTALS: Record<string, number> = {
 
 function SmallTokenSelect({ value, onChange, exclude }: { value: string; onChange: (v: string) => void; exclude: string }) {
   const [open, setOpen] = useState(false);
-  const tok = TOKEN_ICONS[value];
 
   return (
     <div className="relative">
@@ -29,9 +23,7 @@ function SmallTokenSelect({ value, onChange, exclude }: { value: string; onChang
         onClick={() => setOpen((p) => !p)}
         className="flex items-center gap-2 bg-zinc-800 hover:bg-zinc-700 border border-border-default hover:border-border-strong px-3 py-2 transition-all duration-150"
       >
-        <div className={`w-6 h-6 ${tok.bg} flex items-center justify-center text-black font-mono font-black text-xs`}>
-          {tok.label}
-        </div>
+        <TokenIcon symbol={value} size="sm" />
         <span className="font-mono font-bold text-white text-sm">{value}</span>
         <ChevronDown size={13} className="text-zinc-400" />
       </button>
@@ -43,9 +35,7 @@ function SmallTokenSelect({ value, onChange, exclude }: { value: string; onChang
               onClick={() => { onChange(t); setOpen(false); }}
               className={`w-full flex items-center gap-3 px-4 py-3 hover:bg-zinc-800 transition-colors text-left ${value === t ? 'bg-zinc-800' : ''}`}
             >
-              <div className={`w-6 h-6 ${TOKEN_ICONS[t].bg} flex items-center justify-center text-black font-mono font-black text-xs flex-shrink-0`}>
-                {TOKEN_ICONS[t].label}
-              </div>
+              <TokenIcon symbol={t} size="sm" />
               <span className="font-mono font-semibold text-white text-sm">{t}</span>
             </button>
           ))}
@@ -60,19 +50,24 @@ export default function LiquidityTab() {
   const [tokenB, setTokenB] = useState('wETH');
   const [amountA, setAmountA] = useState('');
   const [amountB, setAmountB] = useState('');
+  const { prices } = usePrices();
 
   const pairKey = [tokenA, tokenB].sort().join('-');
   const poolTotal = POOL_TOTALS[pairKey] ?? 500000;
+
+  const tokenAUsd = getTokenUsdPrice(prices, tokenA);
   const poolShare =
     amountA && parseFloat(amountA) > 0
-      ? Math.min(((parseFloat(amountA) * 0.042) / poolTotal) * 100, 99.9).toFixed(4)
+      ? Math.min(((parseFloat(amountA) * tokenAUsd) / poolTotal) * 100, 99.9).toFixed(4)
       : '0.0000';
+
+  const rateAtoB = getRate(prices, tokenA, tokenB);
+  const rateBtoA = getRate(prices, tokenB, tokenA);
 
   const handleAmountA = (v: string) => {
     setAmountA(v);
     if (v && parseFloat(v) > 0) {
-      const ratio = tokenA === 'ET' && tokenB === 'ETH' ? 0.000351 : 1;
-      setAmountB((parseFloat(v) * ratio).toFixed(6));
+      setAmountB((parseFloat(v) * rateAtoB).toFixed(6));
     } else {
       setAmountB('');
     }
@@ -117,9 +112,7 @@ export default function LiquidityTab() {
               className="flex-1 bg-transparent text-xl font-mono font-bold text-white placeholder:text-zinc-700 focus:outline-none min-w-0"
             />
             <div className="flex items-center gap-2 bg-zinc-800 px-2.5 py-1.5">
-              <div className={`w-5 h-5 ${TOKEN_ICONS[tokenA].bg} flex items-center justify-center text-black font-mono font-black text-[10px]`}>
-                {TOKEN_ICONS[tokenA].label}
-              </div>
+              <TokenIcon symbol={tokenA} size="xs" />
               <span className="font-mono font-bold text-white text-sm">{tokenA}</span>
             </div>
           </div>
@@ -145,9 +138,7 @@ export default function LiquidityTab() {
               className="flex-1 bg-transparent text-xl font-mono font-bold text-white placeholder:text-zinc-700 focus:outline-none min-w-0"
             />
             <div className="flex items-center gap-2 bg-zinc-800 px-2.5 py-1.5">
-              <div className={`w-5 h-5 ${TOKEN_ICONS[tokenB].bg} flex items-center justify-center text-black font-mono font-black text-[10px]`}>
-                {TOKEN_ICONS[tokenB].label}
-              </div>
+              <TokenIcon symbol={tokenB} size="xs" />
               <span className="font-mono font-bold text-white text-sm">{tokenB}</span>
             </div>
           </div>
@@ -161,8 +152,8 @@ export default function LiquidityTab() {
       <div className="bg-zinc-900/60 border border-border-subtle p-4 space-y-2.5">
         <p className="text-xs font-mono font-semibold text-zinc-400 mb-3 uppercase tracking-wider">Pool Information</p>
         {[
-          { label: `${tokenA} per ${tokenB}`, value: `${(1 / 0.000351).toFixed(2)}` },
-          { label: `${tokenB} per ${tokenA}`, value: '0.000351' },
+          { label: `${tokenA} per ${tokenB}`, value: rateBtoA.toFixed(rateBtoA >= 1 ? 2 : 6) },
+          { label: `${tokenB} per ${tokenA}`, value: rateAtoB.toFixed(rateAtoB >= 1 ? 2 : 6) },
           { label: 'Your Pool Share', value: `${poolShare}%` },
           { label: 'Pool Liquidity', value: `$${poolTotal.toLocaleString()}` },
         ].map((row) => (

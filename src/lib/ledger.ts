@@ -1,50 +1,5 @@
 import { supabase } from './supabase';
 
-const BROWSER_ID_STORAGE_KEY = 'phinet-browser-id';
-const GAME_STATE_STORAGE_KEY = 'phinet-game-state';
-
-function fallbackUuid(): string {
-  const part = () => Math.floor(Math.random() * 0x10000).toString(16).padStart(4, '0');
-  return `${part()}${part()}-${part()}-${part()}-${part()}-${part()}${part()}${part()}`;
-}
-
-function getOrCreateBrowserId(): string | null {
-  try {
-    const existing = localStorage.getItem(BROWSER_ID_STORAGE_KEY);
-    if (existing) {
-      return existing;
-    }
-
-    const created =
-      typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
-        ? crypto.randomUUID()
-        : fallbackUuid();
-
-    localStorage.setItem(BROWSER_ID_STORAGE_KEY, created);
-    return created;
-  } catch {
-    return null;
-  }
-}
-
-function readStateSnapshot(): Record<string, unknown> {
-  try {
-    const raw = localStorage.getItem(GAME_STATE_STORAGE_KEY);
-    if (!raw) {
-      return {};
-    }
-
-    const parsed = JSON.parse(raw) as unknown;
-    if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
-      return parsed as Record<string, unknown>;
-    }
-  } catch {
-    // Ignore malformed local state and continue with an empty snapshot.
-  }
-
-  return {};
-}
-
 export async function recordWalletConnect(walletAddress: string): Promise<void> {
   await recordWalletAuthEvent('record_wallet_connect', walletAddress);
 }
@@ -61,17 +16,37 @@ async function recordWalletAuthEvent(
     return;
   }
 
-  const browserId = getOrCreateBrowserId();
-
-  const { error } = await supabase.rpc(rpcName, {
-    p_browser_id: browserId ?? null,
+  const rpcPayload = {
     p_wallet_address: walletAddress,
-    p_state: readStateSnapshot(),
     p_client_timestamp: new Date().toISOString(),
     p_user_agent: typeof navigator !== 'undefined' ? navigator.userAgent : null,
-  });
+  };
+
+  let { error } = await supabase.rpc(rpcName, rpcPayload);
+
+  // Backward compatibility for projects that still expose the older 5-arg RPC signature.
+  if (error && isMissingRpcSignature(error.message)) {
+    const legacyPayload = {
+      ...rpcPayload,
+      p_browser_id: null,
+      p_state: {},
+    };
+
+    ({ error } = await supabase.rpc(rpcName, legacyPayload));
+  }
 
   if (error) {
     console.error(`Failed to record ${rpcName} event:`, error.message);
   }
+}
+
+function isMissingRpcSignature(message: string | undefined): boolean {
+  if (!message) {
+    return false;
+  }
+
+  return (
+    message.includes('Could not find the function public.record_wallet_') &&
+    message.includes('in the schema cache')
+  );
 }

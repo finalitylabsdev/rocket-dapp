@@ -1,15 +1,16 @@
-name: Notify Telegram On Development Push
+name: Notify Telegram On Push
 
 on:
   push:
     branches:
       - development
+      - main
 
 jobs:
   notify:
     name: Send Telegram Notification
     runs-on: ubuntu-latest
-    environment: development
+    environment: ${{ github.ref_name == 'main' && 'production' || 'development' }}
 
     steps:
       - name: Validate required token
@@ -21,10 +22,30 @@ jobs:
             exit 1
           fi
 
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Compute diff stats
+        id: stats
+        run: |
+          BEFORE="${{ github.event.before }}"
+          AFTER="${{ github.sha }}"
+          if [ "${BEFORE}" = "0000000000000000000000000000000000000000" ]; then
+            echo "line=initial push" >> "$GITHUB_OUTPUT"
+          else
+            FILES="$(git diff --name-only "${BEFORE}" "${AFTER}" | wc -l | tr -d ' ')"
+            ADDS="$(git diff --numstat "${BEFORE}" "${AFTER}" | awk '{s+=$1} END {print s+0}')"
+            DELS="$(git diff --numstat "${BEFORE}" "${AFTER}" | awk '{s+=$2} END {print s+0}')"
+            echo "line=${FILES} files | +${ADDS} -${DELS}" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Resolve chat and send message
         env:
           TG_TOKEN: ${{ secrets.TG_TOKEN }}
           TG_CHAT_ID: ${{ vars.TG_CHAT_ID }}
+          STATS_LINE: ${{ steps.stats.outputs.line }}
         run: |
           set -euo pipefail
 
@@ -58,7 +79,10 @@ jobs:
             exit 1
           fi
 
+          MSG="$(printf '🟢 new version deployed\n\x60%s\x60' "${STATS_LINE}")"
+
           curl -fsS -X POST "https://api.telegram.org/bot${TG_TOKEN}/sendMessage" \
             -d "chat_id=${CHAT_ID}" \
-            --data-urlencode "text=🟢 new version deployed" \
+            --data-urlencode "text=${MSG}" \
+            -d "parse_mode=Markdown" \
             -d "disable_web_page_preview=true"

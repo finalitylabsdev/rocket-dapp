@@ -1,4 +1,12 @@
-import { useState, useEffect, useCallback } from 'react';
+import {
+  createElement,
+  createContext,
+  useState,
+  useEffect,
+  useCallback,
+  useContext,
+  type ReactNode,
+} from 'react';
 import { recordWalletConnect, recordWalletDisconnect } from '../lib/ledger';
 import { supabase } from '../lib/supabase';
 import { getWalletAddressFromUser, signInWithEthereumWallet } from '../lib/web3Auth';
@@ -22,7 +30,19 @@ function toErrorMessage(error: unknown): string {
   return 'Wallet action failed.';
 }
 
-export function useWallet() {
+interface WalletContextValue {
+  address: string | null;
+  isConnected: boolean;
+  connect: () => Promise<void>;
+  disconnect: () => Promise<void>;
+  isConnecting: boolean;
+  error: string | null;
+  displayAddress: string | null;
+}
+
+const WalletContext = createContext<WalletContextValue | null>(null);
+
+function useProvideWallet(): WalletContextValue {
   const [address, setAddress] = useState<string | null>(null);
   const [isConnecting, setIsConnecting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -117,4 +137,24 @@ export function useWallet() {
     error,
     displayAddress: formatAddress(address),
   };
+}
+
+interface WalletProviderProps {
+  children: ReactNode;
+}
+
+export function WalletProvider({ children }: WalletProviderProps) {
+  const value = useProvideWallet();
+
+  return createElement(WalletContext.Provider, { value }, children);
+}
+
+export function useWallet(): WalletContextValue {
+  const context = useContext(WalletContext);
+
+  if (!context) {
+    throw new Error('useWallet must be used within a WalletProvider.');
+  }
+
+  return context;
 }

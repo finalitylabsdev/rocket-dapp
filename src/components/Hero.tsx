@@ -1,18 +1,22 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Zap, ExternalLink, ChevronDown, Lock, Clock } from 'lucide-react';
+import { toast } from 'sonner';
 import { useGameState } from '../context/GameState';
+import { useEthLock } from '../hooks/useEthLock';
 import { useWallet } from '../hooks/useWallet';
 import PhiSymbol from './brand/PhiSymbol';
 import {
   EFFECTIVE_DAILY_CLAIM_FLUX,
   FAUCET_INTERVAL_MS,
   FAUCET_INTERVAL_SECONDS,
-  WHITELIST_ETH,
 } from '../config/spec';
 
 interface HeroProps {
   onOpenDex: () => void;
 }
+
+const ETH_LOCK_FLOW_TOAST_ID = 'eth-lock-flow';
+const WALLET_ERROR_TOAST_ID = 'wallet-error';
 
 function formatCooldown(ms: number): string {
   const totalSeconds = Math.max(0, Math.ceil(ms / 1000));
@@ -32,10 +36,38 @@ function formatClaimWindow(seconds: number): string {
   return `${seconds}S`;
 }
 
+function formatTxHash(txHash: string): string {
+  return `${txHash.slice(0, 10)}...${txHash.slice(-8)}`;
+}
+
+function getEtherscanTxUrl(txHash: string, chainId: number | null): string {
+  let host = 'etherscan.io';
+
+  if (chainId === 11155111) {
+    host = 'sepolia.etherscan.io';
+  } else if (chainId === 17000) {
+    host = 'holesky.etherscan.io';
+  } else if (chainId === 5) {
+    host = 'goerli.etherscan.io';
+  }
+
+  return `https://${host}/tx/${txHash}`;
+}
+
+function openExternalUrl(url: string): void {
+  window.open(url, '_blank', 'noopener,noreferrer');
+}
+
 export default function Hero({ onOpenDex }: HeroProps) {
   const game = useGameState();
   const wallet = useWallet();
+  const ethLock = useEthLock(wallet.address);
   const [now, setNow] = useState(() => Date.now());
+  const submittedLockRef = useRef(false);
+  const lastWalletErrorRef = useRef<string | null>(null);
+  const lastEthLockErrorRef = useRef<string | null>(null);
+  const lastEthLockStatusRef = useRef(ethLock.status);
+  const lastEthLockTxHashRef = useRef<string | null>(ethLock.submission?.txHash ?? null);
 
   useEffect(() => {
     if (!game.lastDailyClaim) return;
@@ -46,7 +78,160 @@ export default function Hero({ onOpenDex }: HeroProps) {
   const cooldownRemaining = game.lastDailyClaim
     ? Math.max(0, FAUCET_INTERVAL_MS - (now - game.lastDailyClaim))
     : 0;
-  const canClaim = !game.lastDailyClaim || cooldownRemaining === 0;
+  const canClaim = ethLock.isLocked && (!game.lastDailyClaim || cooldownRemaining === 0);
+  const isWaitingForVerification = ethLock.status === 'sent' || ethLock.status === 'verifying';
+
+  const lockCallToActionDisabled =
+    ethLock.isSubmitting
+    || ethLock.isLoading
+    || isWaitingForVerification
+    || !ethLock.lockRecipient;
+  const claimCallToActionDisabled =
+    !canClaim
+    || game.isClaimingFlux
+    || game.isFluxSyncing;
+
+  const handleSubmitLock = async () => {
+    submittedLockRef.current = true;
+    toast.loading('Transaction submitted', {
+      id: ETH_LOCK_FLOW_TOAST_ID,
+      description: 'Waiting for wallet confirmation...',
+      duration: Number.POSITIVE_INFINITY,
+    });
+    const didSubmit = await ethLock.submitLock();
+
+    if (!didSubmit) {
+      submittedLockRef.current = false;
+    }
+  };
+
+  const handleClaimFlux = async () => {
+    const didClaim = await game.claimDailyFlux();
+
+    if (didClaim) {
+      toast.success('Flux claimed', {
+        description: `Added ${EFFECTIVE_DAILY_CLAIM_FLUX} FLUX to your balance.`,
+      });
+      return;
+    }
+
+    if (canClaim) {
+      toast.error('Flux claim failed', {
+        description: 'The signed claim could not be recorded.',
+      });
+    }
+  };
+
+  useEffect(() => {
+    if (!ethLock.isLocked || !wallet.address) {
+      return;
+    }
+
+    void game.refreshFluxBalance();
+  }, [ethLock.isLocked, game.refreshFluxBalance, wallet.address]);
+
+  useEffect(() => {
+    if (!wallet.error) {
+      lastWalletErrorRef.current = null;
+      return;
+    }
+
+    if (lastWalletErrorRef.current === wallet.error) {
+      return;
+    }
+
+    toast.error('Wallet action failed', {
+      id: WALLET_ERROR_TOAST_ID,
+      description: wallet.error,
+    });
+    lastWalletErrorRef.current = wallet.error;
+  }, [wallet.error]);
+
+  useEffect(() => {
+    if (!ethLock.error) {
+      lastEthLockErrorRef.current = null;
+      return;
+    }
+
+    if (lastEthLockErrorRef.current === ethLock.error) {
+      return;
+    }
+
+    toast.error('ETH lock failed', {
+      id: ETH_LOCK_FLOW_TOAST_ID,
+      description: ethLock.error,
+      duration: 8000,
+    });
+    lastEthLockErrorRef.current = ethLock.error;
+  }, [ethLock.error]);
+
+  useEffect(() => {
+    const previousStatus = lastEthLockStatusRef.current;
+    const previousTxHash = lastEthLockTxHashRef.current;
+    const currentTxHash = ethLock.submission?.txHash ?? null;
+    const currentChainId = ethLock.submission?.chainId ?? null;
+
+    if (!wallet.isConnected) {
+      toast.dismiss(ETH_LOCK_FLOW_TOAST_ID);
+      submittedLockRef.current = false;
+      lastEthLockStatusRef.current = ethLock.status;
+      lastEthLockTxHashRef.current = currentTxHash;
+      return;
+    }
+
+    if (ethLock.error && ethLock.status !== 'confirmed') {
+      lastEthLockStatusRef.current = ethLock.status;
+      lastEthLockTxHashRef.current = currentTxHash;
+      return;
+    }
+
+    if ((ethLock.status === 'sent' || ethLock.status === 'verifying') && currentTxHash) {
+      if (previousStatus !== ethLock.status || previousTxHash !== currentTxHash) {
+        toast.loading(
+          ethLock.status === 'sent' ? 'Transaction pending' : 'Verifying transaction',
+          {
+            id: ETH_LOCK_FLOW_TOAST_ID,
+            description: ethLock.status === 'sent'
+              ? `${formatTxHash(currentTxHash)} was submitted. Waiting for confirmations.`
+              : `${formatTxHash(currentTxHash)} is being verified on-chain.`,
+            duration: Number.POSITIVE_INFINITY,
+          },
+        );
+      }
+    } else if (
+      ethLock.status === 'confirmed'
+      && currentTxHash
+      && (
+        previousStatus === 'sent'
+        || previousStatus === 'verifying'
+        || previousStatus === 'error'
+        || (previousStatus === 'pending' && submittedLockRef.current)
+      )
+    ) {
+      toast.success('ETH locked', {
+        id: ETH_LOCK_FLOW_TOAST_ID,
+        description: 'Flux claims are now enabled.',
+        duration: 12000,
+        action: {
+          label: 'View on Etherscan',
+          onClick: () => openExternalUrl(getEtherscanTxUrl(currentTxHash, currentChainId)),
+        },
+      });
+      submittedLockRef.current = false;
+    } else if (ethLock.status === 'pending' && previousStatus !== 'pending' && !ethLock.error) {
+      toast.dismiss(ETH_LOCK_FLOW_TOAST_ID);
+      submittedLockRef.current = false;
+    }
+
+    lastEthLockStatusRef.current = ethLock.status;
+    lastEthLockTxHashRef.current = currentTxHash;
+  }, [
+    wallet.isConnected,
+    ethLock.error,
+    ethLock.status,
+    ethLock.submission?.chainId,
+    ethLock.submission?.txHash,
+  ]);
 
   return (
     <section className="relative min-h-screen flex flex-col overflow-hidden pt-20">
@@ -81,7 +266,7 @@ export default function Hero({ onOpenDex }: HeroProps) {
               </p>
             </div>
 
-            <div className="flex flex-wrap gap-4">
+            <div className="flex flex-nowrap gap-4">
               {!wallet.isConnected ? (
                 <button
                   onClick={() => void wallet.connect()}
@@ -91,18 +276,37 @@ export default function Hero({ onOpenDex }: HeroProps) {
                   <Zap size={16} />
                   {wallet.isConnecting ? 'Connecting...' : 'Connect Wallet'}
                 </button>
-              ) : !game.lockedEth ? (
-                <button onClick={game.lockEth} className="btn-primary text-base px-7 py-3.5">
+              ) : !ethLock.isLocked ? (
+                <button
+                  onClick={() => void handleSubmitLock()}
+                  disabled={lockCallToActionDisabled}
+                  className="btn-primary text-base px-7 py-3.5 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
                   <Lock size={16} />
-                  {`Lock ${WHITELIST_ETH} ETH`}
+                  {ethLock.isSubmitting
+                    ? 'Submitting ETH lock...'
+                    : ethLock.status === 'sent'
+                      ? 'Transaction sent...'
+                      : ethLock.status === 'verifying'
+                        ? 'Verifying on-chain...'
+                        : ethLock.status === 'error'
+                          ? `Retry ${ethLock.lockAmountLabel} ETH`
+                    : ethLock.isLoading
+                      ? 'Checking lock status...'
+                      : `Lock ${ethLock.lockAmountLabel} ETH`}
                 </button>
               ) : (
                 <button
-                  onClick={() => game.claimDailyFlux()}
-                  disabled={!canClaim}
+                  onClick={() => void handleClaimFlux()}
+                  disabled={claimCallToActionDisabled}
                   className="btn-primary text-base px-7 py-3.5 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {canClaim ? (
+                  {game.isClaimingFlux ? (
+                    <>
+                      <Zap size={16} />
+                      Claiming Flux...
+                    </>
+                  ) : canClaim ? (
                     <>
                       <Zap size={16} />
                       {`Claim ${EFFECTIVE_DAILY_CLAIM_FLUX} Flux`}
@@ -120,6 +324,11 @@ export default function Hero({ onOpenDex }: HeroProps) {
                 <ExternalLink size={15} />
               </button>
             </div>
+            {wallet.isConnected && !ethLock.isLocked && !ethLock.lockRecipient && (
+              <p className="text-xs font-mono text-amber-300">
+                Configure <code>VITE_ETH_LOCK_RECIPIENT</code> to enable ETH lock submissions.
+              </p>
+            )}
 
             <div className="flex items-center gap-6 pt-2">
               {wallet.isConnected && (
@@ -160,7 +369,7 @@ export default function Hero({ onOpenDex }: HeroProps) {
                 </div>
                 <div className="grid grid-cols-3 gap-3">
                   <div className="bg-zinc-900 p-3 text-center border border-border-subtle">
-                    <p className="font-mono font-bold text-white text-lg">{WHITELIST_ETH}</p>
+                    <p className="font-mono font-bold text-white text-lg">{ethLock.lockAmountLabel}</p>
                     <p className="text-[10px] text-zinc-500 mt-0.5 font-mono">ETH TO LOCK</p>
                   </div>
                   <div className="bg-zinc-900 p-3 text-center border border-border-subtle">
@@ -172,11 +381,47 @@ export default function Hero({ onOpenDex }: HeroProps) {
                     <p className="text-[10px] text-zinc-500 mt-0.5 font-mono">CLAIM WINDOW</p>
                   </div>
                 </div>
-                {game.lockedEth && (
+                {ethLock.isLocked ? (
                   <div className="flex items-center justify-center gap-2 p-3 border" style={{ background: 'rgba(74,222,128,0.06)', borderColor: 'rgba(74,222,128,0.2)' }}>
                     <Lock size={14} style={{ color: '#4ADE80' }} />
                     <span className="text-sm font-mono font-bold" style={{ color: '#4ADE80' }}>ETH LOCKED</span>
                     <span className="text-xs text-zinc-500 ml-auto font-mono">{game.fluxBalance} Flux available</span>
+                  </div>
+                ) : (
+                  <div
+                    className="p-3 border flex items-center gap-2"
+                    style={{
+                      background: ethLock.status === 'error' ? 'rgba(251,113,133,0.08)' : 'rgba(250,204,21,0.06)',
+                      borderColor: ethLock.status === 'error' ? 'rgba(251,113,133,0.28)' : 'rgba(250,204,21,0.24)',
+                    }}
+                  >
+                    <Lock size={14} style={{ color: ethLock.status === 'error' ? '#FB7185' : '#FACC15' }} />
+                    <span className="text-sm font-mono font-bold" style={{ color: ethLock.status === 'error' ? '#FB7185' : '#FACC15' }}>
+                      {ethLock.status === 'error'
+                        ? 'ETH LOCK ERROR'
+                        : ethLock.status === 'verifying'
+                          ? 'ETH LOCK VERIFYING'
+                          : ethLock.status === 'sent'
+                            ? 'ETH TX SENT'
+                            : 'ETH LOCK PENDING'}
+                    </span>
+                    {wallet.isConnected ? (
+                      <button
+                        onClick={() => void handleSubmitLock()}
+                        disabled={lockCallToActionDisabled}
+                        className="ml-auto border border-amber-300/30 px-2.5 py-1 text-[10px] font-mono font-semibold uppercase tracking-wider text-amber-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        {ethLock.isSubmitting
+                          ? 'Submitting...'
+                          : isWaitingForVerification
+                            ? 'Verifying...'
+                            : ethLock.status === 'error'
+                              ? `Retry ${ethLock.lockAmountLabel} ETH`
+                              : `Submit ${ethLock.lockAmountLabel} ETH`}
+                      </button>
+                    ) : (
+                      <span className="text-xs text-zinc-500 ml-auto font-mono">Connect wallet to continue</span>
+                    )}
                   </div>
                 )}
               </div>

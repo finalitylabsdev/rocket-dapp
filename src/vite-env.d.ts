@@ -4,6 +4,10 @@ interface ImportMetaEnv {
   readonly VITE_SUPABASE_URL: string;
   readonly VITE_SUPABASE_ANON_KEY?: string;
   readonly VITE_SUPABASE_PUBLISHABLE_KEY?: string;
+  readonly VITE_SPEC_WHITELIST_ETH?: string;
+  readonly VITE_ETH_LOCK_RECIPIENT?: string;
+  readonly VITE_SIWE_URI?: string;
+  readonly VITE_SIWE_DOMAIN?: string;
 }
 
 interface ImportMeta {

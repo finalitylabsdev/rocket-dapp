@@ -1,5 +1,7 @@
 import { useState, useCallback } from 'react';
 import { ArrowUpDown, ChevronDown, Info, Settings2 } from 'lucide-react';
+import TokenIcon from './TokenIcon';
+import { usePrices, getRate, getTokenUsdPrice } from '../../hooks/usePrices';
 
 const TOKENS = [
   { symbol: 'FLUX', name: 'Flux Token', decimals: 4 },
@@ -7,20 +9,6 @@ const TOKENS = [
   { symbol: 'wBTC', name: 'Wrapped Bitcoin', decimals: 8 },
   { symbol: 'UVD', name: 'Universe Dollar', decimals: 2 },
 ];
-
-const RATES: Record<string, Record<string, number>> = {
-  FLUX: { wETH: 0.000351, wBTC: 0.0000114, UVD: 0.042, FLUX: 1 },
-  wETH: { FLUX: 2847, wBTC: 0.03256, UVD: 2847 * 0.042, wETH: 1 },
-  wBTC: { FLUX: 87340, wETH: 30.7, UVD: 87340 * 0.042, wBTC: 1 },
-  UVD:  { FLUX: 23.8, wETH: 0.000351, wBTC: 0.0000115, UVD: 1 },
-};
-
-const TOKEN_ICONS: Record<string, { bg: string; label: string }> = {
-  FLUX: { bg: 'bg-zinc-200', label: 'F' },
-  wETH: { bg: 'bg-zinc-300', label: 'Ξ' },
-  wBTC: { bg: 'bg-zinc-400', label: '₿' },
-  UVD:  { bg: 'bg-zinc-500', label: 'U' },
-};
 
 function TokenSelector({
   value,
@@ -32,7 +20,6 @@ function TokenSelector({
   exclude: string;
 }) {
   const [open, setOpen] = useState(false);
-  const tok = TOKEN_ICONS[value];
 
   return (
     <div className="relative">
@@ -40,9 +27,7 @@ function TokenSelector({
         onClick={() => setOpen((p) => !p)}
         className="flex items-center gap-2 bg-zinc-800 hover:bg-zinc-700 border border-border-default hover:border-border-strong px-3 py-2 transition-all duration-150"
       >
-        <div className={`w-6 h-6 ${tok.bg} flex items-center justify-center text-black font-mono font-black text-xs`}>
-          {tok.label}
-        </div>
+        <TokenIcon symbol={value} size="sm" />
         <span className="font-mono font-bold text-white text-sm">{value}</span>
         <ChevronDown size={13} className="text-zinc-400" />
       </button>
@@ -55,9 +40,7 @@ function TokenSelector({
               onClick={() => { onChange(t.symbol); setOpen(false); }}
               className={`w-full flex items-center gap-3 px-4 py-3 hover:bg-zinc-800 transition-colors text-left ${value === t.symbol ? 'bg-zinc-800' : ''}`}
             >
-              <div className={`w-7 h-7 ${TOKEN_ICONS[t.symbol].bg} flex items-center justify-center text-black font-mono font-black text-xs flex-shrink-0`}>
-                {TOKEN_ICONS[t.symbol].label}
-              </div>
+              <TokenIcon symbol={t.symbol} size="md" />
               <div>
                 <p className="font-mono font-semibold text-white text-sm leading-none">{t.symbol}</p>
                 <p className="text-zinc-500 text-[10px] mt-0.5">{t.name}</p>
@@ -76,8 +59,9 @@ export default function SwapTab() {
   const [fromAmount, setFromAmount] = useState('');
   const [slippage, setSlippage] = useState('0.5');
   const [showSettings, setShowSettings] = useState(false);
+  const { prices } = usePrices();
 
-  const rate = RATES[fromToken]?.[toToken] ?? 0;
+  const rate = getRate(prices, fromToken, toToken);
   const toAmount = fromAmount ? (parseFloat(fromAmount) * rate * (1 - 0.003)).toFixed(6) : '';
   const priceImpact = fromAmount && parseFloat(fromAmount) > 10000 ? '0.12' : '< 0.01';
   const fee = fromAmount ? (parseFloat(fromAmount) * 0.003).toFixed(4) : '0.0000';
@@ -87,6 +71,13 @@ export default function SwapTab() {
     setToToken(fromToken);
     setFromAmount(toAmount || '');
   }, [fromToken, toToken, toAmount]);
+
+  const fromUsd = fromAmount
+    ? (parseFloat(fromAmount) * getTokenUsdPrice(prices, fromToken)).toFixed(2)
+    : '0.00';
+  const toUsd = toAmount
+    ? (parseFloat(toAmount) * getTokenUsdPrice(prices, toToken)).toFixed(2)
+    : '0.00';
 
   return (
     <div className="space-y-4">
@@ -142,7 +133,7 @@ export default function SwapTab() {
         </div>
         <div className="flex items-center justify-between mt-2">
           <span className="text-xs text-zinc-600 font-mono">
-            {fromAmount ? `≈ $${(parseFloat(fromAmount) * (fromToken === 'FLUX' ? 0.042 : fromToken === 'wETH' ? 2847 * 0.042 : fromToken === 'wBTC' ? 87340 * 0.042 : 1)).toFixed(2)}` : '$0.00'}
+            {fromAmount ? `\u2248 $${fromUsd}` : '$0.00'}
           </span>
           <span className="text-xs text-zinc-600 font-mono">Balance: 4,200.00</span>
         </div>
@@ -174,7 +165,7 @@ export default function SwapTab() {
         </div>
         <div className="flex items-center justify-between mt-2">
           <span className="text-xs text-zinc-600 font-mono">
-            {toAmount ? `≈ $${(parseFloat(toAmount) * (toToken === 'FLUX' ? 0.042 : toToken === 'wETH' ? 2847 * 0.042 : toToken === 'wBTC' ? 87340 * 0.042 : 1)).toFixed(2)}` : '$0.00'}
+            {toAmount ? `\u2248 $${toUsd}` : '$0.00'}
           </span>
           <span className="text-xs text-zinc-600 font-mono">Balance: 0.00</span>
         </div>
