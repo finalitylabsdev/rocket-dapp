@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
-import { ArrowLeft, Zap, Trophy, TrendingUp, TrendingDown, Minus, RefreshCw, Users, Flame, Award } from 'lucide-react';
+import { ArrowLeft, Zap, Trophy, TrendingUp, TrendingDown, Minus, RefreshCw, Users, Flame, Award, LogOut } from 'lucide-react';
 import { supabase, type LeaderboardEntry } from '../lib/supabase';
+import { useWallet } from '../hooks/useWallet';
 
 interface LeaderboardPageProps {
   onBack: () => void;
@@ -62,6 +63,7 @@ function SkeletonRow() {
 }
 
 export default function LeaderboardPage({ onBack }: LeaderboardPageProps) {
+  const wallet = useWallet();
   const [entries, setEntries] = useState<LeaderboardEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -135,10 +137,30 @@ export default function LeaderboardPage({ onBack }: LeaderboardPageProps) {
                 <div className="glow-dot" />
                 <span className="text-xs font-mono font-semibold text-zinc-300 uppercase">Live</span>
               </div>
-              <button className="btn-primary text-sm py-2.5 px-5">
-                <Zap size={13} />
-                Connect Wallet
-              </button>
+              {wallet.isConnected ? (
+                <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 bg-zinc-900 border border-border-subtle px-3 py-2">
+                    <div className="glow-dot" />
+                    <span className="text-xs font-mono font-semibold text-zinc-300">{wallet.displayAddress}</span>
+                  </div>
+                  <button
+                    onClick={() => void wallet.disconnect()}
+                    disabled={wallet.isConnecting}
+                    className="w-9 h-9 bg-zinc-900 border border-border-subtle flex items-center justify-center hover:border-border-strong transition-all"
+                  >
+                    <LogOut size={14} className="text-zinc-400" />
+                  </button>
+                </div>
+              ) : (
+                <button
+                  onClick={() => void wallet.connect()}
+                  disabled={wallet.isConnecting}
+                  className="btn-primary text-sm py-2.5 px-5 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <Zap size={13} />
+                  {wallet.isConnecting ? 'Connecting...' : 'Connect Wallet'}
+                </button>
+              )}
             </div>
           </div>
         </div>

@@ -1,10 +1,11 @@
 import { useState } from 'react';
-import { ArrowLeft, ArrowLeftRight, CheckCircle2, Droplets, ExternalLink, Rocket, ShieldCheck, TimerReset, Zap } from 'lucide-react';
+import { ArrowLeft, ArrowLeftRight, CheckCircle2, Droplets, ExternalLink, LogOut, Rocket, ShieldCheck, TimerReset, Zap } from 'lucide-react';
 import SwapTab from '../components/dex/SwapTab';
 import LiquidityTab from '../components/dex/LiquidityTab';
 import MarketStats from '../components/dex/MarketStats';
 import { DEX_TRADING_ENABLED } from '../config/spec';
 import { APP_VERSION } from '../config/app';
+import { useWallet } from '../hooks/useWallet';
 
 interface DexPageProps {
   onBack: () => void;
@@ -12,6 +13,7 @@ interface DexPageProps {
 
 export default function DexPage({ onBack }: DexPageProps) {
   const [activeTab, setActiveTab] = useState<'swap' | 'liquidity'>('swap');
+  const wallet = useWallet();
 
   const summaryCards = DEX_TRADING_ENABLED
     ? [
@@ -59,10 +61,30 @@ export default function DexPage({ onBack }: DexPageProps) {
                 <div className="glow-dot" />
                 <span className="text-xs font-mono font-semibold text-zinc-300">TESTNET</span>
               </div>
-              <button className="btn-primary text-sm py-2.5 px-5">
-                <Zap size={13} />
-                Connect Wallet
-              </button>
+              {wallet.isConnected ? (
+                <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 bg-zinc-900 border border-border-subtle px-3 py-2">
+                    <div className="glow-dot" />
+                    <span className="text-xs font-mono font-semibold text-zinc-300">{wallet.displayAddress}</span>
+                  </div>
+                  <button
+                    onClick={() => void wallet.disconnect()}
+                    disabled={wallet.isConnecting}
+                    className="w-9 h-9 bg-zinc-900 border border-border-subtle flex items-center justify-center hover:border-border-strong transition-all"
+                  >
+                    <LogOut size={14} className="text-zinc-400" />
+                  </button>
+                </div>
+              ) : (
+                <button
+                  onClick={() => void wallet.connect()}
+                  disabled={wallet.isConnecting}
+                  className="btn-primary text-sm py-2.5 px-5 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <Zap size={13} />
+                  {wallet.isConnecting ? 'Connecting...' : 'Connect Wallet'}
+                </button>
+              )}
             </div>
           </div>
         </div>
