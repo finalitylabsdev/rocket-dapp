@@ -161,7 +161,7 @@ export default function StatsPanel({ equipped, levels, model, onLaunch, launchin
             },
             {
               label: 'φ Reward',
-              value: allEquipped ? '1000+' : `${Math.round(stats.winProb * 4)}`,
+              value: allEquipped ? '1000' : `${Math.round(stats.winProb * 4)}`,
             },
           ].map((item) => (
             <div

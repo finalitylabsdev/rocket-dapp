@@ -86,6 +86,10 @@ export default function Hero({ onOpenDex }: HeroProps) {
     || ethLock.isLoading
     || isWaitingForVerification
     || !ethLock.lockRecipient;
+  const claimCallToActionDisabled =
+    !canClaim
+    || game.isClaimingFlux
+    || game.isFluxSyncing;
 
   const handleSubmitLock = async () => {
     submittedLockRef.current = true;
@@ -96,11 +100,30 @@ export default function Hero({ onOpenDex }: HeroProps) {
     }
   };
 
-  useEffect(() => {
-    if (ethLock.isLocked && !game.lockedEth) {
-      game.lockEth();
+  const handleClaimFlux = async () => {
+    const didClaim = await game.claimDailyFlux();
+
+    if (didClaim) {
+      toast.success('Flux claimed', {
+        description: `Added ${EFFECTIVE_DAILY_CLAIM_FLUX} FLUX to your balance.`,
+      });
+      return;
     }
-  }, [ethLock.isLocked, game.lockEth, game.lockedEth]);
+
+    if (canClaim) {
+      toast.error('Flux claim failed', {
+        description: 'The signed claim could not be recorded.',
+      });
+    }
+  };
+
+  useEffect(() => {
+    if (!ethLock.isLocked || !wallet.address) {
+      return;
+    }
+
+    void game.refreshFluxBalance();
+  }, [ethLock.isLocked, game.refreshFluxBalance, wallet.address]);
 
   useEffect(() => {
     if (!wallet.error) {
@@ -269,11 +292,16 @@ export default function Hero({ onOpenDex }: HeroProps) {
                 </button>
               ) : (
                 <button
-                  onClick={() => game.claimDailyFlux()}
-                  disabled={!canClaim}
+                  onClick={() => void handleClaimFlux()}
+                  disabled={claimCallToActionDisabled}
                   className="btn-primary text-base px-7 py-3.5 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {canClaim ? (
+                  {game.isClaimingFlux ? (
+                    <>
+                      <Zap size={16} />
+                      Claiming Flux...
+                    </>
+                  ) : canClaim ? (
                     <>
                       <Zap size={16} />
                       {`Claim ${EFFECTIVE_DAILY_CLAIM_FLUX} Flux`}

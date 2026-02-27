@@ -1,11 +1,17 @@
 import { useState } from 'react';
 import { ArrowLeft, FlaskConical, Star, Rocket } from 'lucide-react';
+import { toast } from 'sonner';
 import RocketPreview from '../components/lab/RocketPreview';
-import PartsGrid, { type EquippedParts } from '../components/lab/PartsGrid';
+import PartsGrid, {
+  PART_UPGRADE_COSTS,
+  type EquippedPartId,
+  type EquippedParts,
+} from '../components/lab/PartsGrid';
 import StatsPanel from '../components/lab/StatsPanel';
 import { ROCKET_MODELS } from '../components/lab/RocketModels';
 import LaunchSequence from '../components/lab/LaunchSequence';
 import { useGameState } from '../context/GameState';
+import { useWallet } from '../hooks/useWallet';
 import PhiSymbol from '../components/brand/PhiSymbol';
 
 interface RocketLabPageProps {
@@ -14,8 +20,39 @@ interface RocketLabPageProps {
 
 type LaunchResult = { score: number; bonus: string; multiplier: string } | null;
 
+function clampPercent(value: number, max = 100): number {
+  return Math.min(max, Math.max(0, Math.round(value)));
+}
+
+function computeLaunchWinProbability(
+  equipped: EquippedParts,
+  levels: Record<EquippedPartId, number>,
+  selectedModel: 'standard',
+): number {
+  const modelDef = ROCKET_MODELS.find((m) => m.id === selectedModel)!;
+  const equippedCount = Object.values(equipped).filter(Boolean).length;
+  const totalParts = Object.keys(equipped).length;
+  const totalLevels = Object.entries(levels).reduce(
+    (acc, [k, v]) => acc + (equipped[k as EquippedPartId] ? v : 0),
+    0,
+  );
+  const base = equippedCount / totalParts;
+  const levelBonus = totalLevels / (equippedCount * 3 || 1);
+
+  return clampPercent(base * 60 + levelBonus * 20 + (equippedCount === totalParts ? 10 : 0) + modelDef.bonuses.winBonus, 95);
+}
+
+function computeLaunchReward(
+  equipped: EquippedParts,
+  winProbability: number,
+): number {
+  const allEquipped = Object.values(equipped).every(Boolean);
+  return allEquipped ? 1000 : Math.round(winProbability * 4);
+}
+
 export default function RocketLabPage({ onBack }: RocketLabPageProps) {
   const game = useGameState();
+  const wallet = useWallet();
   const selectedModel = 'standard' as const;
 
   const [equipped, setEquipped] = useState<EquippedParts>({
@@ -26,7 +63,7 @@ export default function RocketLabPage({ onBack }: RocketLabPageProps) {
     booster: false,
   });
 
-  const [levels, setLevels] = useState<Record<keyof EquippedParts, number>>({
+  const [levels, setLevels] = useState<Record<EquippedPartId, number>>({
     engine: 1,
     fuel: 1,
     body: 1,
@@ -39,12 +76,39 @@ export default function RocketLabPage({ onBack }: RocketLabPageProps) {
   const [launchResult, setLaunchResult] = useState<LaunchResult>(null);
   const [launchPower, setLaunchPower] = useState(0);
 
-  const handleToggle = (id: keyof EquippedParts) => {
+  const handleToggle = (id: EquippedPartId) => {
     setEquipped((prev) => ({ ...prev, [id]: !prev[id] }));
   };
 
-  const handleUpgrade = (id: keyof EquippedParts) => {
+  const handleUpgrade = async (id: EquippedPartId) => {
+    if (levels[id] >= 3) {
+      return;
+    }
+
+    const upgradeCost = PART_UPGRADE_COSTS[id];
+    const didSpend = await game.spendFlux(
+      upgradeCost,
+      'rocket_lab_upgrade',
+      {
+        part_id: id,
+        next_level: levels[id] + 1,
+        cost_flux: upgradeCost,
+      },
+    );
+
+    if (!didSpend) {
+      toast.error('Upgrade failed', {
+        description: wallet.isConnected
+          ? 'Not enough FLUX to upgrade this part.'
+          : 'Connect your wallet to spend FLUX on upgrades.',
+      });
+      return;
+    }
+
     setLevels((prev) => ({ ...prev, [id]: Math.min(3, prev[id] + 1) }));
+    toast.success('Part upgraded', {
+      description: `${upgradeCost} FLUX spent on ${id}.`,
+    });
   };
 
   const handleLaunch = () => {
@@ -53,7 +117,7 @@ export default function RocketLabPage({ onBack }: RocketLabPageProps) {
     setLaunchResult(null);
   };
 
-  const handleLaunchComplete = () => {
+  const handleLaunchComplete = async () => {
     const modelDef = ROCKET_MODELS.find((m) => m.id === selectedModel)!;
     const equippedCount = Object.values(equipped).filter(Boolean).length;
     const totalParts = Object.keys(equipped).length;
@@ -66,6 +130,8 @@ export default function RocketLabPage({ onBack }: RocketLabPageProps) {
     const multiplier = (1 + base * 1.5 + levelBonus * 0.5 + modelDef.bonuses.winBonus / 100).toFixed(2);
     const baseScore = 80 + Math.floor(Math.random() * 140);
     const score = Math.round(baseScore * parseFloat(multiplier));
+    const winProbability = computeLaunchWinProbability(equipped, levels, selectedModel);
+    const rewardFlux = computeLaunchReward(equipped, winProbability);
     const bonuses = [
       'Meteor Shower — Wing-Plate damaged',
       'Solar Flare — Navigation penalty',
@@ -84,8 +150,31 @@ export default function RocketLabPage({ onBack }: RocketLabPageProps) {
     )));
 
     game.recordScore(score);
+    const didCredit = await game.creditFlux(
+      rewardFlux,
+      'rocket_launch_reward',
+      {
+        score,
+        reward_flux: rewardFlux,
+        model_id: selectedModel,
+        win_probability: winProbability,
+      },
+    );
+
+    if (!didCredit) {
+      toast.error('Reward pending', {
+        description: wallet.isConnected
+          ? 'The launch completed, but the FLUX reward was not recorded.'
+          : 'Connect your wallet to record FLUX launch rewards.',
+      });
+    }
+
     setLaunchPower(power);
-    setLaunchResult({ score, multiplier, bonus });
+    setLaunchResult({
+      score,
+      multiplier,
+      bonus: `${bonus} · +${didCredit ? rewardFlux : 0} FLUX`,
+    });
     setLaunching(false);
     setShowSequence(true);
   };
@@ -201,7 +290,7 @@ export default function RocketLabPage({ onBack }: RocketLabPageProps) {
                 equipped={equipped}
                 model={selectedModel}
                 launching={launching}
-                onLaunchComplete={handleLaunchComplete}
+                onLaunchComplete={() => { void handleLaunchComplete(); }}
               />
             </div>
 
@@ -210,7 +299,7 @@ export default function RocketLabPage({ onBack }: RocketLabPageProps) {
                 equipped={equipped}
                 levels={levels}
                 onToggle={handleToggle}
-                onUpgrade={handleUpgrade}
+                onUpgrade={(id) => { void handleUpgrade(id); }}
               />
             </div>
 

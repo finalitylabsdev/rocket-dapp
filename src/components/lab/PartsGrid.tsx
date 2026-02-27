@@ -10,8 +10,10 @@ export interface EquippedParts {
   booster: boolean;
 }
 
+export type EquippedPartId = keyof EquippedParts;
+
 interface Part {
-  id: keyof EquippedParts;
+  id: EquippedPartId;
   name: string;
   label: string;
   rarity: RarityTier;
@@ -23,9 +25,9 @@ interface Part {
 
 interface PartsGridProps {
   equipped: EquippedParts;
-  levels: Record<keyof EquippedParts, number>;
-  onToggle: (id: keyof EquippedParts) => void;
-  onUpgrade: (id: keyof EquippedParts) => void;
+  levels: Record<EquippedPartId, number>;
+  onToggle: (id: EquippedPartId) => void;
+  onUpgrade: (id: EquippedPartId) => void;
 }
 
 const PARTS: Part[] = [
@@ -80,6 +82,20 @@ const PARTS: Part[] = [
     description: 'Grid of ion emitters, uniform glow.',
   },
 ];
+
+export const PART_UPGRADE_COSTS: Record<EquippedPartId, number> = PARTS.reduce(
+  (costs, part) => ({
+    ...costs,
+    [part.id]: part.upgradeCost,
+  }),
+  {
+    engine: 0,
+    fuel: 0,
+    body: 0,
+    wings: 0,
+    booster: 0,
+  } as Record<EquippedPartId, number>,
+);
 
 function PartCard({ part, equipped, level, onToggle, onUpgrade }: {
   part: Part;

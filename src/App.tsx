@@ -36,8 +36,8 @@ export default function App() {
   }, []);
 
   return (
-    <GameStateProvider>
-      <WalletProvider>
+    <WalletProvider>
+      <GameStateProvider>
         <AppToaster />
         {page === 'dex' ? (
           <DexPage onBack={() => navigate('home')} />
@@ -60,7 +60,7 @@ export default function App() {
             </div>
           </div>
         )}
-      </WalletProvider>
-    </GameStateProvider>
+      </GameStateProvider>
+    </WalletProvider>
   );
 }
