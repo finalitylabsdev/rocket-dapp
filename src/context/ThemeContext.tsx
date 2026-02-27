@@ -5,6 +5,8 @@ type Theme = 'dark' | 'light';
 interface ThemeContextValue {
   theme: Theme;
   toggleTheme: () => void;
+  ambientFxEnabled: boolean;
+  toggleAmbientFx: () => void;
 }
 
 const ThemeContext = createContext<ThemeContextValue | null>(null);
@@ -16,8 +18,14 @@ function getInitialTheme(): Theme {
   return 'dark';
 }
 
+function getInitialAmbientFx(): boolean {
+  if (typeof window === 'undefined') return false;
+  return localStorage.getItem('entropy-ambient-fx') === 'enabled';
+}
+
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const [theme, setTheme] = useState<Theme>(getInitialTheme);
+  const [ambientFxEnabled, setAmbientFxEnabled] = useState<boolean>(getInitialAmbientFx);
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
@@ -29,10 +37,16 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     }
   }, [theme]);
 
+  useEffect(() => {
+    document.documentElement.setAttribute('data-ambient-fx', ambientFxEnabled ? 'enabled' : 'disabled');
+    localStorage.setItem('entropy-ambient-fx', ambientFxEnabled ? 'enabled' : 'disabled');
+  }, [ambientFxEnabled]);
+
   const toggleTheme = () => setTheme((t) => (t === 'dark' ? 'light' : 'dark'));
+  const toggleAmbientFx = () => setAmbientFxEnabled((enabled) => !enabled);
 
   return (
-    <ThemeContext.Provider value={{ theme, toggleTheme }}>
+    <ThemeContext.Provider value={{ theme, toggleTheme, ambientFxEnabled, toggleAmbientFx }}>
       {children}
     </ThemeContext.Provider>
   );

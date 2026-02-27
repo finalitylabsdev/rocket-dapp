@@ -1,7 +1,9 @@
 import { Zap, Github, Twitter, FileText } from 'lucide-react';
 import { APP_VERSION } from '../config/app';
+import { useTheme } from '../context/ThemeContext';
 
 export default function Footer() {
+  const { ambientFxEnabled, toggleAmbientFx } = useTheme();
   const links = {
     Protocol: ['Whitepaper', 'Docs', 'GitHub', 'Audit Report'],
     Apps: ['Entropy Gate', 'Entropy Exchange', 'Star Vault & Nebula Bids', 'Celestial Assembler'],
@@ -66,10 +68,33 @@ export default function Footer() {
           <p className="text-text-muted text-sm font-mono">
             © 2026 Entropy Protocol. This is a <b>Testnet</b> — not financial advice.
           </p>
-          <div className="flex items-center gap-2">
-            <div className="glow-dot" />
+          <button
+            type="button"
+            onClick={toggleAmbientFx}
+            className="group flex cursor-default items-center gap-2 border-0 bg-transparent p-0 hover:cursor-pointer"
+            aria-label={ambientFxEnabled ? 'Disable ambient cosmic background' : 'Enable ambient cosmic background'}
+            aria-pressed={ambientFxEnabled}
+          >
+            <span
+              className="relative block h-3.5 w-3.5 border transition-all duration-200"
+              style={{
+                background: ambientFxEnabled ? '#4ADE80' : 'var(--color-border-strong)',
+                borderColor: ambientFxEnabled ? 'rgba(74,222,128,0.45)' : 'var(--color-border-default)',
+                boxShadow: ambientFxEnabled
+                  ? '0 0 0 1px rgba(74,222,128,0.08)'
+                  : '0 0 0 1px rgba(58,74,96,0)',
+              }}
+            >
+              <span
+                className="absolute inset-[3px] opacity-0 transition-all duration-200 group-hover:opacity-100"
+                style={{
+                  background: ambientFxEnabled ? 'rgba(6,8,15,0.55)' : 'rgba(248,250,252,0.55)',
+                  transform: ambientFxEnabled ? 'translate(1px, -1px)' : 'translate(-1px, 1px)',
+                }}
+              />
+            </span>
             <span className="text-sm font-mono font-medium text-text-muted">{`ɸ-net v${APP_VERSION} — SEASON 1 ACTIVE`}</span>
-          </div>
+          </button>
         </div>
       </div>
     </footer>

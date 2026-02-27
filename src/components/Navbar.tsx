@@ -42,7 +42,9 @@ export default function Navbar({ onNavigate }: NavbarProps) {
             </div>
             <div>
               <span className="font-mono font-bold text-lg leading-none uppercase tracking-wider text-text-primary">Entropy</span>
-              <div className="text-[10px] font-medium leading-none mt-0.5 font-mono tracking-wider text-text-muted">ɸ-net · PROOF-OF-INFINITY</div>
+              <div className="mt-0.5 text-[10px] font-medium leading-none font-mono tracking-wider text-text-muted">
+                ɸ-net · PROOF-OF-INFINITY
+              </div>
             </div>
           </div>
 
