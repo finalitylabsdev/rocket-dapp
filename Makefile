@@ -5,7 +5,7 @@ SERVICE ?= rocket-web
 
 .DEFAULT_GOAL := help
 
-.PHONY: help pull refresh up down restart redeploy logs logs-follow ps
+.PHONY: help pull refresh up down restart redeploy logs logs-follow ps sim-up sim-down sim-logs sim-logs-follow
 
 help: ## Show available commands with short descriptions.
 	@printf "\nUsage: make <target>\n\n"
@@ -40,3 +40,15 @@ logs-follow: ## Follow live logs (use SERVICE=<name> to override).
 
 ps: ## List compose service status.
 	$(COMPOSE) ps
+
+sim-up: ## Build and start the synthetic traffic simulator (requires SIM_WALLET_PRIVATE_KEYS in .env).
+	$(COMPOSE) --profile sim up -d --build rocket-sim
+
+sim-down: ## Stop and remove the synthetic traffic simulator container.
+	$(COMPOSE) --profile sim rm -sf rocket-sim
+
+sim-logs: ## Show recent synthetic traffic simulator logs.
+	$(COMPOSE) logs --tail=200 rocket-sim
+
+sim-logs-follow: ## Follow live synthetic traffic simulator logs.
+	$(COMPOSE) logs -f rocket-sim

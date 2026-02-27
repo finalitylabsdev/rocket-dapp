@@ -17,3 +17,31 @@ services:
     ports:
       - "127.0.0.1:3456:80"
     restart: unless-stopped
+
+  rocket-sim:
+    container_name: rocket-sim
+    profiles:
+      - sim
+    build:
+      context: .
+      dockerfile: deploy/sim/Dockerfile
+    environment:
+      VITE_SUPABASE_URL: ${VITE_SUPABASE_URL:-}
+      VITE_SUPABASE_PUBLISHABLE_KEY: ${VITE_SUPABASE_PUBLISHABLE_KEY:-}
+      VITE_SUPABASE_ANON_KEY: ${VITE_SUPABASE_ANON_KEY:-}
+      VITE_SPEC_WHITELIST_BONUS_FLUX: ${VITE_SPEC_WHITELIST_BONUS_FLUX:-}
+      VITE_SPEC_DAILY_CLAIM_FLUX: ${VITE_SPEC_DAILY_CLAIM_FLUX:-}
+      VITE_SPEC_FAUCET_INTERVAL_SECONDS: ${VITE_SPEC_FAUCET_INTERVAL_SECONDS:-}
+      VITE_SIWE_URI: ${VITE_SIWE_URI:-}
+      VITE_SIWE_DOMAIN: ${VITE_SIWE_DOMAIN:-}
+      SIM_WALLET_PRIVATE_KEYS: ${SIM_WALLET_PRIVATE_KEYS:-}
+      SIM_CHAIN_ID: ${SIM_CHAIN_ID:-1}
+      SIM_SIWE_URI: ${SIM_SIWE_URI:-}
+      SIM_SIWE_DOMAIN: ${SIM_SIWE_DOMAIN:-}
+      SIM_BOX_TIER_IDS: ${SIM_BOX_TIER_IDS:-}
+      SIM_LOOP_INTERVAL_MS: ${SIM_LOOP_INTERVAL_MS:-45000}
+      SIM_INITIAL_SPREAD_MS: ${SIM_INITIAL_SPREAD_MS:-15000}
+      SIM_MAX_BOX_OPENS_PER_CYCLE: ${SIM_MAX_BOX_OPENS_PER_CYCLE:-1}
+      SIM_RUN_ONCE: ${SIM_RUN_ONCE:-false}
+      SIM_USER_AGENT: ${SIM_USER_AGENT:-entropy-sim/1.0}
+    restart: unless-stopped

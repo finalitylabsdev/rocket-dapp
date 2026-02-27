@@ -55,8 +55,8 @@ The goal is to launch with a database-authoritative gameplay system that is expl
 - [x] Add ETH lock gating UX (EntropyGateBanner on all pages, EthLockStateProvider shared context)
 - [x] Replace placeholder-heavy box/part visual logic with metadata-driven rendering (tier-keyed visuals with explicit fallback are now the launch path)
 - [x] Migrate Rocket Lab away from the legacy 5-part local model
-- [ ] Deploy `auction-tick` to production and configure cron (see `docs/11-auction-tick-runbook.md`)
-- [ ] Enable leaked password protection in Supabase Dashboard
+- [x] Deploy `auction-tick` to production and configure cron (see `docs/11-auction-tick-runbook.md`)
+- [x] ~~Enable leaked password protection in Supabase Dashboard~~ N/A — app uses wallet-signature auth only, no passwords
 
 ### Remaining Launch Scope
 
@@ -139,11 +139,11 @@ These checklists describe the current codebase state as of the version/date abov
 - [x] SQL diagnostics views: `auction_round_diagnostics`, `flux_ledger_reconciliation`, `auction_scheduler_health`
 - [x] Deployment runbook: `docs/11-auction-tick-runbook.md` with secrets, cron config, monitoring, recovery, and explicit manual production steps
 - [x] Local transactional smoke test passed on 2026-02-27 (box open -> submit -> bid -> finalize -> rollback on local Supabase)
-- [ ] Deploy `auction-tick` to production with required secrets
-- [ ] Configure production cron (pg_cron or external) at 5-minute cadence or better
-- [ ] Verify full round lifecycle in production: start, transition, finalize, restart
+- [x] Deploy `auction-tick` to production with required secrets
+- [x] Configure production cron (pg_cron or external) at 5-minute cadence or better
+- [x] Verify full round lifecycle in production: start, transition, finalize, restart
 
-**10/13 done. Runtime code and local smoke coverage are in place; deployment, cron, and production verification remain manual operational work.**
+**13/13 done. Nebula Bids is fully operational in production.**
 
 ### Stage 6: Deliver the Shared Shell and App 3 UX
 
@@ -185,10 +185,10 @@ These checklists describe the current codebase state as of the version/date abov
 - [x] SQL diagnostic views for round lifecycle, ledger reconciliation, scheduler health
 - [x] Deployment runbook with secrets, cron, monitoring, failure recovery, and explicit manual pre-launch steps
 - [x] Feature flags for staged rollout (`src/config/flags.ts` with `VITE_FLAG_*` env vars; UI gating and rollout docs shipped)
-- [ ] Support and audit tooling for wallet-level dispute review
+- [x] ~~Support and audit tooling for wallet-level dispute review~~ Deferred — not launch-blocking; will build ad-hoc via MCP tooling as issues arise
 - [ ] Launch rehearsal — internal, closed beta, public gates
 
-**5/7 done. Ops visibility, runbook, and feature flags are in place. Rehearsal and support tooling are not started.**
+**6/7 done. Ops visibility, runbook, and feature flags are in place. Support tooling deferred. Launch rehearsal remains.**
 
 ## Launch Rules
 
