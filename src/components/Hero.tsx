@@ -89,6 +89,11 @@ export default function Hero({ onOpenDex }: HeroProps) {
 
   const handleSubmitLock = async () => {
     submittedLockRef.current = true;
+    toast.loading('Transaction submitted', {
+      id: ETH_LOCK_FLOW_TOAST_ID,
+      description: 'Waiting for wallet confirmation...',
+      duration: Number.POSITIVE_INFINITY,
+    });
     const didSubmit = await ethLock.submitLock();
 
     if (!didSubmit) {
@@ -238,7 +243,7 @@ export default function Hero({ onOpenDex }: HeroProps) {
               </p>
             </div>
 
-            <div className="flex flex-wrap gap-4">
+            <div className="flex flex-nowrap gap-4">
               {!wallet.isConnected ? (
                 <button
                   onClick={() => void wallet.connect()}

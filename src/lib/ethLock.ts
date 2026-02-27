@@ -346,12 +346,12 @@ export async function submitAndRecordEthLock(walletAddress: string): Promise<Eth
       throw new Error(toFriendlyDbError(persistError.message));
     }
 
-    // Verification runs server-side; submission remains `sent/verifying` until confirmed or error.
-    try {
-      await requestEthLockVerification(normalizedWallet, txHash);
-    } catch (verifyError) {
+    // Fire verification without blocking — the edge function polls eth_getTransactionReceipt
+    // which can take up to 24s. The Realtime subscription + client-side polling in useEthLock
+    // will pick up the status change when verification completes.
+    requestEthLockVerification(normalizedWallet, txHash).catch((verifyError) => {
       console.warn('ETH lock verification invoke failed:', toErrorMessage(verifyError));
-    }
+    });
 
     const submission = await getEthLockSubmission(normalizedWallet);
     if (!submission) {
