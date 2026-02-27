@@ -47,7 +47,8 @@ The goal is to launch with a database-authoritative gameplay system that is expl
 - [x] Remove remaining local authority from Rocket Lab state (only non-authoritative local simulation history persists)
 - [x] Remove or explicitly demote Star Vault fallback catalog/config behavior from the normal launch path
 - [x] Replace page-local nav bars with one persistent cross-app shell
-- [ ] Add visible ETH lock status / gating UX instead of keeping it only in libs
+- [x] Add visible ETH lock status UX (Hero shows lock state, realtime polling, retry on error)
+- [ ] Add ETH lock gating that blocks access-sensitive flows for non-locked wallets
 - [x] Replace placeholder-heavy box/part visual logic with metadata-driven rendering (tier-keyed visuals with explicit fallback are now the launch path)
 - [x] Migrate Rocket Lab away from the legacy 5-part local model
 - [ ] Deploy `auction-tick` to production and configure cron (see `docs/11-auction-tick-runbook.md`)
@@ -80,10 +81,11 @@ These checklists describe the current codebase state as of the version/date abov
 - [x] ETH lock backend hardening: 20s verification cooldown, uniform 404, rate limiting (6 calls / 15 min)
 - [x] Explicit deny-all RLS on current internal tables (`app_logs`, `wallet_registry`) with defensive no-op coverage for already-dropped legacy tables
 - [ ] Launch-grade reconnect, wallet-switch, and invalid-session UX review
-- [ ] Expose ETH lock status and gating clearly in the UI
+- [x] Expose ETH lock status clearly in the UI (Hero badge with LOCKED / PENDING / SENT / VERIFYING / ERROR states)
+- [ ] Add ETH lock gating enforcement on access-sensitive flows
 - [ ] Support-grade audit and dispute review workflow
 
-**4/7 done. Remaining work is UX review and support tooling.**
+**5/8 done. Remaining work is gating enforcement, UX review, and support tooling.**
 
 ### Stage 2: Build the Canonical DB Model
 
