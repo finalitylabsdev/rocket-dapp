@@ -26,6 +26,60 @@ The following controls are now in place:
   - Makes the “internal-only” access model explicit instead of relying on “RLS enabled with zero policies”
   - Clears the Security Advisor `RLS Enabled No Policy` findings for those tables
 
+- `supabase/migrations/20260228120000_add_nebula_bids_auction.sql`
+  - Enables RLS on `auction_rounds`, `auction_submissions`, `auction_bids`
+  - Grants `SELECT` only to `authenticated`; explicitly revokes `INSERT`, `UPDATE`, `DELETE` from `anon` and `authenticated`
+  - All write mutations happen through `SECURITY DEFINER` RPCs with explicit `search_path = public`
+  - Lifecycle RPCs (`start_auction_round`, `transition_auction_to_bidding`, `finalize_auction`) are restricted to `service_role` only
+  - Player RPCs (`submit_auction_item`, `place_auction_bid`) are restricted to `authenticated` only
+  - Read RPCs (`get_active_auction`, `get_auction_history`) are restricted to `authenticated` only
+  - Wallet ownership is verified via `resolve_authenticated_wallet()` in every player-facing RPC
+
+- `supabase/migrations/20260227153000_add_flux_faucet_ledger.sql`
+  - RLS denies all direct client access to `wallet_flux_balances` and `flux_ledger_entries`
+  - All balance mutations happen through RPCs only
+  - Ledger entries are append-only from the client perspective
+
+- `supabase/migrations/20260228130000_add_auction_ops_diagnostics.sql`
+  - Adds `auction_round_diagnostics`, `flux_ledger_reconciliation`, `auction_scheduler_health` views
+  - All views are explicitly denied to `anon` and `authenticated`
+  - Only `service_role` can read diagnostic views
+
+- `supabase/functions/auction-tick/index.ts`
+  - Bearer token validation against `SUPABASE_SERVICE_ROLE_KEY` and optional `AUCTION_TICK_SERVICE_ROLE_FALLBACK`
+  - 30-second in-memory rate limit between invocations
+  - Uses service-role client for all RPC calls (never impersonates a user)
+
+## RLS Summary by Table
+
+| Table | RLS | `anon` | `authenticated` | `service_role` | Notes |
+|-------|-----|--------|-----------------|----------------|-------|
+| `auction_rounds` | Enabled | No access | SELECT only | Full | Writes via RPCs only |
+| `auction_submissions` | Enabled | No access | SELECT only | Full | Writes via RPCs only |
+| `auction_bids` | Enabled | No access | SELECT only | Full | Writes via RPCs only |
+| `wallet_flux_balances` | Enabled | No access | No access | Full | All mutations via RPCs |
+| `flux_ledger_entries` | Enabled | No access | No access | Full | Append-only via RPCs |
+| `inventory_parts` | Enabled | No access | SELECT own | Full | Writes via RPCs only |
+| `app_logs` | Enabled | Deny-all | Deny-all | Full | Explicit deny policy |
+| `app_state_ledger` | Enabled | Deny-all | Deny-all | Full | Explicit deny policy |
+| `browser_profiles` | Enabled | Deny-all | Deny-all | Full | Explicit deny policy |
+| `browser_wallets` | Enabled | Deny-all | Deny-all | Full | Explicit deny policy |
+| `wallet_registry` | Enabled | Deny-all | Deny-all | Full | Explicit deny policy |
+
+## RPC Permission Summary
+
+| Function | `anon` | `authenticated` | `service_role` | Validates wallet? |
+|----------|--------|-----------------|----------------|-------------------|
+| `submit_auction_item` | No | Yes | Yes | Yes |
+| `place_auction_bid` | No | Yes | Yes | Yes |
+| `get_active_auction` | No | Yes | Yes | No (read-only) |
+| `get_auction_history` | No | Yes | Yes | No (read-only) |
+| `start_auction_round` | No | No | Yes | N/A (system) |
+| `transition_auction_to_bidding` | No | No | Yes | N/A (system) |
+| `finalize_auction` | No | No | Yes | N/A (system) |
+| `open_mystery_box` | No | Yes | Yes | Yes |
+| `record_eth_lock_sent` | No | Yes | Yes | Yes |
+
 ## Current Security Advisor State
 
 After the latest hardening pass, the expected remaining Security Advisor warning is:
@@ -52,3 +106,5 @@ Supabase references this warning here:
 - Service-role and privileged backend paths continue to work as before.
 - The browser-linked tables still exist in the live database, so they remain part of the schema surface until they are explicitly removed in a later cleanup migration.
 - If those legacy tables are confirmed unused, dropping them is still cleaner than carrying them indefinitely.
+- All `SECURITY DEFINER` functions use explicit `SET search_path = public` to prevent search path injection.
+- Auction diagnostic views are service-role-only and expose no data to end users.

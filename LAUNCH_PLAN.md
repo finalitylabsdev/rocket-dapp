@@ -1,6 +1,6 @@
 # Launch Plan
 
-> Version: 0.2.0
+> Version: 0.3.0
 > Date: 2026-02-27
 > Status: Active
 > Scope reference: `SCOPE.md`
@@ -24,38 +24,42 @@ The goal is to launch with a database-authoritative gameplay system that is expl
 - [x] Wallet auth and SIWE-style message-signature flow
 - [x] ETH lock submission and verification pipeline
 - [x] ETH lock database foundation and verification Edge Function
-- [x] FLUX ledger and balance foundation
-- [x] Canonical Star Vault catalog tables in Supabase
+- [x] ETH lock backend hardening: cooldown, duplicate retry, rate limiting (6/15min), uniform 404
+- [x] FLUX ledger and balance foundation (append-only, reason-coded, wallet-scoped)
+- [x] Canonical Star Vault catalog tables in Supabase (rarity tiers, sections, variants, box tiers, drop weights)
 - [x] Canonical Star Vault inventory table and `open_mystery_box()` RPC
 - [x] Canonical Nebula Bids schema, bid/submission RPCs, and round lifecycle RPCs
-- [x] `auction-tick` Edge Function exists as the scheduler primitive
+- [x] `auction-tick` Edge Function with bearer token auth and 30s rate limiting
 - [x] App 3 split UI for Star Vault, Nebula Bids, and shared inventory
 - [x] Realtime-backed inventory and auction refresh wiring
+- [x] Auction operator diagnostics panel (round lifecycle, bid/submission stats, scheduler health)
+- [x] Auction ops SQL views: `auction_round_diagnostics`, `flux_ledger_reconciliation`, `auction_scheduler_health`
+- [x] Auction-tick deployment runbook with secrets, cron, monitoring, and recovery procedures
+- [x] Explicit deny-all RLS policies on internal tables
+- [x] Security hardening documentation for ETH lock, RLS, and auction tables
+- [x] `GameState` uses real server-backed FLUX and inventory snapshots
 - [x] Basic multi-page product shell and page routing
 - [x] Basic brand and visual primitives
 
-### Partial / Must Harden
+### Must Harden Before Launch
 
-- [x] `GameState` uses real server-backed FLUX and inventory snapshots
 - [x] Remove local authority from `GameState` for equipped state, levels, and scores
 - [x] Remove or explicitly demote Star Vault fallback catalog/config behavior from the normal launch path
-- [ ] Replace page-local nav bars with one persistent cross-app shell
 - [x] Replace page-local nav bars with one persistent cross-app shell
 - [ ] Add visible ETH lock status / gating UX instead of keeping it only in libs
 - [ ] Replace placeholder-heavy box/part visual logic with metadata-driven rendering
 - [ ] Migrate Rocket Lab away from the legacy 5-part local model
-- [ ] Add auction operator visibility, diagnostics, and recovery controls
-- [ ] Add launch docs/runbook for scheduler deployment and cron configuration
+- [ ] Deploy `auction-tick` to production and configure cron (see `docs/11-auction-tick-runbook.md`)
+- [ ] Enable leaked password protection in Supabase Dashboard
 
 ### Still Missing For Launch
 
 - [x] Persistent cross-app shell outside the current page-local App 3 surface
 - [ ] Canonical asset and metadata pipeline for launch visuals
 - [ ] Real App 4 compatibility for the canonical 8-part inventory model
-- [ ] Ops controls, feature flags, and launch rehearsal tooling
+- [ ] Feature flags for staged rollout
+- [ ] Launch rehearsal — internal, closed beta, public gates
 - [ ] Full DB-versus-chain reconciliation workflows for later authority cutover
-- [ ] Production deployment/scheduling of `auction-tick`
-- [ ] Admin / reconciliation views for balances, auctions, and wallet eligibility
 
 ## Stage Progress Snapshot
 
@@ -65,70 +69,76 @@ The goal is to launch with a database-authoritative gameplay system that is expl
 - [x] The repo is aligned to DB-authoritative FLUX, inventory, and auctions
 - [ ] Write the authority matrix explicitly into launch docs so the boundary is operational, not implied
 
-Status: Functionally complete, but the authority matrix should be made explicit.
+**2/3 done. 1 doc task remaining.**
 
 ### Stage 1: Harden Identity, Wallet Proof, and ETH Lock
 
-- [x] Wallet auth and session restoration exist
-- [x] ETH lock verification flow exists
-- [x] ETH lock verification has backend hardening for cooldown / duplicate retry behavior
-- [ ] Add launch-grade reconnect, wallet-switch, and invalid-session UX review
+- [x] Wallet auth and session restoration
+- [x] ETH lock verification flow with Edge Function
+- [x] ETH lock backend hardening: 20s verification cooldown, uniform 404, rate limiting (6 calls / 15 min)
+- [x] Explicit deny-all RLS on internal tables (`app_logs`, `app_state_ledger`, `browser_profiles`, `browser_wallets`, `wallet_registry`)
+- [ ] Launch-grade reconnect, wallet-switch, and invalid-session UX review
 - [ ] Expose ETH lock status and gating clearly in the UI
-- [ ] Confirm support-grade audit and dispute review workflow
+- [ ] Support-grade audit and dispute review workflow
 
-Status: In progress.
+**4/7 done. Remaining work is UX review and support tooling.**
 
 ### Stage 2: Build the Canonical DB Model
 
-- [x] Catalog/config tables exist for rarity tiers, rocket sections, part variants, box tiers, and drop weights
-- [x] Canonical state tables exist for inventory and auctions
-- [x] Stable DB-backed IDs exist for current App 3 gameplay
-- [ ] Add or document any still-required chain-linkage / reconciliation fields for later cutover
-- [ ] Document replay/reconstruction expectations clearly if event-history parity is still required
+- [x] Catalog/config tables: rarity tiers (8), rocket sections (8), part variants (64), box tiers (8), drop weights
+- [x] State tables: `inventory_parts`, `auction_rounds`, `auction_submissions`, `auction_bids`
+- [x] Stable DB-backed IDs for all App 3 gameplay objects
+- [x] `source` and `source_ref` fields on `inventory_parts` for provenance tracking
+- [ ] Document chain-linkage / reconciliation fields needed for later cutover
+- [ ] Document replay/reconstruction expectations if event-history parity is required
 
-Status: Core path landed.
+**4/6 done. Remaining work is documentation for chain cutover.**
 
 ### Stage 3: Promote FLUX into the Full Gameplay Ledger
 
 - [x] Star Vault box opening uses ledger-backed FLUX mutation
-- [x] Nebula Bids bidding uses ledger-backed FLUX mutation
+- [x] Nebula Bids bidding uses ledger-backed FLUX escrow/refund/payout
 - [x] Faucet claims use ledger-backed FLUX mutation
 - [x] Remove remaining implicit gameplay authority from local UI state
 - [x] Decide whether Rocket Lab is launch-authoritative or explicitly isolate it from the launch economy
-- [ ] Add stronger idempotency / reconciliation review for all balance-mutating flows
-- [ ] Add operator visibility for ledger-related support and reconciliation
+- [x] All FLUX mutations are reason-coded (`whitelist_bonus`, `faucet_claim`, `adjustment` with context)
+- [x] FLUX ledger reconciliation view exists (`flux_ledger_reconciliation` — balance vs ledger sum per wallet)
+- [ ] Add stronger idempotency keys for all balance-mutating flows
 
-Status: Core ledger flows landed, but not fully hardened.
+**7/8 done. Ledger integrity tooling landed. Remaining work is idempotency hardening.**
 
 ### Stage 4: Replace the Star Vault Prototype with Server Authority
 
 - [x] Box tiers load from the database
-- [x] Box opening uses server RPCs
-- [x] Part generation is server-side
-- [x] Inventory is server-backed
+- [x] Box opening uses `open_mystery_box()` server RPC (atomic: debit FLUX, generate part, persist)
+- [x] Part generation is server-side with RNG
+- [x] Inventory is server-backed with realtime subscriptions
 - [x] Remove fallback catalog/config assumptions from the normal production path
 - [ ] Harden failure-mode UX around partial outages and degraded reads
 - [ ] Replace placeholder rendering with canonical metadata-driven presentation
 
-Status: Functional, but not fully launch-hardened.
+**5/7 done. Core server authority is in place. Remaining work is UX polish and visual completion.**
 
 ### Stage 5: Build Nebula Bids End-to-End
 
-- [x] Submission window and eligibility checks exist
-- [x] Candidate selection and round lifecycle RPCs exist
-- [x] Bid placement, escrow, refund, and settlement paths exist
-- [x] Client UI supports submissions, bidding, active round reads, and history reads
-- [x] Scheduler primitive exists via `auction-tick`
-- [ ] Deploy `auction-tick` with required secrets
-- [ ] Configure production cron / scheduler
-- [ ] Add launch-grade operator controls and failure visibility
-- [ ] Add reconciliation/admin views for support
+- [x] Submission window and eligibility checks (Rare tier 3+ only, part locking, one submission per wallet per round)
+- [x] Candidate selection: best by (rarity DESC, value DESC), non-selected parts unlocked
+- [x] Bid placement with 5% minimum increment, escrow, outbid refund, bid replacement
+- [x] Settlement: winner gets part, seller gets FLUX proceeds, losers refunded
+- [x] Client UI: submissions, bidding, active round reads, history reads, realtime updates
+- [x] `auction-tick` Edge Function with bearer auth, 30s rate limit, three-pass lifecycle
+- [x] Operator diagnostics panel: round lifecycle timeline, bid/submission stats, scheduler health indicator
+- [x] SQL diagnostics views: `auction_round_diagnostics`, `auction_scheduler_health`
+- [x] Deployment runbook: `docs/11-auction-tick-runbook.md` with secrets, cron config, monitoring, recovery
+- [ ] Deploy `auction-tick` to production with required secrets
+- [ ] Configure production cron (pg_cron or external) at 5-minute cadence or better
+- [ ] Verify full round lifecycle in production: start, transition, finalize, restart
 
-Status: Functional, but live-service hardening remains.
+**9/12 done. All code and docs are in place. Remaining work is production deployment and verification.**
 
 ### Stage 6: Deliver the Shared Shell and App 3 UX
 
-- [x] App 3 is split into Star Vault and Nebula Bids
+- [x] App 3 is split into Star Vault and Nebula Bids tabs
 - [x] Shared inventory surface exists
 - [x] Core loading / retry / empty states exist in App 3
 - [x] Build one persistent cross-app navigation shell and wallet HUD
@@ -137,7 +147,7 @@ Status: Functional, but live-service hardening remains.
 - [ ] Add lightweight onboarding path
 - [x] Replace placeholder docs links / dead-end navigation
 
-Status: Partially complete.
+**6/8 done. Shared shell is in place. Remaining work is journey guidance and onboarding.**
 
 ### Stage 7: Establish the Canonical Asset and Metadata Pipeline
 
@@ -147,7 +157,7 @@ Status: Partially complete.
 - [x] Make UI rendering depend on metadata references instead of hardcoded visual branching
 - [ ] Keep fallback visuals only as explicit compatibility behavior if needed
 
-Status: Metadata-driven rendering established; placeholder box visuals and fallback compatibility remain.
+**3/5 done. Metadata-driven rendering is in place. Remaining work is launch art and fallback cleanup.**
 
 ### Stage 8: Add App 4 Compatibility Only
 
@@ -157,19 +167,19 @@ Status: Metadata-driven rendering established; placeholder box visuals and fallb
 - [ ] Remove the legacy 5-part local-only model as the effective downstream consumer
 - [ ] Eliminate model drift between App 3 rewards and downstream usage
 
-Status: Partial compatibility prep only.
+**2/5 done. Type groundwork is in place. App 4 integration is not started.**
 
 ### Stage 9: Add Ops Controls and Rehearse the Launch
 
-- [x] Backend scheduler primitive exists (`auction-tick`)
-- [ ] Add scheduler monitoring and failure visibility
-- [ ] Add support and audit tooling
-- [ ] Add feature flags for staged rollout
-- [ ] Add admin/reconciliation views for balances, auctions, and wallet eligibility
-- [ ] Write a launch runbook and rehearsal checklist
-- [ ] Run internal rehearsal, closed beta, and public launch gates
+- [x] Backend scheduler primitive (`auction-tick`)
+- [x] Auction operator diagnostics panel in Nebula Bids UI
+- [x] SQL diagnostic views for round lifecycle, ledger reconciliation, scheduler health
+- [x] Deployment runbook with secrets, cron, monitoring, failure recovery, and pre-launch checklist
+- [ ] Feature flags for staged rollout
+- [ ] Support and audit tooling for wallet-level dispute review
+- [ ] Launch rehearsal — internal, closed beta, public gates
 
-Status: Early partial on backend primitives only.
+**4/7 done. Ops visibility and runbook are in place. Rehearsal and feature flags are not started.**
 
 ## Launch Rules
 
