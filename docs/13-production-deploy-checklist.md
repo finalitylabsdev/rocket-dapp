@@ -26,6 +26,11 @@ Linear pre-launch checklist for deploying the FLUX ledger and Nebula Bids auctio
   openssl rand -base64 32
   supabase secrets set AUCTION_TICK_SERVICE_ROLE_FALLBACK=<generated-token>
   ```
+- [ ] If using `pg_cron`, store the project URL and scheduler bearer token in Supabase Vault (recommended so they do not appear in `cron.job`):
+  ```sql
+  SELECT vault.create_secret('<SUPABASE_URL>', 'auction_tick_url');
+  SELECT vault.create_secret('<SERVICE_ROLE_KEY_OR_FALLBACK>', 'auction_tick_bearer');
+  ```
 
 ## Deploy Auction-Tick Edge Function
 
@@ -55,6 +60,7 @@ Choose one scheduling path:
 
 - [ ] Confirm `pg_cron` extension is enabled in the Supabase project
 - [ ] Confirm `pg_net` / `net.http_post(...)` is available
+- [ ] Decide which bearer token the job will send (`AUCTION_TICK_SERVICE_ROLE_FALLBACK` or `SUPABASE_SERVICE_ROLE_KEY`)
 - [ ] Register the cron job:
   ```sql
   SELECT cron.schedule(
@@ -62,9 +68,13 @@ Choose one scheduling path:
     '*/5 * * * *',
     $$
     SELECT net.http_post(
-      url := '<SUPABASE_URL>/functions/v1/auction-tick',
+      url := (SELECT decrypted_secret
+              FROM vault.decrypted_secrets
+              WHERE name = 'auction_tick_url') || '/functions/v1/auction-tick',
       headers := jsonb_build_object(
-        'Authorization', 'Bearer <SERVICE_ROLE_KEY_OR_FALLBACK>',
+        'Authorization', 'Bearer ' || (SELECT decrypted_secret
+                                       FROM vault.decrypted_secrets
+                                       WHERE name = 'auction_tick_bearer'),
         'Content-Type', 'application/json'
       ),
       body := '{}'::jsonb
@@ -73,6 +83,7 @@ Choose one scheduling path:
   );
   ```
 - [ ] Confirm job appears in `cron.job`
+- [ ] If you skipped Vault, confirm the SQL snippet above was adjusted to inline the URL and bearer token instead
 
 ### Option B: External scheduler
 

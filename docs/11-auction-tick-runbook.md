@@ -26,6 +26,7 @@ None of the following is automated by this repo:
 - Deploying the Edge Function to the production project
 - Setting `AUCTION_TICK_SERVICE_ROLE_FALLBACK`
 - Enabling and configuring `pg_cron` / `pg_net` if the project uses in-database scheduling
+- Storing scheduler secrets in Supabase Vault if the project uses a Vault-backed `pg_cron` job
 - Registering the cron job itself
 - Wiring alerts for overdue rounds, stuck finalization, or ledger drift
 - Verifying the first production round lifecycle end to end
@@ -111,9 +112,17 @@ Manual prerequisites:
 
 - Confirm the project has `pg_cron` enabled.
 - Confirm the project has `pg_net` / `net.http_post(...)` available.
-- Use a service-role or fallback bearer token that the scheduled request can send.
+- Choose the bearer token the scheduled request can send (`AUCTION_TICK_SERVICE_ROLE_FALLBACK` or `SUPABASE_SERVICE_ROLE_KEY`).
+- Recommended: store the project URL and chosen bearer token in Supabase Vault so they do not appear in plaintext in `cron.job`.
 
-Example job:
+Store the secrets in Vault:
+
+```sql
+SELECT vault.create_secret('<SUPABASE_URL>', 'auction_tick_url');
+SELECT vault.create_secret('<SERVICE_ROLE_KEY_OR_FALLBACK>', 'auction_tick_bearer');
+```
+
+Then register the job:
 
 ```sql
 SELECT cron.schedule(
@@ -121,9 +130,13 @@ SELECT cron.schedule(
   '*/5 * * * *',
   $$
   SELECT net.http_post(
-    url := '<SUPABASE_URL>/functions/v1/auction-tick',
+    url := (SELECT decrypted_secret
+            FROM vault.decrypted_secrets
+            WHERE name = 'auction_tick_url') || '/functions/v1/auction-tick',
     headers := jsonb_build_object(
-      'Authorization', 'Bearer <SERVICE_ROLE_KEY_OR_FALLBACK>',
+      'Authorization', 'Bearer ' || (SELECT decrypted_secret
+                                     FROM vault.decrypted_secrets
+                                     WHERE name = 'auction_tick_bearer'),
       'Content-Type', 'application/json'
     ),
     body := '{}'::jsonb
@@ -131,6 +144,8 @@ SELECT cron.schedule(
   $$
 );
 ```
+
+If you prefer a simpler setup, you can inline the URL and bearer token directly instead of using Vault, but the job definition in `cron.job` will then contain those values in plaintext.
 
 #### Option B: external scheduler
 
