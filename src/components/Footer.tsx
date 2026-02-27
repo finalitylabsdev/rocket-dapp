@@ -20,7 +20,7 @@ export default function Footer() {
               </div>
               <div>
                 <span className="font-mono font-bold text-white text-lg leading-none uppercase tracking-wider">Entropy</span>
-                <div className="text-[10px] font-mono font-medium text-zinc-500 mt-0.5 uppercase tracking-wider">phi-net Testnet</div>
+                <div className="text-[10px] font-mono font-medium text-zinc-500 mt-0.5 uppercase tracking-wider">ɸ-net Testnet</div>
               </div>
             </div>
             <p className="text-zinc-500 text-sm leading-relaxed max-w-xs mb-6">
@@ -68,7 +68,7 @@ export default function Footer() {
           </p>
           <div className="flex items-center gap-2">
             <div className="glow-dot" />
-            <span className="text-sm font-mono font-medium text-zinc-500">{`phi-net v${APP_VERSION} — SEASON 1 ACTIVE`}</span>
+            <span className="text-sm font-mono font-medium text-zinc-500">{`ɸ-net v${APP_VERSION} — SEASON 1 ACTIVE`}</span>
           </div>
         </div>
       </div>

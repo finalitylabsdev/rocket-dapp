@@ -40,7 +40,7 @@ export default function Navbar({ onNavigate }: NavbarProps) {
             </div>
             <div>
               <span className="font-mono font-bold text-lg leading-none uppercase tracking-wider" style={{ color: '#E8ECF4' }}>Entropy</span>
-              <div className="text-[10px] font-medium leading-none mt-0.5 font-mono tracking-wider" style={{ color: '#4A5468' }}>phi-net · PROOF-OF-INFINITY</div>
+              <div className="text-[10px] font-medium leading-none mt-0.5 font-mono tracking-wider" style={{ color: '#4A5468' }}>ɸ-net · PROOF-OF-INFINITY</div>
             </div>
           </div>
 

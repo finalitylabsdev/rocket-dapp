@@ -771,7 +771,7 @@ Displays:
 
 * Truncated address (0xA3…7F) with a copy icon.
 * φ balance (animated on change).
-* Network badge ("phi-net Testnet") — green dot if connected, red dot if wrong network.
+* Network badge ("ɸ-net Testnet") — green dot if connected, red dot if wrong network.
 
 On tap: Dropdown showing full address, ETH balance, UVD balance, "Disconnect" option.
 
