@@ -37,7 +37,7 @@ The goal is to launch with a database-authoritative gameplay system that is expl
 ### Partial / Must Harden
 
 - [x] `GameState` uses real server-backed FLUX and inventory snapshots
-- [ ] Remove local authority from `GameState` for equipped state, levels, and scores
+- [x] Remove local authority from `GameState` for equipped state, levels, and scores
 - [ ] Remove or explicitly demote Star Vault fallback catalog/config behavior from the normal launch path
 - [ ] Replace page-local nav bars with one persistent cross-app shell
 - [ ] Add visible ETH lock status / gating UX instead of keeping it only in libs
@@ -92,8 +92,8 @@ Status: Core path landed.
 - [x] Star Vault box opening uses ledger-backed FLUX mutation
 - [x] Nebula Bids bidding uses ledger-backed FLUX mutation
 - [x] Faucet claims use ledger-backed FLUX mutation
-- [ ] Remove remaining implicit gameplay authority from local UI state
-- [ ] Decide whether Rocket Lab is launch-authoritative or explicitly isolate it from the launch economy
+- [x] Remove remaining implicit gameplay authority from local UI state
+- [x] Decide whether Rocket Lab is launch-authoritative or explicitly isolate it from the launch economy
 - [ ] Add stronger idempotency / reconciliation review for all balance-mutating flows
 - [ ] Add operator visibility for ledger-related support and reconciliation
 
