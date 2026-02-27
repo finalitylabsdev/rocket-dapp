@@ -1,34 +1,32 @@
 import { useState, useEffect } from 'react';
 import { ArrowLeft, Zap, Trophy, TrendingUp, TrendingDown, Minus, RefreshCw, Users, Flame, Award } from 'lucide-react';
 import { supabase, type LeaderboardEntry } from '../lib/supabase';
-import FloatingParticles from '../components/mystery/FloatingParticles';
 
 interface LeaderboardPageProps {
   onBack: () => void;
 }
 
-const RANK_TIERS: Record<number, { label: string; color: string; glow: string; border: string; bg: string }> = {
-  1: { label: '1st', color: '#f59e0b', glow: '0 0 28px rgba(245,158,11,0.45)', border: 'rgba(245,158,11,0.4)', bg: 'rgba(245,158,11,0.06)' },
-  2: { label: '2nd', color: '#94a3b8', glow: '0 0 22px rgba(148,163,184,0.35)', border: 'rgba(148,163,184,0.3)', bg: 'rgba(148,163,184,0.05)' },
-  3: { label: '3rd', color: '#cd7c2f', glow: '0 0 20px rgba(205,124,47,0.35)', border: 'rgba(205,124,47,0.3)', bg: 'rgba(205,124,47,0.05)' },
+const RANK_TIERS: Record<number, { label: string; color: string; border: string; bg: string }> = {
+  1: { label: '1ST', color: '#f59e0b', border: 'rgba(245,158,11,0.4)', bg: 'rgba(245,158,11,0.06)' },
+  2: { label: '2ND', color: '#94a3b8', border: 'rgba(148,163,184,0.3)', bg: 'rgba(148,163,184,0.05)' },
+  3: { label: '3RD', color: '#cd7c2f', border: 'rgba(205,124,47,0.3)', bg: 'rgba(205,124,47,0.05)' },
 };
 
 function RankBadge({ rank }: { rank: number }) {
   const tier = RANK_TIERS[rank];
   if (tier) {
-    const icons = ['🥇', '🥈', '🥉'];
     return (
       <div
-        className="w-9 h-9 rounded-2xl flex items-center justify-center text-base font-black flex-shrink-0"
-        style={{ background: tier.bg, border: `1px solid ${tier.border}`, boxShadow: tier.glow }}
+        className="w-9 h-9 flex items-center justify-center text-xs font-mono font-black flex-shrink-0"
+        style={{ background: tier.bg, border: `1px solid ${tier.border}`, color: tier.color }}
       >
-        {icons[rank - 1]}
+        {tier.label}
       </div>
     );
   }
   return (
-    <div className="w-9 h-9 rounded-2xl bg-zinc-900 border border-border-default flex items-center justify-center flex-shrink-0">
-      <span className="font-poppins font-black text-sm text-zinc-400">{rank}</span>
+    <div className="w-9 h-9 bg-zinc-900 border border-border-default flex items-center justify-center flex-shrink-0">
+      <span className="font-mono font-black text-sm text-zinc-400">{rank}</span>
     </div>
   );
 }
@@ -46,7 +44,7 @@ function MovementArrow({ current, prev }: { current: number; prev: number }) {
   return (
     <div className={`flex items-center gap-0.5 w-10 ${up ? 'text-emerald-400' : 'text-red-400'}`}>
       {up ? <TrendingUp size={13} /> : <TrendingDown size={13} />}
-      <span className="text-[11px] font-bold">{Math.abs(delta)}</span>
+      <span className="text-[11px] font-mono font-bold">{Math.abs(delta)}</span>
     </div>
   );
 }
@@ -56,7 +54,7 @@ function SkeletonRow() {
     <tr className="border-b border-border-subtle">
       {[...Array(6)].map((_, i) => (
         <td key={i} className="px-4 py-4">
-          <div className="h-4 rounded-lg bg-zinc-900 animate-pulse" style={{ width: `${40 + Math.random() * 50}%` }} />
+          <div className="h-4 bg-zinc-900 animate-pulse" style={{ width: `${40 + Math.random() * 50}%` }} />
         </td>
       ))}
     </tr>
@@ -70,6 +68,10 @@ export default function LeaderboardPage({ onBack }: LeaderboardPageProps) {
   const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
 
   const fetchLeaderboard = async (showRefreshing = false) => {
+    if (!supabase) {
+      setLoading(false);
+      return;
+    }
     if (showRefreshing) setRefreshing(true);
     const { data } = await supabase
       .from('leaderboard')
@@ -103,22 +105,6 @@ export default function LeaderboardPage({ onBack }: LeaderboardPageProps) {
 
   return (
     <div className="min-h-screen bg-bg-base relative overflow-hidden">
-      <FloatingParticles />
-
-      <style>{`
-        @keyframes rankPulse {
-          0%, 100% { opacity: 0.7; }
-          50%       { opacity: 1; }
-        }
-        @keyframes slideInRow {
-          0%   { opacity: 0; transform: translateX(-16px); }
-          100% { opacity: 1; transform: translateX(0); }
-        }
-        @keyframes goldShimmer {
-          0%, 100% { background-position: 0% 50%; }
-          50%       { background-position: 100% 50%; }
-        }
-      `}</style>
 
       <nav className="fixed top-0 left-0 right-0 z-50 bg-bg-base/95 backdrop-blur-md border-b border-border-subtle">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -128,29 +114,29 @@ export default function LeaderboardPage({ onBack }: LeaderboardPageProps) {
                 onClick={onBack}
                 className="flex items-center gap-2 text-zinc-500 hover:text-white transition-colors group"
               >
-                <div className="w-8 h-8 rounded-xl bg-zinc-900 border border-border-default group-hover:border-border-strong flex items-center justify-center transition-all">
+                <div className="w-8 h-8 bg-zinc-900 border border-border-default group-hover:border-border-strong flex items-center justify-center transition-all">
                   <ArrowLeft size={15} className="text-zinc-400 group-hover:text-white" />
                 </div>
-                <span className="text-sm font-medium hidden sm:inline">Back</span>
+                <span className="text-sm font-mono font-medium hidden sm:inline uppercase tracking-wider">Back</span>
               </button>
               <div className="h-5 w-px bg-border-default" />
               <div className="flex items-center gap-3">
-                <div className="w-8 h-8 bg-white rounded-xl flex items-center justify-center">
+                <div className="w-8 h-8 bg-dot-green flex items-center justify-center">
                   <Trophy size={15} className="text-black" />
                 </div>
                 <div>
-                  <span className="font-poppins font-bold text-white text-base leading-none">Cosmic Jackpot</span>
-                  <div className="text-[10px] font-medium text-zinc-500 leading-none mt-0.5">Season 1 · Quantum Lift-Off Rankings</div>
+                  <span className="font-mono font-bold text-white text-base leading-none uppercase tracking-wider">Cosmic Jackpot</span>
+                  <div className="text-[10px] font-mono font-medium text-zinc-500 leading-none mt-0.5 uppercase tracking-wider">Season 1 · Rankings</div>
                 </div>
               </div>
             </div>
             <div className="flex items-center gap-3">
-              <div className="hidden sm:flex items-center gap-2 bg-zinc-900 border border-border-subtle rounded-2xl px-3 py-2">
+              <div className="hidden sm:flex items-center gap-2 bg-zinc-900 border border-border-subtle px-3 py-2">
                 <div className="glow-dot" />
-                <span className="text-xs font-semibold text-zinc-300">Live</span>
+                <span className="text-xs font-mono font-semibold text-zinc-300 uppercase">Live</span>
               </div>
               <button className="btn-primary text-sm py-2.5 px-5">
-                <Zap size={13} fill="black" />
+                <Zap size={13} />
                 Connect Wallet
               </button>
             </div>
@@ -168,10 +154,10 @@ export default function LeaderboardPage({ onBack }: LeaderboardPageProps) {
                 Season 1
               </span>
             </div>
-            <h1 className="font-poppins font-black text-3xl md:text-5xl lg:text-6xl text-white mb-3 leading-[1.08]">
+            <h1 className="font-mono font-black text-3xl md:text-5xl lg:text-6xl text-white mb-3 leading-[1.08] uppercase tracking-wider">
               Cosmic Jackpot
             </h1>
-            <p className="text-zinc-400 text-lg">
+            <p className="text-zinc-400 text-lg font-mono">
               Compete by Grav Score. Win real ETH daily.
             </p>
           </div>
@@ -180,37 +166,37 @@ export default function LeaderboardPage({ onBack }: LeaderboardPageProps) {
             {[
               { icon: <Trophy size={14} className="text-amber-400" />, label: 'Daily ETH Prize', value: loading ? '…' : `${ethPrizePool} ETH`, sub: '50% of locked pool' },
               { icon: <Users size={14} className="text-blue-400" />, label: 'Players', value: entries.length.toString(), sub: 'Season 1 active' },
-              { icon: <Zap size={14} className="text-white" />, label: 'Missions Launched', value: loading ? '…' : totals.rockets.toLocaleString(), sub: 'Total Quantum Lift-Offs' },
+              { icon: <Zap size={14} className="text-dot-green" />, label: 'Missions Launched', value: loading ? '…' : totals.rockets.toLocaleString(), sub: 'Total Quantum Lift-Offs' },
               { icon: <Flame size={14} className="text-orange-400" />, label: 'Flux Burned', value: loading ? '…' : `${(totals.burned / 1000).toFixed(1)}k`, sub: 'Fuel consumed' },
             ].map((stat) => (
-              <div key={stat.label} className="rounded-2xl bg-bg-card border border-border-subtle shadow-card p-4">
+              <div key={stat.label} className="bg-bg-card border border-border-subtle p-4">
                 <div className="flex items-center gap-2 mb-2">
-                  <div className="w-7 h-7 rounded-xl bg-zinc-900 border border-border-default flex items-center justify-center">
+                  <div className="w-7 h-7 bg-zinc-900 border border-border-default flex items-center justify-center">
                     {stat.icon}
                   </div>
-                  <span className="text-xs text-zinc-500">{stat.label}</span>
+                  <span className="text-xs text-zinc-500 font-mono uppercase tracking-wider">{stat.label}</span>
                 </div>
-                <p className="font-poppins font-black text-white text-xl">{stat.value}</p>
-                <p className="text-[11px] text-zinc-600 mt-0.5">{stat.sub}</p>
+                <p className="font-mono font-black text-white text-xl">{stat.value}</p>
+                <p className="text-[11px] text-zinc-600 mt-0.5 font-mono">{stat.sub}</p>
               </div>
             ))}
           </div>
 
-          <div className="rounded-3xl bg-bg-card border border-border-subtle shadow-card overflow-hidden">
+          <div className="bg-bg-card border border-border-subtle overflow-hidden">
             <div className="px-6 py-4 border-b border-border-subtle flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <Award size={16} className="text-zinc-400" />
-                <span className="font-poppins font-bold text-white text-sm">Season Rankings</span>
+                <span className="font-mono font-bold text-white text-sm uppercase tracking-wider">Season Rankings</span>
                 <span className="tag text-[11px]">Grav Score · Top 20</span>
               </div>
               <div className="flex items-center gap-3">
-                <span className="text-xs text-zinc-600 hidden sm:block">
+                <span className="text-xs text-zinc-600 font-mono hidden sm:block">
                   Updated {lastUpdated.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                 </span>
                 <button
                   onClick={() => fetchLeaderboard(true)}
                   disabled={refreshing}
-                  className="w-8 h-8 rounded-xl bg-zinc-900 border border-border-default flex items-center justify-center hover:border-border-strong transition-all active:scale-90"
+                  className="w-8 h-8 bg-zinc-900 border border-border-default flex items-center justify-center hover:border-border-strong transition-all active:scale-90"
                 >
                   <RefreshCw
                     size={13}
@@ -234,7 +220,7 @@ export default function LeaderboardPage({ onBack }: LeaderboardPageProps) {
                     ].map((col) => (
                       <th
                         key={col.label}
-                        className={`px-4 py-3 text-left text-[11px] font-semibold text-zinc-600 uppercase tracking-wide ${col.w}`}
+                        className={`px-4 py-3 text-left text-[11px] font-mono font-semibold text-zinc-600 uppercase tracking-widest ${col.w}`}
                       >
                         {col.label}
                       </th>
@@ -245,7 +231,7 @@ export default function LeaderboardPage({ onBack }: LeaderboardPageProps) {
                   {loading ? (
                     [...Array(10)].map((_, i) => <SkeletonRow key={i} />)
                   ) : (
-                    entries.map((entry, i) => {
+                    entries.map((entry) => {
                       const tier = RANK_TIERS[entry.rank];
                       return (
                         <tr
@@ -253,7 +239,6 @@ export default function LeaderboardPage({ onBack }: LeaderboardPageProps) {
                           className="border-b border-border-subtle last:border-0 transition-colors duration-200 hover:bg-zinc-900/40"
                           style={{
                             background: tier ? tier.bg : undefined,
-                            animation: `slideInRow 0.4s ease-out ${i * 40}ms both`,
                             boxShadow: tier ? `inset 0 0 0 1px ${tier.border}` : undefined,
                           }}
                         >
@@ -266,7 +251,7 @@ export default function LeaderboardPage({ onBack }: LeaderboardPageProps) {
                           <td className="px-4 py-3.5">
                             <div className="flex items-center gap-2.5">
                               <div
-                                className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 text-[11px] font-black"
+                                className="w-8 h-8 flex items-center justify-center flex-shrink-0 text-[11px] font-mono font-black"
                                 style={tier
                                   ? { background: tier.bg, border: `1px solid ${tier.border}`, color: tier.color }
                                   : { background: '#141414', border: '1px solid #252525', color: '#606060' }
@@ -282,7 +267,7 @@ export default function LeaderboardPage({ onBack }: LeaderboardPageProps) {
                               </span>
                               {tier && (
                                 <span
-                                  className="text-[10px] font-bold px-1.5 py-0.5 rounded-full"
+                                  className="text-[10px] font-mono font-bold px-1.5 py-0.5"
                                   style={{ color: tier.color, background: tier.bg, border: `1px solid ${tier.border}` }}
                                 >
                                   {tier.label}
@@ -292,7 +277,7 @@ export default function LeaderboardPage({ onBack }: LeaderboardPageProps) {
                           </td>
                           <td className="px-4 py-3.5 text-right">
                             <div className="flex items-center justify-end gap-1.5">
-                              <span className="font-poppins font-bold text-white text-sm">
+                              <span className="font-mono font-bold text-white text-sm">
                                 {entry.rockets_launched.toLocaleString()}
                               </span>
                               <Zap size={11} className="text-zinc-600" />
@@ -300,15 +285,15 @@ export default function LeaderboardPage({ onBack }: LeaderboardPageProps) {
                           </td>
                           <td className="px-4 py-3.5 text-right">
                             <div className="flex items-center justify-end gap-1.5">
-                              <span className="font-poppins font-bold text-white text-sm">
+                              <span className="font-mono font-bold text-white text-sm">
                                 {Number(entry.et_burned).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
                               </span>
-                              <span className="text-[11px] text-zinc-600">FLUX</span>
+                              <span className="text-[11px] text-zinc-600 font-mono">FLUX</span>
                             </div>
                           </td>
                           <td className="px-4 py-3.5 text-right">
                             <span
-                              className="font-poppins font-bold text-sm"
+                              className="font-mono font-bold text-sm"
                               style={tier ? { color: tier.color } : { color: '#d4d4d8' }}
                             >
                               {Number(entry.eth_earned).toFixed(4)} ETH
@@ -323,39 +308,39 @@ export default function LeaderboardPage({ onBack }: LeaderboardPageProps) {
             </div>
 
             <div className="px-6 py-4 border-t border-border-subtle bg-bg-surface flex items-center justify-between">
-              <div className="flex items-center gap-4 text-xs text-zinc-600">
+              <div className="flex items-center gap-4 text-xs text-zinc-600 font-mono">
                 <div className="flex items-center gap-1.5">
-                  <div className="w-2 h-2 rounded-full" style={{ background: '#f59e0b' }} />
+                  <div className="w-2 h-2" style={{ background: '#f59e0b' }} />
                   Gold — 1st
                 </div>
                 <div className="flex items-center gap-1.5">
-                  <div className="w-2 h-2 rounded-full" style={{ background: '#94a3b8' }} />
+                  <div className="w-2 h-2" style={{ background: '#94a3b8' }} />
                   Silver — 2nd
                 </div>
                 <div className="flex items-center gap-1.5">
-                  <div className="w-2 h-2 rounded-full" style={{ background: '#cd7c2f' }} />
+                  <div className="w-2 h-2" style={{ background: '#cd7c2f' }} />
                   Bronze — 3rd
                 </div>
               </div>
-              <span className="text-xs text-zinc-600">Ranked by cumulative Grav Score</span>
+              <span className="text-xs text-zinc-600 font-mono">Ranked by cumulative Grav Score</span>
             </div>
           </div>
 
           <div className="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-4">
             {[
-              { place: '1st Place', prize: 'ETH + Quantum NFT', icon: '🥇', color: '#f59e0b', bg: 'rgba(245,158,11,0.06)', border: 'rgba(245,158,11,0.25)' },
-              { place: '2nd Place', prize: 'ETH + Celestial NFT', icon: '🥈', color: '#94a3b8', bg: 'rgba(148,163,184,0.05)', border: 'rgba(148,163,184,0.2)' },
-              { place: '3rd Place', prize: 'ETH + Mythic NFT', icon: '🥉', color: '#cd7c2f', bg: 'rgba(205,124,47,0.05)', border: 'rgba(205,124,47,0.2)' },
+              { place: '1ST PLACE', prize: 'ETH + Quantum NFT', rank: '1ST', color: '#f59e0b', bg: 'rgba(245,158,11,0.06)', border: 'rgba(245,158,11,0.25)' },
+              { place: '2ND PLACE', prize: 'ETH + Celestial NFT', rank: '2ND', color: '#94a3b8', bg: 'rgba(148,163,184,0.05)', border: 'rgba(148,163,184,0.2)' },
+              { place: '3RD PLACE', prize: 'ETH + Mythic NFT', rank: '3RD', color: '#cd7c2f', bg: 'rgba(205,124,47,0.05)', border: 'rgba(205,124,47,0.2)' },
             ].map((p) => (
               <div
                 key={p.place}
-                className="rounded-3xl p-5 flex items-center gap-4"
+                className="p-5 flex items-center gap-4"
                 style={{ background: p.bg, border: `1px solid ${p.border}` }}
               >
-                <span className="text-3xl">{p.icon}</span>
+                <span className="text-2xl font-mono font-black" style={{ color: p.color }}>{p.rank}</span>
                 <div>
-                  <p className="text-xs text-zinc-500 mb-0.5">{p.place} Prize</p>
-                  <p className="font-poppins font-black text-xl leading-tight" style={{ color: p.color }}>{p.prize}</p>
+                  <p className="text-xs text-zinc-500 font-mono mb-0.5 uppercase tracking-wider">{p.place} Prize</p>
+                  <p className="font-mono font-black text-xl leading-tight uppercase tracking-wider" style={{ color: p.color }}>{p.prize}</p>
                 </div>
               </div>
             ))}

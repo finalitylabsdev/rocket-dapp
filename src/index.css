@@ -22,18 +22,25 @@
 
 @layer components {
   .btn-primary {
-    @apply font-semibold px-6 py-3 rounded-2xl transition-all duration-200 active:scale-95 inline-flex items-center gap-2;
-    background: #E8ECF4;
-    color: #06080F;
+    @apply font-semibold px-6 py-3 transition-all duration-200 active:scale-95 inline-flex items-center gap-2;
+    background: transparent;
+    color: #4ADE80;
+    border: 1px solid #4ADE80;
+    font-family: 'JetBrains Mono', monospace;
+    letter-spacing: 0.04em;
   }
   .btn-primary:hover {
-    background: #ffffff;
+    background: rgba(74, 222, 128, 0.08);
+    color: #6EE7A0;
+    border-color: #6EE7A0;
   }
 
   .btn-secondary {
-    @apply bg-transparent font-semibold px-6 py-3 rounded-2xl transition-all duration-200 active:scale-95 inline-flex items-center gap-2;
+    @apply bg-transparent font-semibold px-6 py-3 transition-all duration-200 active:scale-95 inline-flex items-center gap-2;
     border: 1px solid #2A3348;
     color: #8A94A8;
+    font-family: 'JetBrains Mono', monospace;
+    letter-spacing: 0.04em;
   }
   .btn-secondary:hover {
     border-color: #3A4A60;
@@ -41,32 +48,45 @@
   }
 
   .card {
-    @apply rounded-3xl shadow-card transition-all duration-300 hover:shadow-card-hover;
     background: #0C1018;
     border: 1px solid #1E2636;
     padding: 1.5rem;
   }
 
   .stat-card {
-    @apply rounded-2xl p-5;
+    @apply p-5;
     background: #06080F;
     border: 1px solid #1E2636;
   }
 
   .section-title {
-    @apply font-poppins font-bold text-3xl md:text-4xl;
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700;
+    font-size: 1.125rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
     color: #E8ECF4;
+  }
+  .section-title::after {
+    content: ' >';
+    color: #4ADE80;
   }
 
   .tag {
-    @apply inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full;
+    @apply inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5;
     background: rgba(30, 38, 54, 0.8);
     color: #8A94A8;
     border: 1px solid #2A3348;
+    font-family: 'JetBrains Mono', monospace;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
   }
 
   .rarity-badge {
-    @apply inline-flex items-center gap-1.5 text-[10px] font-bold px-2 py-0.5 rounded-full;
+    @apply inline-flex items-center gap-1.5 text-[10px] font-bold px-2 py-0.5;
+    font-family: 'JetBrains Mono', monospace;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
   }
 
   .rarity-badge-common    { background: rgba(107,114,128,0.15); color: #6B7280; border: 1px solid rgba(107,114,128,0.3); }
@@ -81,42 +101,23 @@
 
 @layer utilities {
   .text-gradient {
-    background: linear-gradient(135deg, #E8ECF4 0%, #8A94A8 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    color: #4ADE80;
   }
 
   .text-gradient-gold {
-    background: linear-gradient(135deg, #F59E0B 0%, #FACC15 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    color: #F59E0B;
   }
 
   .text-gradient-quantum {
-    background: linear-gradient(135deg, #06B6D4 0%, #8B5CF6 25%, #EF4444 50%, #F59E0B 75%, #22C55E 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    background-size: 200%;
-    animation: prismaticShift 3s linear infinite;
+    color: #E8ECF4;
   }
 }
 
 .glow-dot {
   width: 6px;
   height: 6px;
-  border-radius: 50%;
   background: #4ADE80;
-  box-shadow: 0 0 8px rgba(74, 222, 128, 0.7);
-  animation: pulse-green 2s ease-in-out infinite;
   display: inline-block;
-}
-
-@keyframes pulse-green {
-  0%, 100% { box-shadow: 0 0 6px rgba(74, 222, 128, 0.5); }
-  50% { box-shadow: 0 0 14px rgba(74, 222, 128, 0.9); }
 }
 
 @keyframes prismaticShift {
@@ -125,8 +126,8 @@
 }
 
 @keyframes phiPulse {
-  0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(232,236,244,0); }
-  50% { transform: scale(1.15); box-shadow: 0 0 0 6px rgba(232,236,244,0); }
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.15); }
 }
 
 @keyframes emberRise {
@@ -186,7 +187,6 @@
 
 ::-webkit-scrollbar-thumb {
   background: #2A3348;
-  border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {

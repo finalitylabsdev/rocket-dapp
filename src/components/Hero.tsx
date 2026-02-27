@@ -1,28 +1,65 @@
-import { Zap, ExternalLink, ChevronDown } from 'lucide-react';
-import RocketIllustration from './RocketIllustration';
+import { useEffect, useState } from 'react';
+import { Zap, ExternalLink, ChevronDown, Lock, Clock } from 'lucide-react';
+import { useGameState } from '../context/GameState';
+import { useWallet } from '../hooks/useWallet';
+import PhiSymbol from './brand/PhiSymbol';
+import {
+  EFFECTIVE_DAILY_CLAIM_FLUX,
+  FAUCET_INTERVAL_MS,
+  FAUCET_INTERVAL_SECONDS,
+  WHITELIST_ETH,
+} from '../config/spec';
 
 interface HeroProps {
   onOpenDex: () => void;
 }
 
+function formatCooldown(ms: number): string {
+  const totalSeconds = Math.max(0, Math.ceil(ms / 1000));
+  if (totalSeconds < 3600) {
+    const m = Math.floor(totalSeconds / 60);
+    const s = totalSeconds % 60;
+    return `${m}m ${s}s`;
+  }
+  const h = Math.floor(totalSeconds / 3600);
+  const m = Math.floor((totalSeconds % 3600) / 60);
+  return `${h}h ${m}m`;
+}
+
+function formatClaimWindow(seconds: number): string {
+  if (seconds % 3600 === 0) return `${seconds / 3600}H`;
+  if (seconds % 60 === 0) return `${seconds / 60}M`;
+  return `${seconds}S`;
+}
+
 export default function Hero({ onOpenDex }: HeroProps) {
+  const game = useGameState();
+  const wallet = useWallet();
+  const [now, setNow] = useState(() => Date.now());
+
+  useEffect(() => {
+    if (!game.lastDailyClaim) return;
+    const timer = window.setInterval(() => setNow(Date.now()), 500);
+    return () => window.clearInterval(timer);
+  }, [game.lastDailyClaim]);
+
+  const cooldownRemaining = game.lastDailyClaim
+    ? Math.max(0, FAUCET_INTERVAL_MS - (now - game.lastDailyClaim))
+    : 0;
+  const canClaim = !game.lastDailyClaim || cooldownRemaining === 0;
+
   return (
     <section className="relative min-h-screen flex flex-col overflow-hidden pt-20">
-      <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute top-1/4 left-0 w-[500px] h-[500px] rounded-full bg-white/[0.02] blur-3xl" />
-        <div className="absolute bottom-1/4 right-0 w-[400px] h-[400px] rounded-full bg-white/[0.02] blur-3xl" />
-      </div>
-
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex-1 flex items-center">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center w-full py-16 lg:py-0">
           <div className="space-y-8 animate-slide-up">
             <div className="flex flex-wrap gap-2">
               <span className="tag">
-                <span className="glow-dot" />
+                <div className="glow-dot" />
                 Testnet Live
               </span>
               <span className="tag">
-                <Zap size={11} className="text-white" />
+                <Zap size={11} className="text-dot-green" />
                 Proof-of-Infinity
               </span>
               <span className="tag">
@@ -31,11 +68,11 @@ export default function Hero({ onOpenDex }: HeroProps) {
             </div>
 
             <div className="space-y-4">
-              <h1 className="font-poppins font-black text-4xl sm:text-5xl lg:text-6xl text-white leading-[1.08]">
+              <h1 className="font-mono font-black text-4xl sm:text-5xl lg:text-6xl text-white leading-[1.08] uppercase tracking-tight">
                 Welcome to the{' '}
-                <span className="text-gradient">Entropy Network</span>
+                <span className="text-dot-green">Entropy Network</span>
               </h1>
-              <p className="font-poppins font-semibold text-xl text-zinc-500 tracking-wide">
+              <p className="font-mono font-semibold text-xl text-zinc-500 tracking-widest uppercase">
                 Deterministic. Immutable. Gamified.
               </p>
               <p className="text-zinc-500 text-lg leading-relaxed max-w-lg">
@@ -45,60 +82,103 @@ export default function Hero({ onOpenDex }: HeroProps) {
             </div>
 
             <div className="flex flex-wrap gap-4">
-              <button className="btn-primary text-base px-7 py-3.5">
-                <Zap size={16} fill="black" />
-                Claim Your Flux
-              </button>
+              {!wallet.isConnected ? (
+                <button
+                  onClick={() => void wallet.connect()}
+                  disabled={wallet.isConnecting}
+                  className="btn-primary text-base px-7 py-3.5 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <Zap size={16} />
+                  {wallet.isConnecting ? 'Connecting...' : 'Connect Wallet'}
+                </button>
+              ) : !game.lockedEth ? (
+                <button onClick={game.lockEth} className="btn-primary text-base px-7 py-3.5">
+                  <Lock size={16} />
+                  {`Lock ${WHITELIST_ETH} ETH`}
+                </button>
+              ) : (
+                <button
+                  onClick={() => game.claimDailyFlux()}
+                  disabled={!canClaim}
+                  className="btn-primary text-base px-7 py-3.5 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {canClaim ? (
+                    <>
+                      <Zap size={16} />
+                      {`Claim ${EFFECTIVE_DAILY_CLAIM_FLUX} Flux`}
+                    </>
+                  ) : (
+                    <>
+                      <Clock size={16} />
+                      {formatCooldown(cooldownRemaining)}
+                    </>
+                  )}
+                </button>
+              )}
               <button onClick={onOpenDex} className="btn-secondary text-base px-7 py-3.5">
-                Flux Exchange
+                Entropy Exchange
                 <ExternalLink size={15} />
               </button>
             </div>
 
             <div className="flex items-center gap-6 pt-2">
-              <div className="flex -space-x-2">
-                {['#FFFFFF', '#D4D4D4', '#A3A3A3', '#737373'].map((color, i) => (
-                  <div
-                    key={i}
-                    className="w-8 h-8 rounded-full border-2 border-zinc-900"
-                    style={{ backgroundColor: color, zIndex: 4 - i }}
-                  />
-                ))}
-              </div>
+              {wallet.isConnected && (
+                <>
+                  <div className="flex items-center gap-2">
+                    <PhiSymbol size={18} color="#E8ECF4" />
+                    <p className="font-mono font-bold text-white text-lg">{game.fluxBalance}</p>
+                    <p className="text-xs text-zinc-500 font-mono">FLUX</p>
+                  </div>
+                  <div className="h-8 w-px bg-zinc-800" />
+                </>
+              )}
               <div>
-                <p className="text-sm font-semibold text-white">2,400+ Testers</p>
-                <p className="text-xs text-zinc-500">actively exploring E-Net</p>
+                <p className="text-sm font-mono font-semibold text-white uppercase tracking-wider">Season 1</p>
+                <p className="text-xs text-zinc-500 font-mono">Cosmic Jackpot open</p>
               </div>
-              <div className="h-8 w-px bg-zinc-800" />
-              <div>
-                <p className="text-sm font-semibold text-white">Season 1</p>
-                <p className="text-xs text-zinc-500">Cosmic Jackpot open</p>
-              </div>
+              {game.scores.length > 0 && (
+                <>
+                  <div className="h-8 w-px bg-zinc-800" />
+                  <div>
+                    <p className="text-sm font-mono font-semibold text-white">{Math.max(...game.scores).toLocaleString()}</p>
+                    <p className="text-xs text-zinc-500 font-mono">Best Grav Score</p>
+                  </div>
+                </>
+              )}
             </div>
           </div>
 
           <div className="flex items-center justify-center lg:justify-end animate-fade-in" style={{ animationDelay: '0.3s' }}>
-            <div className="relative w-full max-w-lg h-[480px]">
-              <div className="absolute inset-4 rounded-4xl bg-bg-card border border-border-default shadow-card" />
-              <RocketIllustration />
-
-              <div className="absolute bottom-6 left-6 right-6">
-                <div className="bg-zinc-900/90 backdrop-blur-sm rounded-2xl border border-border-default p-4 shadow-card">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-xs text-zinc-500 font-medium">Current Block</p>
-                      <p className="font-poppins font-bold text-white text-lg">#1,048,576</p>
-                    </div>
-                    <div className="text-center">
-                      <p className="text-xs text-zinc-500 font-medium">Block Time</p>
-                      <p className="font-poppins font-bold text-white text-lg">2.1s</p>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-xs text-zinc-500 font-medium">Flux Rate</p>
-                      <p className="font-poppins font-bold text-white text-lg">1 / day</p>
-                    </div>
+            <div className="relative w-full max-w-lg">
+              <div className="bg-bg-card border border-border-default p-8 space-y-6">
+                <div className="text-center">
+                  <div className="w-16 h-16 bg-zinc-800 border border-border-default flex items-center justify-center mx-auto mb-4">
+                    <Zap size={28} className="text-dot-green" />
+                  </div>
+                  <p className="font-mono font-bold text-white text-lg uppercase tracking-wider">Entropy Gate</p>
+                  <p className="text-sm text-zinc-500 mt-1">Lock ETH to begin. Claim Flux daily.</p>
+                </div>
+                <div className="grid grid-cols-3 gap-3">
+                  <div className="bg-zinc-900 p-3 text-center border border-border-subtle">
+                    <p className="font-mono font-bold text-white text-lg">{WHITELIST_ETH}</p>
+                    <p className="text-[10px] text-zinc-500 mt-0.5 font-mono">ETH TO LOCK</p>
+                  </div>
+                  <div className="bg-zinc-900 p-3 text-center border border-border-subtle">
+                    <p className="font-mono font-bold text-white text-lg">{EFFECTIVE_DAILY_CLAIM_FLUX}</p>
+                    <p className="text-[10px] text-zinc-500 mt-0.5 font-mono">FLUX / DAY</p>
+                  </div>
+                  <div className="bg-zinc-900 p-3 text-center border border-border-subtle">
+                    <p className="font-mono font-bold text-white text-lg">{formatClaimWindow(FAUCET_INTERVAL_SECONDS)}</p>
+                    <p className="text-[10px] text-zinc-500 mt-0.5 font-mono">CLAIM WINDOW</p>
                   </div>
                 </div>
+                {game.lockedEth && (
+                  <div className="flex items-center justify-center gap-2 p-3 border" style={{ background: 'rgba(74,222,128,0.06)', borderColor: 'rgba(74,222,128,0.2)' }}>
+                    <Lock size={14} style={{ color: '#4ADE80' }} />
+                    <span className="text-sm font-mono font-bold" style={{ color: '#4ADE80' }}>ETH LOCKED</span>
+                    <span className="text-xs text-zinc-500 ml-auto font-mono">{game.fluxBalance} Flux available</span>
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -108,9 +188,9 @@ export default function Hero({ onOpenDex }: HeroProps) {
       <div className="relative flex justify-center pb-8">
         <a
           href="#status"
-          className="flex flex-col items-center gap-1 text-zinc-600 hover:text-zinc-400 transition-colors animate-bounce-gentle"
+          className="flex flex-col items-center gap-1 text-zinc-600 hover:text-zinc-400 transition-colors"
         >
-          <span className="text-xs font-medium">Explore</span>
+          <span className="text-xs font-mono font-medium uppercase tracking-wider">Explore</span>
           <ChevronDown size={18} />
         </a>
       </div>

@@ -1,0 +1,64 @@
+name: Notify Telegram On Development Push
+
+on:
+  push:
+    branches:
+      - development
+
+jobs:
+  notify:
+    name: Send Telegram Notification
+    runs-on: ubuntu-latest
+    environment: development
+
+    steps:
+      - name: Validate required token
+        env:
+          TG_TOKEN: ${{ secrets.TG_TOKEN }}
+        run: |
+          if [ -z "${TG_TOKEN}" ]; then
+            echo "Missing development environment secret: TG_TOKEN"
+            exit 1
+          fi
+
+      - name: Resolve chat and send message
+        env:
+          TG_TOKEN: ${{ secrets.TG_TOKEN }}
+          TG_CHAT_ID: ${{ vars.TG_CHAT_ID }}
+        run: |
+          set -euo pipefail
+
+          if ! command -v jq >/dev/null 2>&1; then
+            echo "jq is required but not available on runner."
+            exit 1
+          fi
+
+          CHAT_ID="${TG_CHAT_ID:-}"
+
+          if [ -z "${CHAT_ID}" ]; then
+            echo "TG_CHAT_ID not set; trying latest Telegram updates."
+            UPDATES_JSON="$(curl -fsSL "https://api.telegram.org/bot${TG_TOKEN}/getUpdates")"
+            CHAT_ID="$(printf '%s' "${UPDATES_JSON}" | jq -r '.result
+              | reverse
+              | map(
+                  .message.chat.id
+                  // .edited_message.chat.id
+                  // .channel_post.chat.id
+                  // .edited_channel_post.chat.id
+                  // .my_chat_member.chat.id
+                  // .chat_member.chat.id
+                  // empty
+                )
+              | .[0] // ""')"
+          fi
+
+          if [ -z "${CHAT_ID}" ]; then
+            echo "Unable to resolve a Telegram chat id."
+            echo "Set development environment secret TG_CHAT_ID or send your bot a message first."
+            exit 1
+          fi
+
+          curl -fsS -X POST "https://api.telegram.org/bot${TG_TOKEN}/sendMessage" \
+            -d "chat_id=${CHAT_ID}" \
+            --data-urlencode "text=🟢 new version deployed" \
+            -d "disable_web_page_preview=true"

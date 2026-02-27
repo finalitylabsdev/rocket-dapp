@@ -7,11 +7,11 @@ interface EquippedParts {
   body: boolean;
   wings: boolean;
   booster: boolean;
-  noseCone: boolean;
-  heatShield: boolean;
-  gyroscope: boolean;
-  solarPanels: boolean;
-  landingStruts: boolean;
+  noseCone?: boolean;
+  heatShield?: boolean;
+  gyroscope?: boolean;
+  solarPanels?: boolean;
+  landingStruts?: boolean;
 }
 
 interface RocketPreviewProps {
