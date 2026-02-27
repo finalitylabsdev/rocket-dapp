@@ -19,50 +19,156 @@ The goal is to launch with a database-authoritative gameplay system that is expl
 
 ## Current Repo Status
 
-### Already Implemented
+### Implemented
 
-- Wallet auth and message-signature flow
-- ETH lock submission and verification pipeline
-- ETH lock database foundation
-- FLUX ledger and balance foundation
-- Canonical Star Vault catalog, inventory RPCs, and atomic box-open flow in Supabase
-- Canonical Nebula Bids submissions, active-round reads, bidding, and scheduler-driven settlement in Supabase
-- App 3 split UI for Star Vault, Nebula Bids, and shared inventory
-- Realtime-backed inventory and auction refresh wiring
-- Basic multi-page product shell
-- Core App 3 screen structure and navigation
-- Basic brand and visual primitives
+- [x] Wallet auth and SIWE-style message-signature flow
+- [x] ETH lock submission and verification pipeline
+- [x] ETH lock database foundation and verification Edge Function
+- [x] FLUX ledger and balance foundation
+- [x] Canonical Star Vault catalog tables in Supabase
+- [x] Canonical Star Vault inventory table and `open_mystery_box()` RPC
+- [x] Canonical Nebula Bids schema, bid/submission RPCs, and round lifecycle RPCs
+- [x] `auction-tick` Edge Function exists as the scheduler primitive
+- [x] App 3 split UI for Star Vault, Nebula Bids, and shared inventory
+- [x] Realtime-backed inventory and auction refresh wiring
+- [x] Basic multi-page product shell and page routing
+- [x] Basic brand and visual primitives
 
-### Partially Implemented, Must Harden
+### Partial / Must Harden
 
-- `GameState` still mixes real server balance with local gameplay authority
-- Inventory ownership is server-backed, but equipped state and other downstream gameplay state still have local-only persistence
-- Star Vault still has client fallback catalog data when Supabase is unavailable, so launch hardening must treat DB reads as the normal path and fallback only as a compatibility mode
-- Shared UI shell exists for App 3, but not yet as the persistent cross-app shell required by scope
-- Asset systems are still placeholder-heavy
-- Rocket Lab and part typing still carry legacy model assumptions and compatibility shims
-- Auction operations still lack launch-grade monitoring, admin tooling, and rollout controls
+- [x] `GameState` uses real server-backed FLUX and inventory snapshots
+- [ ] Remove local authority from `GameState` for equipped state, levels, and scores
+- [ ] Remove or explicitly demote Star Vault fallback catalog/config behavior from the normal launch path
+- [ ] Replace page-local nav bars with one persistent cross-app shell
+- [ ] Add visible ETH lock status / gating UX instead of keeping it only in libs
+- [ ] Replace placeholder-heavy box/part visual logic with metadata-driven rendering
+- [ ] Migrate Rocket Lab away from the legacy 5-part local model
+- [ ] Add auction operator visibility, diagnostics, and recovery controls
+- [ ] Add launch docs/runbook for scheduler deployment and cron configuration
 
-### Still Missing for Launch
+### Still Missing For Launch
 
-- The persistent cross-app shell outside the current App 3 surface
-- The canonical asset and metadata pipeline for launch visuals
-- App 4 compatibility work for the new 8-part inventory model
-- Ops controls, feature flags, and launch rehearsal tooling
-- Full DB-versus-chain reconciliation workflows for later authority cutover
+- [ ] Persistent cross-app shell outside the current page-local App 3 surface
+- [ ] Canonical asset and metadata pipeline for launch visuals
+- [ ] Real App 4 compatibility for the canonical 8-part inventory model
+- [ ] Ops controls, feature flags, and launch rehearsal tooling
+- [ ] Full DB-versus-chain reconciliation workflows for later authority cutover
+- [ ] Production deployment/scheduling of `auction-tick`
+- [ ] Admin / reconciliation views for balances, auctions, and wallet eligibility
 
 ## Stage Progress Snapshot
 
-- Stage 0: Complete enough for implementation. The repo now clearly treats Supabase as the launch authority for App 3.
-- Stage 1: In progress. Wallet auth and ETH lock exist, but reconnect, session drift, and support-grade audit review still need launch hardening.
-- Stage 2: Core path landed. The canonical Star Vault and auction schema now exists in the new catalog, inventory, and auction migrations.
-- Stage 3: Core App 3 ledger flows landed. FLUX now powers box opening and bidding, but the remaining work is idempotency review, reconciliation, and operator visibility.
-- Stage 4: Functional. Star Vault is server-backed, but fallback catalog behavior and failure-mode hardening still need review before launch.
-- Stage 5: Functional. Nebula Bids can run through real submissions, bids, and scheduler ticks, but it still needs live-service hardening.
-- Stage 6: Partially complete. App 3 now has the Star Vault/Nebula split and a shared inventory surface, but not the full product shell.
-- Stage 7: Not started in any meaningful launch-ready form beyond placeholders and compatibility data.
-- Stage 8: Not started beyond type-level prep.
-- Stage 9: Not started.
+### Stage 0: Freeze the Hybrid Boundary
+
+- [x] Supabase is the effective gameplay authority for App 3 at launch
+- [x] The repo is aligned to DB-authoritative FLUX, inventory, and auctions
+- [ ] Write the authority matrix explicitly into launch docs so the boundary is operational, not implied
+
+Status: Functionally complete, but the authority matrix should be made explicit.
+
+### Stage 1: Harden Identity, Wallet Proof, and ETH Lock
+
+- [x] Wallet auth and session restoration exist
+- [x] ETH lock verification flow exists
+- [x] ETH lock verification has backend hardening for cooldown / duplicate retry behavior
+- [ ] Add launch-grade reconnect, wallet-switch, and invalid-session UX review
+- [ ] Expose ETH lock status and gating clearly in the UI
+- [ ] Confirm support-grade audit and dispute review workflow
+
+Status: In progress.
+
+### Stage 2: Build the Canonical DB Model
+
+- [x] Catalog/config tables exist for rarity tiers, rocket sections, part variants, box tiers, and drop weights
+- [x] Canonical state tables exist for inventory and auctions
+- [x] Stable DB-backed IDs exist for current App 3 gameplay
+- [ ] Add or document any still-required chain-linkage / reconciliation fields for later cutover
+- [ ] Document replay/reconstruction expectations clearly if event-history parity is still required
+
+Status: Core path landed.
+
+### Stage 3: Promote FLUX into the Full Gameplay Ledger
+
+- [x] Star Vault box opening uses ledger-backed FLUX mutation
+- [x] Nebula Bids bidding uses ledger-backed FLUX mutation
+- [x] Faucet claims use ledger-backed FLUX mutation
+- [ ] Remove remaining implicit gameplay authority from local UI state
+- [ ] Decide whether Rocket Lab is launch-authoritative or explicitly isolate it from the launch economy
+- [ ] Add stronger idempotency / reconciliation review for all balance-mutating flows
+- [ ] Add operator visibility for ledger-related support and reconciliation
+
+Status: Core ledger flows landed, but not fully hardened.
+
+### Stage 4: Replace the Star Vault Prototype with Server Authority
+
+- [x] Box tiers load from the database
+- [x] Box opening uses server RPCs
+- [x] Part generation is server-side
+- [x] Inventory is server-backed
+- [ ] Remove fallback catalog/config assumptions from the normal production path
+- [ ] Harden failure-mode UX around partial outages and degraded reads
+- [ ] Replace placeholder rendering with canonical metadata-driven presentation
+
+Status: Functional, but not fully launch-hardened.
+
+### Stage 5: Build Nebula Bids End-to-End
+
+- [x] Submission window and eligibility checks exist
+- [x] Candidate selection and round lifecycle RPCs exist
+- [x] Bid placement, escrow, refund, and settlement paths exist
+- [x] Client UI supports submissions, bidding, active round reads, and history reads
+- [x] Scheduler primitive exists via `auction-tick`
+- [ ] Deploy `auction-tick` with required secrets
+- [ ] Configure production cron / scheduler
+- [ ] Add launch-grade operator controls and failure visibility
+- [ ] Add reconciliation/admin views for support
+
+Status: Functional, but live-service hardening remains.
+
+### Stage 6: Deliver the Shared Shell and App 3 UX
+
+- [x] App 3 is split into Star Vault and Nebula Bids
+- [x] Shared inventory surface exists
+- [x] Core loading / retry / empty states exist in App 3
+- [ ] Build one persistent cross-app navigation shell and wallet HUD
+- [ ] Remove per-page duplicated nav chrome
+- [ ] Add clearer next-step / four-app journey cues
+- [ ] Add lightweight onboarding path
+- [ ] Replace placeholder docs links / dead-end navigation
+
+Status: Partially complete.
+
+### Stage 7: Establish the Canonical Asset and Metadata Pipeline
+
+- [x] Canonical rarity / section / part / box data exists at the data-model level
+- [ ] Replace placeholder box visuals with launch-ready assets
+- [ ] Define metadata-backed rendering for parts and boxes
+- [ ] Make UI rendering depend on metadata references instead of hardcoded visual branching
+- [ ] Keep fallback visuals only as explicit compatibility behavior if needed
+
+Status: Not started in a launch-ready form.
+
+### Stage 8: Add App 4 Compatibility Only
+
+- [x] Canonical 8-section inventory model exists in App 3
+- [x] Type-level groundwork exists for canonical part data
+- [ ] Make Rocket Lab consume canonical inventory or an explicit adapter
+- [ ] Remove the legacy 5-part local-only model as the effective downstream consumer
+- [ ] Eliminate model drift between App 3 rewards and downstream usage
+
+Status: Partial compatibility prep only.
+
+### Stage 9: Add Ops Controls and Rehearse the Launch
+
+- [x] Backend scheduler primitive exists (`auction-tick`)
+- [ ] Add scheduler monitoring and failure visibility
+- [ ] Add support and audit tooling
+- [ ] Add feature flags for staged rollout
+- [ ] Add admin/reconciliation views for balances, auctions, and wallet eligibility
+- [ ] Write a launch runbook and rehearsal checklist
+- [ ] Run internal rehearsal, closed beta, and public launch gates
+
+Status: Early partial on backend primitives only.
 
 ## Launch Rules
 
