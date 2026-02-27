@@ -1,18 +1,19 @@
 import BoxCard from './BoxCard';
 import { useBoxTiers } from '../../hooks/useBoxTiers';
 import { useRarityConfig } from '../../hooks/useRarityConfig';
+import { APP3_INSET_STYLE, APP3_PANEL_STYLE } from './ui';
 
 function LoadingCard() {
   return (
-    <div className="p-5 animate-pulse" style={{ background: '#06080F', border: '1px solid #1E2636' }}>
-      <div className="h-4 w-20 mb-3" style={{ background: '#111826' }} />
-      <div className="h-6 w-36 mb-2" style={{ background: '#111826' }} />
-      <div className="h-3 w-28 mb-6" style={{ background: '#111826' }} />
-      <div className="h-28 mb-6" style={{ background: '#0C1018' }} />
+    <div className="p-5 animate-pulse" style={APP3_PANEL_STYLE}>
+      <div className="h-4 w-20 mb-3" style={{ background: 'var(--color-bg-card-hover)' }} />
+      <div className="h-6 w-36 mb-2" style={{ background: 'var(--color-bg-card-hover)' }} />
+      <div className="h-3 w-28 mb-6" style={{ background: 'var(--color-bg-card-hover)' }} />
+      <div className="h-28 mb-6" style={APP3_INSET_STYLE} />
       <div className="space-y-2">
-        <div className="h-3" style={{ background: '#111826' }} />
-        <div className="h-3" style={{ background: '#111826' }} />
-        <div className="h-3" style={{ background: '#111826' }} />
+        <div className="h-3" style={{ background: 'var(--color-bg-card-hover)' }} />
+        <div className="h-3" style={{ background: 'var(--color-bg-card-hover)' }} />
+        <div className="h-3" style={{ background: 'var(--color-bg-card-hover)' }} />
       </div>
     </div>
   );
@@ -29,7 +30,7 @@ export default function VaultTab() {
         <div>
           <span className="tag mb-2 inline-flex">Star Vault Boxes</span>
           <h2 className="section-title">Open a Star Vault Box</h2>
-          <p className="text-sm mt-2 max-w-xl font-mono" style={{ color: '#4A5468' }}>
+          <p className="text-sm mt-2 max-w-xl font-mono text-text-muted">
             Server-generated drops, database-driven rarity visuals, and full inventory snapshots after every open.
           </p>
         </div>

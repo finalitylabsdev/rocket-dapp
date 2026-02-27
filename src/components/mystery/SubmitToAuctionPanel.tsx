@@ -3,6 +3,7 @@ import { Upload } from 'lucide-react';
 import RarityBadge from '../brand/RarityBadge';
 import type { InventoryPart } from '../../types/domain';
 import { AUCTION_MIN_RARITY_TIER } from '../../config/spec';
+import { APP3_CONTROL_STYLE, APP3_INSET_STYLE, APP3_PANEL_STYLE, APP3_TEXT_MUTED_STYLE, APP3_TEXT_PRIMARY_STYLE, APP3_TEXT_SECONDARY_STYLE } from './ui';
 
 interface SubmitToAuctionPanelProps {
   inventory: InventoryPart[];
@@ -42,7 +43,7 @@ export default function SubmitToAuctionPanel({
   const selectedPart = eligibleParts.find((part) => part.id === selectedPartId) ?? null;
 
   return (
-    <div className="p-4" style={{ background: '#06080F', border: '1px solid #1E2636' }}>
+    <div className="p-4" style={APP3_PANEL_STYLE}>
       <div className="flex items-center gap-2 mb-3">
         <span
           className="h-9 w-9 flex items-center justify-center"
@@ -51,17 +52,17 @@ export default function SubmitToAuctionPanel({
           <Upload size={14} />
         </span>
         <div>
-          <p className="font-mono font-black text-sm uppercase tracking-wider" style={{ color: '#E8ECF4' }}>
+          <p className="font-mono font-black text-sm uppercase tracking-wider" style={APP3_TEXT_PRIMARY_STYLE}>
             Submit to Auction
           </p>
-          <p className="text-[10px] mt-1 font-mono uppercase tracking-wider" style={{ color: '#8A94A8' }}>
+          <p className="text-[10px] mt-1 font-mono uppercase tracking-wider" style={APP3_TEXT_SECONDARY_STYLE}>
             Rare and above only
           </p>
         </div>
       </div>
 
       {eligibleParts.length === 0 ? (
-        <p className="text-sm font-mono" style={{ color: '#6B7280' }}>
+        <p className="text-sm font-mono" style={APP3_TEXT_MUTED_STYLE}>
           No eligible parts right now. Open more boxes or wait for a higher-rarity drop.
         </p>
       ) : (
@@ -70,7 +71,7 @@ export default function SubmitToAuctionPanel({
             value={selectedPartId}
             onChange={(event) => setSelectedPartId(event.target.value)}
             className="w-full px-3 py-3 text-xs font-mono uppercase tracking-wider"
-            style={{ background: '#0C1018', border: '1px solid #1E2636', color: '#E8ECF4' }}
+            style={APP3_CONTROL_STYLE}
           >
             {eligibleParts.map((part) => (
               <option key={part.id} value={part.id}>
@@ -80,13 +81,13 @@ export default function SubmitToAuctionPanel({
           </select>
 
           {selectedPart && (
-            <div className="mt-3 p-3" style={{ background: '#0C1018', border: '1px solid #1E2636' }}>
+            <div className="mt-3 p-3" style={APP3_INSET_STYLE}>
               <div className="flex items-center justify-between gap-2">
                 <div>
-                  <p className="font-mono font-semibold text-sm" style={{ color: '#E8ECF4' }}>
+                  <p className="font-mono font-semibold text-sm" style={APP3_TEXT_PRIMARY_STYLE}>
                     {selectedPart.name}
                   </p>
-                  <p className="text-[10px] mt-1 font-mono uppercase tracking-wider" style={{ color: '#8A94A8' }}>
+                  <p className="text-[10px] mt-1 font-mono uppercase tracking-wider" style={APP3_TEXT_SECONDARY_STYLE}>
                     {selectedPart.sectionName}
                   </p>
                 </div>

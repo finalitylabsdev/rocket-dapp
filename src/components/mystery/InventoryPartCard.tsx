@@ -3,14 +3,19 @@ import RarityBadge from '../brand/RarityBadge';
 import PhiSymbol from '../brand/PhiSymbol';
 import { AUCTION_MIN_RARITY_TIER } from '../../config/spec';
 import type { InventoryPart } from '../../types/domain';
+import {
+  APP3_INSET_STYLE,
+  APP3_PANEL_STYLE,
+  APP3_SECONDARY_BUTTON_STYLE,
+  APP3_TEXT_MUTED_STYLE,
+  APP3_TEXT_PRIMARY_STYLE,
+  APP3_TEXT_SECONDARY_STYLE,
+  formatFluxValue,
+} from './ui';
 
 interface InventoryPartCardProps {
   part: InventoryPart;
   onSendToAuction?: (part: InventoryPart) => void;
-}
-
-function formatFluxValue(value: number): string {
-  return value.toFixed(2).replace(/\.00$/, '').replace(/(\.\d)0$/, '$1');
 }
 
 export default function InventoryPartCard({ part, onSendToAuction }: InventoryPartCardProps) {
@@ -18,13 +23,13 @@ export default function InventoryPartCard({ part, onSendToAuction }: InventoryPa
   const canSendToAuction = Boolean(onSendToAuction) && !part.isLocked && part.rarityTierId >= AUCTION_MIN_RARITY_TIER;
 
   return (
-    <div className="p-4" style={{ background: '#06080F', border: '1px solid #1E2636' }}>
+    <div className="p-4" style={APP3_PANEL_STYLE}>
       <div className="flex items-start justify-between gap-3">
         <div>
-          <p className="font-mono font-black text-sm uppercase tracking-wider" style={{ color: '#E8ECF4' }}>
+          <p className="font-mono font-black text-sm uppercase tracking-wider" style={APP3_TEXT_PRIMARY_STYLE}>
             {part.name}
           </p>
-          <p className="text-[10px] mt-1 font-mono uppercase tracking-wider" style={{ color: '#4A5468' }}>
+          <p className="text-[10px] mt-1 font-mono uppercase tracking-wider" style={APP3_TEXT_MUTED_STYLE}>
             {part.sectionName}
           </p>
         </div>
@@ -35,10 +40,10 @@ export default function InventoryPartCard({ part, onSendToAuction }: InventoryPa
         {part.attributes.map((value, index) => (
           <div key={part.attributeNames[index]}>
             <div className="flex items-center justify-between text-[10px] font-mono uppercase tracking-wider mb-1">
-              <span style={{ color: '#8A94A8' }}>{part.attributeNames[index]}</span>
-              <span style={{ color: '#E8ECF4' }}>{value}</span>
+              <span style={APP3_TEXT_SECONDARY_STYLE}>{part.attributeNames[index]}</span>
+              <span style={APP3_TEXT_PRIMARY_STYLE}>{value}</span>
             </div>
-            <div className="h-1.5 overflow-hidden" style={{ background: '#0C1018', border: '1px solid #1E2636' }}>
+            <div className="h-1.5 overflow-hidden" style={APP3_INSET_STYLE}>
               <div
                 className="h-full"
                 style={{
@@ -52,15 +57,15 @@ export default function InventoryPartCard({ part, onSendToAuction }: InventoryPa
       </div>
 
       <div className="mt-3 flex items-center justify-between text-xs font-mono">
-        <span style={{ color: '#8A94A8' }}>Part Value</span>
-        <span className="flex items-center gap-1" style={{ color: '#E8ECF4' }}>
+        <span style={APP3_TEXT_SECONDARY_STYLE}>Part Value</span>
+        <span className="flex items-center gap-1" style={APP3_TEXT_PRIMARY_STYLE}>
           <PhiSymbol size={10} color="currentColor" />
           {formatFluxValue(part.partValue)}
         </span>
       </div>
 
       {showMeta && (
-        <div className="mt-3 p-2 text-[10px] font-mono uppercase tracking-wider" style={{ background: '#0C1018', color: '#6B7280' }}>
+        <div className="mt-3 p-2 text-[10px] font-mono uppercase tracking-wider" style={{ ...APP3_INSET_STYLE, ...APP3_TEXT_MUTED_STYLE }}>
           <div className="flex items-center justify-between">
             <span>Status</span>
             <span>{part.isLocked ? 'Locked' : 'Available'}</span>
@@ -76,7 +81,7 @@ export default function InventoryPartCard({ part, onSendToAuction }: InventoryPa
         <button
           onClick={() => setShowMeta((current) => !current)}
           className="py-2 text-[10px] font-mono font-semibold uppercase tracking-wider"
-          style={{ background: '#0C1018', border: '1px solid #1E2636', color: '#8A94A8' }}
+          style={APP3_SECONDARY_BUTTON_STYLE}
         >
           {showMeta ? 'Hide Stats' : 'View Stats'}
         </button>

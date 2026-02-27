@@ -253,16 +253,16 @@ export default function Hero({ onOpenDex }: HeroProps) {
             </div>
 
             <div className="space-y-4">
-              <h1 className="font-mono font-black text-4xl sm:text-5xl lg:text-6xl text-white leading-[1.08] uppercase tracking-tight">
+              <h1 className="font-mono font-black text-4xl sm:text-5xl lg:text-6xl text-text-primary leading-[1.08] uppercase tracking-tight">
                 Welcome to the{' '}
                 <span className="text-dot-green">Entropy Network</span>
               </h1>
-              <p className="font-mono font-semibold text-xl text-zinc-500 tracking-widest uppercase">
+              <p className="font-mono font-semibold text-xl text-text-muted tracking-widest uppercase">
                 Deterministic. Immutable. Gamified.
               </p>
-              <p className="text-zinc-500 text-lg leading-relaxed max-w-lg">
+              <p className="text-text-muted text-lg leading-relaxed max-w-lg">
                 Lock ETH. Claim Flux daily. Trade, build rockets, and{' '}
-                <span className="font-semibold text-zinc-300">win real ETH rewards.</span>
+                <span className="font-semibold text-text-primary">win real ETH rewards.</span>
               </p>
             </div>
 
@@ -334,23 +334,23 @@ export default function Hero({ onOpenDex }: HeroProps) {
               {wallet.isConnected && (
                 <>
                   <div className="flex items-center gap-2">
-                    <PhiSymbol size={18} color="#E8ECF4" />
-                    <p className="font-mono font-bold text-white text-lg">{game.fluxBalance}</p>
-                    <p className="text-xs text-zinc-500 font-mono">FLUX</p>
+                    <PhiSymbol size={18} color="var(--color-text-primary)" />
+                    <p className="font-mono font-bold text-text-primary text-lg">{game.fluxBalance}</p>
+                    <p className="text-xs text-text-muted font-mono">FLUX</p>
                   </div>
-                  <div className="h-8 w-px bg-zinc-800" />
+                  <div className="h-8 w-px bg-border-subtle" />
                 </>
               )}
               <div>
-                <p className="text-sm font-mono font-semibold text-white uppercase tracking-wider">Season 1</p>
-                <p className="text-xs text-zinc-500 font-mono">Cosmic Jackpot open</p>
+                <p className="text-sm font-mono font-semibold text-text-primary uppercase tracking-wider">Season 1</p>
+                <p className="text-xs text-text-muted font-mono">Cosmic Jackpot open</p>
               </div>
               {game.scores.length > 0 && (
                 <>
-                  <div className="h-8 w-px bg-zinc-800" />
+                  <div className="h-8 w-px bg-border-subtle" />
                   <div>
-                    <p className="text-sm font-mono font-semibold text-white">{Math.max(...game.scores).toLocaleString()}</p>
-                    <p className="text-xs text-zinc-500 font-mono">Best Grav Score</p>
+                    <p className="text-sm font-mono font-semibold text-text-primary">{Math.max(...game.scores).toLocaleString()}</p>
+                    <p className="text-xs text-text-muted font-mono">Best Grav Score</p>
                   </div>
                 </>
               )}
@@ -361,31 +361,31 @@ export default function Hero({ onOpenDex }: HeroProps) {
             <div className="relative w-full max-w-lg">
               <div className="bg-bg-card border border-border-default p-8 space-y-6">
                 <div className="text-center">
-                  <div className="w-16 h-16 bg-zinc-800 border border-border-default flex items-center justify-center mx-auto mb-4">
+                  <div className="w-16 h-16 bg-bg-inset border border-border-default flex items-center justify-center mx-auto mb-4">
                     <Zap size={28} className="text-dot-green" />
                   </div>
-                  <p className="font-mono font-bold text-white text-lg uppercase tracking-wider">Entropy Gate</p>
-                  <p className="text-sm text-zinc-500 mt-1">Lock ETH to begin. Claim Flux daily.</p>
+                  <p className="font-mono font-bold text-text-primary text-lg uppercase tracking-wider">Entropy Gate</p>
+                  <p className="text-sm text-text-muted mt-1">Lock ETH to begin. Claim Flux daily.</p>
                 </div>
                 <div className="grid grid-cols-3 gap-3">
-                  <div className="bg-zinc-900 p-3 text-center border border-border-subtle">
-                    <p className="font-mono font-bold text-white text-lg">{ethLock.lockAmountLabel}</p>
-                    <p className="text-[10px] text-zinc-500 mt-0.5 font-mono">ETH TO LOCK</p>
+                  <div className="bg-bg-inset p-3 text-center border border-border-subtle">
+                    <p className="font-mono font-bold text-text-primary text-lg">{ethLock.lockAmountLabel}</p>
+                    <p className="text-[10px] text-text-muted mt-0.5 font-mono">ETH TO LOCK</p>
                   </div>
-                  <div className="bg-zinc-900 p-3 text-center border border-border-subtle">
-                    <p className="font-mono font-bold text-white text-lg">{EFFECTIVE_DAILY_CLAIM_FLUX}</p>
-                    <p className="text-[10px] text-zinc-500 mt-0.5 font-mono">FLUX / DAY</p>
+                  <div className="bg-bg-inset p-3 text-center border border-border-subtle">
+                    <p className="font-mono font-bold text-text-primary text-lg">{EFFECTIVE_DAILY_CLAIM_FLUX}</p>
+                    <p className="text-[10px] text-text-muted mt-0.5 font-mono">FLUX / DAY</p>
                   </div>
-                  <div className="bg-zinc-900 p-3 text-center border border-border-subtle">
-                    <p className="font-mono font-bold text-white text-lg">{formatClaimWindow(FAUCET_INTERVAL_SECONDS)}</p>
-                    <p className="text-[10px] text-zinc-500 mt-0.5 font-mono">CLAIM WINDOW</p>
+                  <div className="bg-bg-inset p-3 text-center border border-border-subtle">
+                    <p className="font-mono font-bold text-text-primary text-lg">{formatClaimWindow(FAUCET_INTERVAL_SECONDS)}</p>
+                    <p className="text-[10px] text-text-muted mt-0.5 font-mono">CLAIM WINDOW</p>
                   </div>
                 </div>
                 {ethLock.isLocked ? (
                   <div className="flex items-center justify-center gap-2 p-3 border" style={{ background: 'rgba(74,222,128,0.06)', borderColor: 'rgba(74,222,128,0.2)' }}>
                     <Lock size={14} style={{ color: '#4ADE80' }} />
                     <span className="text-sm font-mono font-bold" style={{ color: '#4ADE80' }}>ETH LOCKED</span>
-                    <span className="text-xs text-zinc-500 ml-auto font-mono">{game.fluxBalance} Flux available</span>
+                    <span className="text-xs text-text-muted ml-auto font-mono">{game.fluxBalance} Flux available</span>
                   </div>
                 ) : (
                   <div
@@ -420,7 +420,7 @@ export default function Hero({ onOpenDex }: HeroProps) {
                               : `Submit ${ethLock.lockAmountLabel} ETH`}
                       </button>
                     ) : (
-                      <span className="text-xs text-zinc-500 ml-auto font-mono">Connect wallet to continue</span>
+                      <span className="text-xs text-text-muted ml-auto font-mono">Connect wallet to continue</span>
                     )}
                   </div>
                 )}
@@ -433,7 +433,7 @@ export default function Hero({ onOpenDex }: HeroProps) {
       <div className="relative flex justify-center pb-8">
         <a
           href="#status"
-          className="flex flex-col items-center gap-1 text-zinc-600 hover:text-zinc-400 transition-colors"
+          className="flex flex-col items-center gap-1 text-text-muted hover:text-text-secondary transition-colors"
         >
           <span className="text-xs font-mono font-medium uppercase tracking-wider">Explore</span>
           <ChevronDown size={18} />
