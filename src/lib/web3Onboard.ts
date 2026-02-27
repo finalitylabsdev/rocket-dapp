@@ -14,6 +14,7 @@ const mainnetRpcUrl = import.meta.env.VITE_MAINNET_RPC_URL?.trim() || 'https://e
 
 const BACKPACK_LABEL = 'Backpack';
 const BACKPACK_DOWNLOAD_URL = 'https://backpack.app/download';
+const BACKPACK_INJECTED_NAMESPACE = 'backpack' as InjectedNameSpace;
 const curatedWalletOrder = [
   ProviderLabel.MetaMask,
   ProviderLabel.Trust,
@@ -170,7 +171,9 @@ function getBackpackProvider(): Eip1193Provider | null {
 
 const backpackWallet = {
   label: BACKPACK_LABEL,
-  injectedNamespace: InjectedNameSpace.Ethereum,
+  // Use the dedicated Backpack namespace so availability does not depend on
+  // whichever wallet currently owns window.ethereum in multi-wallet browsers.
+  injectedNamespace: BACKPACK_INJECTED_NAMESPACE,
   checkProviderIdentity: ({ provider }: { provider: unknown; device: Device }) => {
     return isBackpackHost(provider);
   },
