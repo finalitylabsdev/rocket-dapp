@@ -26,7 +26,6 @@ export const DEX_TRADING_ENABLED =
 const defaultFaucetIntervalSeconds = DEV_FAST_ECONOMY ? 5 : 86_400;
 const defaultWhitelistBonusFlux = DEV_FAST_ECONOMY ? 300 : 0;
 const defaultDailyClaimFlux = DEV_FAST_ECONOMY ? 20 : 1;
-const defaultBoxPriceMultiplier = DEV_FAST_ECONOMY ? 0.4 : 1;
 const defaultWhitelistEth = 0.001;
 
 export const WHITELIST_ETH =
@@ -40,11 +39,8 @@ export const WHITELIST_BONUS_FLUX =
 export const EFFECTIVE_DAILY_CLAIM_FLUX =
   readPositiveNumberEnv('VITE_SPEC_DAILY_CLAIM_FLUX') ?? defaultDailyClaimFlux;
 
-const BOX_PRICE_MULTIPLIER =
-  readPositiveNumberEnv('VITE_SPEC_BOX_PRICE_MULTIPLIER') ?? defaultBoxPriceMultiplier;
-const scaleBoxPrice = (basePrice: number) => Math.max(1, Math.round(basePrice * BOX_PRICE_MULTIPLIER));
-
 export const AUCTION_ROUND_SECONDS = 14_400;
+export const AUCTION_SUBMISSION_WINDOW_SECONDS = 1_800;
 export const AUCTION_MIN_INCREMENT_BPS = 500;
 export const AUCTION_MIN_RARITY_TIER = 3;
 
@@ -67,12 +63,12 @@ export const RARITY_MULTIPLIER: Record<RarityTier, number> = {
 };
 
 export const RARITY_BOX_PRICE_FLUX: Record<RarityTier, number> = {
-  Common: scaleBoxPrice(10),
-  Uncommon: scaleBoxPrice(25),
-  Rare: scaleBoxPrice(50),
-  Epic: scaleBoxPrice(100),
-  Legendary: scaleBoxPrice(200),
-  Mythic: scaleBoxPrice(350),
-  Celestial: scaleBoxPrice(500),
-  Quantum: scaleBoxPrice(750),
+  Common: 10,
+  Uncommon: 25,
+  Rare: 50,
+  Epic: 100,
+  Legendary: 200,
+  Mythic: 350,
+  Celestial: 500,
+  Quantum: 750,
 };
