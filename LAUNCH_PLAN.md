@@ -40,6 +40,7 @@ The goal is to launch with a database-authoritative gameplay system that is expl
 - [x] Remove local authority from `GameState` for equipped state, levels, and scores
 - [x] Remove or explicitly demote Star Vault fallback catalog/config behavior from the normal launch path
 - [ ] Replace page-local nav bars with one persistent cross-app shell
+- [x] Replace page-local nav bars with one persistent cross-app shell
 - [ ] Add visible ETH lock status / gating UX instead of keeping it only in libs
 - [ ] Replace placeholder-heavy box/part visual logic with metadata-driven rendering
 - [ ] Migrate Rocket Lab away from the legacy 5-part local model
@@ -48,7 +49,7 @@ The goal is to launch with a database-authoritative gameplay system that is expl
 
 ### Still Missing For Launch
 
-- [ ] Persistent cross-app shell outside the current page-local App 3 surface
+- [x] Persistent cross-app shell outside the current page-local App 3 surface
 - [ ] Canonical asset and metadata pipeline for launch visuals
 - [ ] Real App 4 compatibility for the canonical 8-part inventory model
 - [ ] Ops controls, feature flags, and launch rehearsal tooling
@@ -130,11 +131,11 @@ Status: Functional, but live-service hardening remains.
 - [x] App 3 is split into Star Vault and Nebula Bids
 - [x] Shared inventory surface exists
 - [x] Core loading / retry / empty states exist in App 3
-- [ ] Build one persistent cross-app navigation shell and wallet HUD
-- [ ] Remove per-page duplicated nav chrome
+- [x] Build one persistent cross-app navigation shell and wallet HUD
+- [x] Remove per-page duplicated nav chrome
 - [ ] Add clearer next-step / four-app journey cues
 - [ ] Add lightweight onboarding path
-- [ ] Replace placeholder docs links / dead-end navigation
+- [x] Replace placeholder docs links / dead-end navigation
 
 Status: Partially complete.
 

@@ -1,14 +1,45 @@
 import { Zap, Github, Twitter, FileText } from 'lucide-react';
+import { toast } from 'sonner';
 import { APP_VERSION } from '../config/app';
 import { useTheme } from '../context/ThemeContext';
+import type { Page } from '../App';
 
-export default function Footer() {
+interface FooterProps {
+  onNavigate: (page: Page) => void;
+}
+
+type FooterLink = { label: string; action: () => void };
+
+export default function Footer({ onNavigate }: FooterProps) {
   const { ambientFxEnabled, toggleAmbientFx } = useTheme();
-  const links = {
-    Protocol: ['Whitepaper', 'Docs', 'GitHub', 'Audit Report'],
-    Apps: ['Entropy Gate', 'Entropy Exchange', 'Star Vault & Nebula Bids', 'Celestial Assembler'],
-    Jackpot: ['Quantum Lift-Off', 'Cosmic Jackpot', 'Season 1 Prizes', 'Prize Claim'],
-    Community: ['Twitter / X', 'Discord', 'Telegram', 'Blog'],
+
+  const comingSoon = () => toast.info('Coming soon');
+
+  const links: Record<string, FooterLink[]> = {
+    Protocol: [
+      { label: 'Whitepaper', action: comingSoon },
+      { label: 'Docs', action: comingSoon },
+      { label: 'GitHub', action: comingSoon },
+      { label: 'Audit Report', action: comingSoon },
+    ],
+    Apps: [
+      { label: 'Entropy Gate', action: () => onNavigate('home') },
+      { label: 'Entropy Exchange', action: () => onNavigate('dex') },
+      { label: 'Star Vault & Nebula Bids', action: () => onNavigate('mystery') },
+      { label: 'Celestial Assembler', action: comingSoon },
+    ],
+    Jackpot: [
+      { label: 'Quantum Lift-Off', action: () => onNavigate('leaderboard') },
+      { label: 'Cosmic Jackpot', action: () => onNavigate('leaderboard') },
+      { label: 'Season 1 Prizes', action: comingSoon },
+      { label: 'Prize Claim', action: comingSoon },
+    ],
+    Community: [
+      { label: 'Twitter / X', action: comingSoon },
+      { label: 'Discord', action: comingSoon },
+      { label: 'Telegram', action: comingSoon },
+      { label: 'Blog', action: comingSoon },
+    ],
   };
 
   return (
@@ -36,6 +67,7 @@ export default function Footer() {
               ].map((social, i) => (
                 <button
                   key={i}
+                  onClick={comingSoon}
                   className="w-9 h-9 bg-bg-inset border border-border-default flex items-center justify-center text-text-muted hover:text-text-primary hover:border-border-strong transition-all duration-200"
                   aria-label={social.label}
                 >
@@ -50,13 +82,13 @@ export default function Footer() {
               <h4 className="font-mono font-bold text-text-secondary text-sm mb-4 uppercase tracking-wider">{category}</h4>
               <ul className="space-y-2.5">
                 {items.map((item) => (
-                  <li key={item}>
-                    <a
-                      href="#"
+                  <li key={item.label}>
+                    <button
+                      onClick={item.action}
                       className="text-text-muted hover:text-text-primary text-sm transition-colors duration-150"
                     >
-                      {item}
-                    </a>
+                      {item.label}
+                    </button>
                   </li>
                 ))}
               </ul>

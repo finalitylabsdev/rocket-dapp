@@ -1,7 +1,7 @@
 import { Suspense, lazy, useState, useEffect, useCallback } from 'react';
 import { GameStateProvider } from './context/GameState';
 import { WalletProvider } from './hooks/useWallet';
-import Navbar from './components/Navbar';
+import ShellNav from './components/ShellNav';
 import Hero from './components/Hero';
 import QuickActions from './components/QuickActions';
 import Footer from './components/Footer';
@@ -32,6 +32,7 @@ export default function App() {
   const navigate = useCallback((p: Page) => {
     window.location.hash = p === 'home' ? '' : p;
     setPage(p);
+    window.scrollTo(0, 0);
   }, []);
 
   useEffect(() => {
@@ -44,35 +45,31 @@ export default function App() {
     <WalletProvider>
       <GameStateProvider>
         <AppToaster />
-        {page === 'dex' ? (
-          <Suspense fallback={<PageFallback />}>
-            <DexPage onBack={() => navigate('home')} />
-          </Suspense>
-        ) : page === 'mystery' ? (
-          <Suspense fallback={<PageFallback />}>
-            <MysteryPage onBack={() => navigate('home')} />
-          </Suspense>
-        ) : page === 'lab' ? (
-          <Suspense fallback={<PageFallback />}>
-            <RocketLabPage onBack={() => navigate('home')} />
-          </Suspense>
-        ) : page === 'leaderboard' ? (
-          <Suspense fallback={<PageFallback />}>
-            <LeaderboardPage onBack={() => navigate('home')} />
-          </Suspense>
-        ) : (
-          <div className="min-h-screen font-inter" style={{ background: 'var(--color-bg-base)' }}>
-            <StarField />
-            <div className="relative z-10">
-              <Navbar onNavigate={navigate} />
-              <main>
-                <Hero onOpenDex={() => navigate('dex')} />
-                <QuickActions onOpenDex={() => navigate('dex')} onOpenMystery={() => navigate('mystery')} onOpenLab={() => navigate('lab')} onOpenLeaderboard={() => navigate('leaderboard')} />
-              </main>
-              <Footer />
-            </div>
+        <div className="min-h-screen font-inter" style={{ background: 'var(--color-bg-base)' }}>
+          {page === 'home' && <StarField />}
+          <div className="relative z-10">
+            <ShellNav page={page} onNavigate={navigate} />
+            <main>
+              <Suspense fallback={<PageFallback />}>
+                {page === 'dex' ? (
+                  <DexPage />
+                ) : page === 'mystery' ? (
+                  <MysteryPage />
+                ) : page === 'lab' ? (
+                  <RocketLabPage />
+                ) : page === 'leaderboard' ? (
+                  <LeaderboardPage />
+                ) : (
+                  <>
+                    <Hero onOpenDex={() => navigate('dex')} />
+                    <QuickActions onOpenDex={() => navigate('dex')} onOpenMystery={() => navigate('mystery')} onOpenLab={() => navigate('lab')} onOpenLeaderboard={() => navigate('leaderboard')} />
+                  </>
+                )}
+              </Suspense>
+            </main>
+            {page === 'home' && <Footer onNavigate={navigate} />}
           </div>
-        )}
+        </div>
       </GameStateProvider>
     </WalletProvider>
   );

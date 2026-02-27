@@ -1,12 +1,6 @@
 import { useState, useEffect } from 'react';
-import { ArrowLeft, Zap, Trophy, TrendingUp, TrendingDown, Minus, RefreshCw, Users, Flame, Award, LogOut, Sun, Moon } from 'lucide-react';
+import { Zap, Trophy, TrendingUp, TrendingDown, Minus, RefreshCw, Users, Flame, Award } from 'lucide-react';
 import { supabase, type LeaderboardEntry } from '../lib/supabase';
-import { useWallet } from '../hooks/useWallet';
-import { useTheme } from '../context/ThemeContext';
-
-interface LeaderboardPageProps {
-  onBack: () => void;
-}
 
 const RANK_TIERS: Record<number, { label: string; color: string; border: string; bg: string }> = {
   1: { label: '1ST', color: '#f59e0b', border: 'rgba(245,158,11,0.4)', bg: 'rgba(245,158,11,0.06)' },
@@ -63,9 +57,7 @@ function SkeletonRow() {
   );
 }
 
-export default function LeaderboardPage({ onBack }: LeaderboardPageProps) {
-  const wallet = useWallet();
-  const { theme, toggleTheme } = useTheme();
+export default function LeaderboardPage() {
   const [entries, setEntries] = useState<LeaderboardEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -108,73 +100,7 @@ export default function LeaderboardPage({ onBack }: LeaderboardPageProps) {
   const ethPrizePool = (totals.eth * 0.5).toFixed(3);
 
   return (
-    <div className="min-h-screen bg-bg-base relative overflow-hidden">
-
-      <nav className="fixed top-0 left-0 right-0 z-50 bg-bg-base/95 backdrop-blur-md border-b border-border-subtle">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16 md:h-20">
-            <div className="flex items-center gap-4">
-              <button
-                onClick={onBack}
-                className="flex items-center gap-2 text-text-muted hover:text-text-primary transition-colors group"
-              >
-                <div className="w-8 h-8 bg-bg-card border border-border-default group-hover:border-border-strong flex items-center justify-center transition-all">
-                  <ArrowLeft size={15} className="text-text-secondary group-hover:text-text-primary" />
-                </div>
-                <span className="text-sm font-mono font-medium hidden sm:inline uppercase tracking-wider">Back</span>
-              </button>
-              <div className="h-5 w-px bg-border-default" />
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 bg-dot-green flex items-center justify-center">
-                  <Trophy size={15} className="text-black" />
-                </div>
-                <div>
-                  <span className="font-mono font-bold text-text-primary text-base leading-none uppercase tracking-wider">Cosmic Jackpot</span>
-                  <div className="text-[10px] font-mono font-medium text-text-muted leading-none mt-0.5 uppercase tracking-wider">Season 1 · Rankings</div>
-                </div>
-              </div>
-            </div>
-            <div className="flex items-center gap-3">
-              <div className="hidden sm:flex items-center gap-2 bg-bg-card border border-border-subtle px-3 py-2">
-                <div className="glow-dot" />
-                <span className="text-xs font-mono font-semibold text-text-primary uppercase">Live</span>
-              </div>
-              <button
-                onClick={toggleTheme}
-                className="flex items-center justify-center w-9 h-9 text-text-secondary hover:text-text-primary hover:bg-bg-card transition-all duration-200"
-                aria-label="Toggle theme"
-              >
-                {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
-              </button>
-              {wallet.isConnected ? (
-                <div className="flex items-center gap-2">
-                  <div className="flex items-center gap-2 bg-bg-card border border-border-subtle px-3 py-2">
-                    <div className="glow-dot" />
-                    <span className="text-xs font-mono font-semibold text-text-primary">{wallet.displayAddress}</span>
-                  </div>
-                  <button
-                    onClick={() => void wallet.disconnect()}
-                    disabled={wallet.isConnecting}
-                    className="w-9 h-9 bg-bg-card border border-border-subtle flex items-center justify-center hover:border-border-strong transition-all"
-                  >
-                    <LogOut size={14} className="text-text-secondary" />
-                  </button>
-                </div>
-              ) : (
-                <button
-                  onClick={() => void wallet.connect()}
-                  disabled={wallet.isConnecting}
-                  className="btn-primary text-sm py-2.5 px-5 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  <Zap size={13} />
-                  {wallet.isConnecting ? 'Connecting...' : 'Connect Wallet'}
-                </button>
-              )}
-            </div>
-          </div>
-        </div>
-      </nav>
-
+    <div className="relative overflow-hidden">
       <div className="relative z-10 pt-20 md:pt-24 pb-16 px-4 sm:px-6 lg:px-8">
         <div className="max-w-6xl mx-auto">
 

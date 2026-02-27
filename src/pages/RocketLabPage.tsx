@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ArrowLeft, FlaskConical, Star, Sun, Moon, Rocket } from 'lucide-react';
+import { FlaskConical, Star, Rocket } from 'lucide-react';
 import RocketPreview from '../components/lab/RocketPreview';
 import PartsGrid, {
   type EquippedPartId,
@@ -8,16 +8,9 @@ import PartsGrid, {
 import StatsPanel from '../components/lab/StatsPanel';
 import { ROCKET_MODELS } from '../components/lab/RocketModels';
 import LaunchSequence from '../components/lab/LaunchSequence';
-import { useTheme } from '../context/ThemeContext';
-
-interface RocketLabPageProps {
-  onBack: () => void;
-}
-
 type LaunchResult = { score: number; bonus: string; multiplier: string } | null;
 
-export default function RocketLabPage({ onBack }: RocketLabPageProps) {
-  const { theme, toggleTheme } = useTheme();
+export default function RocketLabPage() {
   const selectedModel = 'standard' as const;
 
   const [equipped, setEquipped] = useState<EquippedParts>({
@@ -111,54 +104,7 @@ export default function RocketLabPage({ onBack }: RocketLabPageProps) {
   const bestScore = scores.length > 0 ? Math.max(...scores) : 0;
 
   return (
-    <div className="min-h-screen relative overflow-hidden" style={{ background: 'var(--color-bg-base)' }}>
-
-      <nav
-        className="fixed top-0 left-0 right-0 z-50"
-        style={{ background: 'var(--color-bg-toast)', backdropFilter: 'blur(24px)', borderBottom: '1px solid var(--color-border-subtle)' }}
-      >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16 md:h-20">
-            <div className="flex items-center gap-4">
-              <button
-                onClick={onBack}
-                className="flex items-center gap-2 transition-colors group text-text-muted hover:text-text-primary"
-              >
-                <div
-                  className="w-8 h-8 flex items-center justify-center transition-all"
-                  style={{ background: 'var(--color-bg-card)', border: '1px solid var(--color-border-subtle)' }}
-                >
-                  <ArrowLeft size={15} className="text-text-secondary" />
-                </div>
-                <span className="text-sm font-mono font-medium hidden sm:inline uppercase tracking-wider">Back</span>
-              </button>
-              <div className="h-5 w-px" style={{ background: 'var(--color-border-subtle)' }} />
-              <div className="flex items-center gap-3">
-                <div
-                  className="w-8 h-8 flex items-center justify-center"
-                  style={{ background: 'rgba(148,163,184,0.15)', border: '1px solid rgba(148,163,184,0.35)' }}
-                >
-                  <FlaskConical size={16} style={{ color: '#94A3B8' }} />
-                </div>
-                <div>
-                  <span className="font-mono font-bold text-base leading-none uppercase tracking-wider text-text-primary">Rocket Lab</span>
-                  <div className="text-[10px] font-mono font-medium leading-none mt-0.5 uppercase tracking-wider text-text-muted">Build & Launch</div>
-                </div>
-              </div>
-            </div>
-            <div className="flex items-center gap-3">
-              <button
-                onClick={toggleTheme}
-                className="flex items-center justify-center w-9 h-9 text-text-secondary hover:text-text-primary hover:bg-bg-card transition-all duration-200"
-                aria-label="Toggle theme"
-              >
-                {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
-              </button>
-            </div>
-          </div>
-        </div>
-      </nav>
-
+    <div className="relative overflow-hidden">
       <div className="relative z-10 pt-20 md:pt-24 pb-16 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
 
