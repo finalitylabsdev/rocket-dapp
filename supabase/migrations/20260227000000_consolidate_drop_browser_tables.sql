@@ -78,10 +78,13 @@ BEGIN
     FROM auth.identities i
     WHERE i.user_id = v_user_id
       AND (
-        lower(i.provider_id) = v_wallet
+        lower(COALESCE(i.provider_id, '')) = v_wallet
+        OR lower(COALESCE(i.provider_id, '')) = ('web3:ethereum:' || v_wallet)
         OR lower(COALESCE(i.identity_data ->> 'wallet_address', '')) = v_wallet
         OR lower(COALESCE(i.identity_data ->> 'address', '')) = v_wallet
         OR lower(COALESCE(i.identity_data ->> 'sub', '')) = v_wallet
+        OR lower(COALESCE(i.identity_data ->> 'sub', '')) = ('web3:ethereum:' || v_wallet)
+        OR lower(COALESCE(i.identity_data -> 'custom_claims' ->> 'address', '')) = v_wallet
       )
   ) THEN
     RAISE EXCEPTION 'wallet does not belong to authenticated user';
@@ -161,10 +164,13 @@ BEGIN
     FROM auth.identities i
     WHERE i.user_id = v_user_id
       AND (
-        lower(i.provider_id) = v_wallet
+        lower(COALESCE(i.provider_id, '')) = v_wallet
+        OR lower(COALESCE(i.provider_id, '')) = ('web3:ethereum:' || v_wallet)
         OR lower(COALESCE(i.identity_data ->> 'wallet_address', '')) = v_wallet
         OR lower(COALESCE(i.identity_data ->> 'address', '')) = v_wallet
         OR lower(COALESCE(i.identity_data ->> 'sub', '')) = v_wallet
+        OR lower(COALESCE(i.identity_data ->> 'sub', '')) = ('web3:ethereum:' || v_wallet)
+        OR lower(COALESCE(i.identity_data -> 'custom_claims' ->> 'address', '')) = v_wallet
       )
   ) THEN
     RAISE EXCEPTION 'wallet does not belong to authenticated user';
@@ -262,10 +268,13 @@ BEGIN
       FROM auth.identities i
       WHERE i.user_id = v_user_id
         AND (
-          lower(i.provider_id) = v_wallet
+          lower(COALESCE(i.provider_id, '')) = v_wallet
+          OR lower(COALESCE(i.provider_id, '')) = ('web3:ethereum:' || v_wallet)
           OR lower(COALESCE(i.identity_data ->> 'wallet_address', '')) = v_wallet
           OR lower(COALESCE(i.identity_data ->> 'address', '')) = v_wallet
           OR lower(COALESCE(i.identity_data ->> 'sub', '')) = v_wallet
+          OR lower(COALESCE(i.identity_data ->> 'sub', '')) = ('web3:ethereum:' || v_wallet)
+          OR lower(COALESCE(i.identity_data -> 'custom_claims' ->> 'address', '')) = v_wallet
         )
     ) THEN
       RAISE EXCEPTION 'wallet does not belong to authenticated user';
