@@ -1,9 +1,11 @@
 import { useState, useEffect, useCallback } from 'react';
 import { GameStateProvider } from './context/GameState';
+import { WalletProvider } from './hooks/useWallet';
 import Navbar from './components/Navbar';
 import Hero from './components/Hero';
 import QuickActions from './components/QuickActions';
 import Footer from './components/Footer';
+import AppToaster from './components/AppToaster';
 import DexPage from './pages/DexPage';
 import MysteryPage from './pages/MysteryPage';
 import RocketLabPage from './pages/RocketLabPage';
@@ -35,27 +37,30 @@ export default function App() {
 
   return (
     <GameStateProvider>
-      {page === 'dex' ? (
-        <DexPage onBack={() => navigate('home')} />
-      ) : page === 'mystery' ? (
-        <MysteryPage onBack={() => navigate('home')} />
-      ) : page === 'lab' ? (
-        <RocketLabPage onBack={() => navigate('home')} />
-      ) : page === 'leaderboard' ? (
-        <LeaderboardPage onBack={() => navigate('home')} />
-      ) : (
-        <div className="min-h-screen font-inter" style={{ background: '#06080F' }}>
-          <StarField />
-          <div className="relative z-10">
-            <Navbar onNavigate={navigate} />
-            <main>
-              <Hero onOpenDex={() => navigate('dex')} />
-              <QuickActions onOpenDex={() => navigate('dex')} onOpenMystery={() => navigate('mystery')} onOpenLab={() => navigate('lab')} onOpenLeaderboard={() => navigate('leaderboard')} />
-            </main>
-            <Footer />
+      <WalletProvider>
+        <AppToaster />
+        {page === 'dex' ? (
+          <DexPage onBack={() => navigate('home')} />
+        ) : page === 'mystery' ? (
+          <MysteryPage onBack={() => navigate('home')} />
+        ) : page === 'lab' ? (
+          <RocketLabPage onBack={() => navigate('home')} />
+        ) : page === 'leaderboard' ? (
+          <LeaderboardPage onBack={() => navigate('home')} />
+        ) : (
+          <div className="min-h-screen font-inter" style={{ background: '#06080F' }}>
+            <StarField />
+            <div className="relative z-10">
+              <Navbar onNavigate={navigate} />
+              <main>
+                <Hero onOpenDex={() => navigate('dex')} />
+                <QuickActions onOpenDex={() => navigate('dex')} onOpenMystery={() => navigate('mystery')} onOpenLab={() => navigate('lab')} onOpenLeaderboard={() => navigate('leaderboard')} />
+              </main>
+              <Footer />
+            </div>
           </div>
-        </div>
-      )}
+        )}
+      </WalletProvider>
     </GameStateProvider>
   );
 }

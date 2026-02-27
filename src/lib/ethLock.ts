@@ -1,6 +1,6 @@
 import { WHITELIST_ETH } from '../config/spec';
-import { supabase } from './supabase';
-import { getEthereumWalletContext } from './web3Auth';
+import { SUPABASE_ANON_KEY, supabase } from './supabase';
+import { getConnectedEthereumWalletContext } from './web3Auth';
 
 const ETH_WEI_MULTIPLIER = 1_000_000_000_000_000_000n;
 const DEFAULT_LOCK_RECIPIENT = '0x8c80dd6327ed5889be09e77f9ca49d5bad2b0bf7';
@@ -21,6 +21,7 @@ interface EthLockSubmissionRow {
   amount_wei: string | null;
   amount_eth: string | null;
   status: EthLockStatus;
+  is_lock_active: boolean;
   last_error: string | null;
   tx_submitted_at: string | null;
   confirmed_at: string | null;
@@ -40,6 +41,7 @@ export interface EthLockSubmission {
   amountWei: string | null;
   amountEth: string | null;
   status: EthLockStatus;
+  isLockActive: boolean;
   lastError: string | null;
   txSubmittedAt: string | null;
   confirmedAt: string | null;
@@ -102,6 +104,7 @@ function mapSubmission(row: EthLockSubmissionRow): EthLockSubmission {
     amountWei: row.amount_wei,
     amountEth: row.amount_eth,
     status: row.status,
+    isLockActive: row.is_lock_active,
     lastError: row.last_error,
     txSubmittedAt: row.tx_submitted_at,
     confirmedAt: row.confirmed_at,
@@ -177,11 +180,41 @@ function toFriendlyDbError(message: string | undefined): string {
 }
 
 function toFriendlyVerifierError(message: string | undefined): string {
+  if (message?.includes('Invalid JWT')) {
+    return 'ETH lock verifier rejected the auth token. Reconnect your wallet to refresh the session.';
+  }
+
   if (isVerifierFunctionUnavailable(message)) {
     return 'ETH lock verifier function is unavailable. Deploy verify-eth-lock edge function.';
   }
 
   return message || 'Failed to verify ETH lock transaction.';
+}
+
+async function getVerifierAuthToken(): Promise<string> {
+  if (!supabase) {
+    if (SUPABASE_ANON_KEY) {
+      return SUPABASE_ANON_KEY;
+    }
+
+    throw new Error('Supabase is not configured in this environment.');
+  }
+
+  const { data, error } = await supabase.auth.getSession();
+  if (error) {
+    throw new Error(`Failed to load auth session: ${error.message}`);
+  }
+
+  const accessToken = data.session?.access_token;
+  if (accessToken) {
+    return accessToken;
+  }
+
+  if (SUPABASE_ANON_KEY) {
+    return SUPABASE_ANON_KEY;
+  }
+
+  throw new Error('No valid auth token is available for ETH lock verification.');
 }
 
 export function formatEthAmount(value: number): string {
@@ -213,7 +246,7 @@ export async function getEthLockSubmission(walletAddress: string): Promise<EthLo
 
   const { data, error } = await supabase!
     .from('eth_lock_submissions')
-    .select('id, wallet_address, auth_user_id, tx_hash, chain_id, block_number, from_address, to_address, amount_wei, amount_eth, status, last_error, tx_submitted_at, confirmed_at, updated_at, created_at')
+    .select('id, wallet_address, auth_user_id, tx_hash, chain_id, block_number, from_address, to_address, amount_wei, amount_eth, status, is_lock_active, last_error, tx_submitted_at, confirmed_at, updated_at, created_at')
     .eq('wallet_address', normalizedWallet)
     .maybeSingle();
 
@@ -238,10 +271,15 @@ export async function requestEthLockVerification(walletAddress: string, txHash: 
     throw new Error('Invalid wallet address or transaction hash.');
   }
 
+  const authToken = await getVerifierAuthToken();
+
   const { data, error } = await supabase!.functions.invoke('verify-eth-lock', {
     body: {
       walletAddress: normalizedWallet,
       txHash: normalizedTxHash,
+    },
+    headers: {
+      Authorization: `Bearer ${authToken}`,
     },
   });
 
@@ -268,7 +306,7 @@ export async function submitAndRecordEthLock(walletAddress: string): Promise<Eth
   const requiredAmountWei = ethAmountToWei(WHITELIST_ETH);
 
   try {
-    const { provider, address, chainId } = await getEthereumWalletContext();
+    const { provider, address, chainId } = await getConnectedEthereumWalletContext(normalizedWallet);
     if (address !== normalizedWallet) {
       throw new Error('The signing wallet does not match the authenticated wallet session.');
     }

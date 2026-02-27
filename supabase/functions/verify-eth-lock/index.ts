@@ -22,6 +22,7 @@ interface SubmissionRow {
   to_address: string | null;
   amount_wei: string | null;
   status: EthLockStatus;
+  is_lock_active: boolean;
   verification_attempts: number | null;
 }
 
@@ -34,6 +35,10 @@ interface RuntimeConfig {
   minConfirmations: number;
   pollAttempts: number;
   pollIntervalMs: number;
+}
+
+interface AuthenticatedUser {
+  id: string;
 }
 
 function jsonResponse(payload: unknown, status = 200): Response {
@@ -208,6 +213,36 @@ function extractInput(raw: unknown): VerificationInput {
   throw new Error('walletAddress and txHash are required.');
 }
 
+function extractBearerToken(req: Request): string {
+  const authHeader = req.headers.get('authorization') ?? req.headers.get('Authorization');
+  if (!authHeader) {
+    throw new Error('Missing authorization header.');
+  }
+
+  const [scheme, token] = authHeader.trim().split(/\s+/, 2);
+  if (scheme?.toLowerCase() !== 'bearer' || !token) {
+    throw new Error('Authorization header must be Bearer <token>.');
+  }
+
+  return token;
+}
+
+async function getAuthenticatedUser(
+  admin: ReturnType<typeof createClient>,
+  req: Request,
+): Promise<AuthenticatedUser> {
+  const token = extractBearerToken(req);
+  const { data, error } = await admin.auth.getUser(token);
+
+  if (error || !data.user) {
+    throw new Error('Invalid JWT');
+  }
+
+  return {
+    id: data.user.id,
+  };
+}
+
 async function logEvent(
   admin: ReturnType<typeof createClient>,
   row: SubmissionRow,
@@ -258,9 +293,17 @@ Deno.serve(async (req: Request) => {
 
   const admin = createClient(config.supabaseUrl, config.supabaseServiceRoleKey);
 
+  let authenticatedUser: AuthenticatedUser;
+  try {
+    authenticatedUser = await getAuthenticatedUser(admin, req);
+  } catch (authError) {
+    const message = authError instanceof Error ? authError.message : 'Invalid JWT';
+    return jsonResponse({ error: message }, 401);
+  }
+
   const { data: submissionRaw, error: submissionError } = await admin
     .from('eth_lock_submissions')
-    .select('id, wallet_address, auth_user_id, tx_hash, chain_id, from_address, to_address, amount_wei, status, verification_attempts')
+    .select('id, wallet_address, auth_user_id, tx_hash, chain_id, from_address, to_address, amount_wei, status, is_lock_active, verification_attempts')
     .eq('wallet_address', input.walletAddress)
     .maybeSingle();
 
@@ -274,13 +317,17 @@ Deno.serve(async (req: Request) => {
 
   const submission = submissionRaw as SubmissionRow;
 
+  if (submission.auth_user_id !== authenticatedUser.id) {
+    return jsonResponse({ error: 'ETH lock submission does not belong to the authenticated user.' }, 403);
+  }
+
   if (submission.tx_hash && submission.tx_hash !== input.txHash) {
     return jsonResponse({
       error: 'Wallet submission tx hash does not match the requested tx hash.',
     }, 409);
   }
 
-  if (submission.status === 'confirmed') {
+  if (submission.status === 'confirmed' && submission.is_lock_active) {
     return jsonResponse({
       status: 'confirmed',
       message: 'ETH lock already confirmed.',
@@ -294,6 +341,7 @@ Deno.serve(async (req: Request) => {
     .from('eth_lock_submissions')
     .update({
       status: 'verifying',
+      is_lock_active: false,
       last_error: null,
       verifying_started_at: nowIso,
       verification_attempts: verificationAttempts,
@@ -326,6 +374,7 @@ Deno.serve(async (req: Request) => {
       .from('eth_lock_submissions')
       .update({
         status: 'verifying',
+        is_lock_active: false,
         last_error: 'Transaction pending confirmation.',
         receipt: {
           transaction: isRecord(txResult) ? txResult : null,
@@ -391,6 +440,7 @@ Deno.serve(async (req: Request) => {
         .from('eth_lock_submissions')
         .update({
           status: 'verifying',
+          is_lock_active: false,
           block_number: toSafeNumber(receiptBlockNumber, 'Block number'),
           last_error: `Waiting for confirmations (${confirmations}/${config.minConfirmations}).`,
           receipt: {
@@ -418,6 +468,7 @@ Deno.serve(async (req: Request) => {
       .from('eth_lock_submissions')
       .update({
         status: 'confirmed',
+        is_lock_active: true,
         block_number: toSafeNumber(receiptBlockNumber, 'Block number'),
         from_address: txFrom,
         to_address: txTo,
@@ -464,6 +515,7 @@ Deno.serve(async (req: Request) => {
       .from('eth_lock_submissions')
       .update({
         status: 'error',
+        is_lock_active: false,
         last_error: errorMessage,
         receipt: {
           transaction: isRecord(txResult) ? txResult : null,

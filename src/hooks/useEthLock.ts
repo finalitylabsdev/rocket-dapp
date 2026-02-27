@@ -65,6 +65,10 @@ function getStatusDetail(
     return submission?.lastError ?? 'ETH lock verification failed. Submit again to retry.';
   }
 
+  if (submission?.status === 'confirmed' && submission.isLockActive === false) {
+    return 'ETH lock override is disabled for testing. Submit again to retest this wallet.';
+  }
+
   if (status === 'verifying') {
     return 'Verifying transaction on-chain. This updates automatically.';
   }
@@ -124,7 +128,32 @@ export function useEthLock(walletAddress: string | null): UseEthLockResult {
     setIsVerifying(true);
 
     try {
-      await requestEthLockVerification(walletAddress, targetTxHash);
+      const nextStatus = await requestEthLockVerification(walletAddress, targetTxHash);
+
+      if (nextStatus) {
+        setSubmission((current) => {
+          if (!current) {
+            return current;
+          }
+
+          if (current.status === nextStatus) {
+            return current;
+          }
+
+          const nowIso = new Date().toISOString();
+
+          return {
+            ...current,
+            status: nextStatus,
+            isLockActive: nextStatus === 'confirmed' ? true : current.isLockActive,
+            lastError: nextStatus === 'error' ? current.lastError : null,
+            confirmedAt: nextStatus === 'confirmed' ? (current.confirmedAt ?? nowIso) : current.confirmedAt,
+            updatedAt: nowIso,
+          };
+        });
+      }
+
+      await refresh();
       setError(null);
     } catch (verifyError) {
       setError(toErrorMessage(verifyError));
@@ -132,7 +161,7 @@ export function useEthLock(walletAddress: string | null): UseEthLockResult {
       verifyInFlightRef.current = false;
       setIsVerifying(false);
     }
-  }, [submission?.txHash, walletAddress]);
+  }, [refresh, submission?.txHash, walletAddress]);
 
   useEffect(() => {
     if (!walletAddress || !supabase) {
@@ -209,7 +238,11 @@ export function useEthLock(walletAddress: string | null): UseEthLockResult {
     }
   }, [isSubmitting, triggerVerification, walletAddress]);
 
-  const status: EthLockStatus = submission?.status ?? 'pending';
+  const rawStatus = submission?.status ?? 'pending';
+  const status: EthLockStatus =
+    rawStatus === 'confirmed' && submission?.isLockActive === false
+      ? 'pending'
+      : rawStatus;
 
   const statusDetail = useMemo(
     () => getStatusDetail(status, submission, error),

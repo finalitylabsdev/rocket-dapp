@@ -2,6 +2,12 @@ import type { User } from '@supabase/supabase-js';
 import { SUPABASE_PUBLISHABLE_KEY, SUPABASE_URL, supabase } from './supabase';
 
 const SIWE_STATEMENT = 'Sign in to Entropy Network.';
+const ACTIVE_WALLET_PROVIDER_STORAGE_KEY = 'entropy.activeWalletProviderId';
+const WINDOW_ETHEREUM_PROVIDER_ID = 'window.ethereum';
+
+let activeWalletProvider: Eip1193Provider | null = null;
+let activeWalletAddress: string | null = null;
+let activeWalletProviderId: string | null = null;
 
 interface Eip6963ProviderDetail {
   info?: {
@@ -14,6 +20,7 @@ interface Eip6963ProviderDetail {
 }
 
 interface DiscoveredEthereumProvider {
+  id: string;
   label: string;
   icon?: string;
   provider: Eip1193Provider;
@@ -53,6 +60,47 @@ function normalizeWalletAddress(value: unknown): string | null {
 
   const normalized = value.trim().toLowerCase();
   return /^0x[0-9a-f]{40}$/.test(normalized) ? normalized : null;
+}
+
+function getStoredActiveWalletProviderId(): string | null {
+  if (typeof window === 'undefined') {
+    return null;
+  }
+
+  try {
+    const value = window.localStorage.getItem(ACTIVE_WALLET_PROVIDER_STORAGE_KEY);
+    return typeof value === 'string' && value.length > 0 ? value : null;
+  } catch {
+    return null;
+  }
+}
+
+function setStoredActiveWalletProviderId(value: string | null): void {
+  if (typeof window === 'undefined') {
+    return;
+  }
+
+  try {
+    if (value) {
+      window.localStorage.setItem(ACTIVE_WALLET_PROVIDER_STORAGE_KEY, value);
+      return;
+    }
+
+    window.localStorage.removeItem(ACTIVE_WALLET_PROVIDER_STORAGE_KEY);
+  } catch {
+    // Ignore localStorage access failures (private mode / unavailable storage).
+  }
+}
+
+function rememberActiveWalletProvider(
+  provider: Eip1193Provider,
+  address: string,
+  providerId: string | null,
+): void {
+  activeWalletProvider = provider;
+  activeWalletAddress = address;
+  activeWalletProviderId = providerId;
+  setStoredActiveWalletProviderId(providerId);
 }
 
 function getRandomHex(bytes = 16): string {
@@ -180,12 +228,12 @@ function createWalletIcon(iconUrl: string | undefined, label: string): HTMLEleme
 
 function pickProviderWithModal(
   providers: DiscoveredEthereumProvider[],
-): Promise<Eip1193Provider> {
+): Promise<DiscoveredEthereumProvider> {
   if (providers.length === 1) {
-    return Promise.resolve(providers[0].provider);
+    return Promise.resolve(providers[0]);
   }
 
-  return new Promise<Eip1193Provider>((resolve, reject) => {
+  return new Promise<DiscoveredEthereumProvider>((resolve, reject) => {
     const body = document.body;
     if (!body) {
       reject(new Error('Unable to open wallet picker.'));
@@ -279,7 +327,7 @@ function pickProviderWithModal(
       };
       button.onclick = () => {
         cleanup();
-        resolve(entry.provider);
+        resolve(entry);
       };
 
       button.appendChild(createWalletIcon(entry.icon, entry.label));
@@ -344,6 +392,7 @@ async function discoverEip6963Providers(timeoutMs = 250): Promise<DiscoveredEthe
       const id = makeEip6963ProviderId(detail.info, announceCount);
       if (!discoveredById.has(id)) {
         discoveredById.set(id, {
+          id,
           label: makeEip6963ProviderLabel(detail.info, announceCount),
           icon: detail.info?.icon,
           provider: detail.provider,
@@ -364,18 +413,67 @@ async function discoverEip6963Providers(timeoutMs = 250): Promise<DiscoveredEthe
   return [...discoveredById.values()];
 }
 
-async function resolveEthereumProvider(): Promise<Eip1193Provider> {
+function getWindowEthereumProvider(): DiscoveredEthereumProvider | null {
+  if (typeof window === 'undefined' || !isEip1193Provider(window.ethereum)) {
+    return null;
+  }
+
+  return {
+    id: WINDOW_ETHEREUM_PROVIDER_ID,
+    label: 'Browser Wallet',
+    provider: window.ethereum,
+  };
+}
+
+async function getKnownEthereumProviders(): Promise<DiscoveredEthereumProvider[]> {
+  const discovered = await discoverEip6963Providers();
+  if (discovered.length > 0) {
+    return discovered;
+  }
+
+  const fallback = getWindowEthereumProvider();
+  return fallback ? [fallback] : [];
+}
+
+async function readConnectedAccount(
+  provider: Eip1193Provider,
+  expectedAddress?: string,
+): Promise<string | null> {
+  let accountsRaw: unknown;
+
+  try {
+    accountsRaw = await provider.request({ method: 'eth_accounts' });
+  } catch {
+    return null;
+  }
+
+  if (!Array.isArray(accountsRaw) || accountsRaw.length === 0) {
+    return null;
+  }
+
+  const accounts = accountsRaw
+    .map((entry) => normalizeWalletAddress(entry))
+    .filter((entry): entry is string => !!entry);
+
+  if (accounts.length === 0) {
+    return null;
+  }
+
+  if (!expectedAddress) {
+    return accounts[0];
+  }
+
+  return accounts.includes(expectedAddress) ? expectedAddress : null;
+}
+
+async function resolveEthereumProvider(): Promise<DiscoveredEthereumProvider> {
   if (typeof window === 'undefined') {
     throw new Error('Wallet auth is only available in a browser.');
   }
 
-  const discovered = await discoverEip6963Providers();
-  if (discovered.length > 0) {
-    return pickProviderWithModal(discovered);
-  }
-
-  if (isEip1193Provider(window.ethereum)) {
-    return window.ethereum;
+  const providers = await getKnownEthereumProviders();
+  if (providers.length > 0) {
+    return pickProviderWithModal(providers);
   }
 
   throw new Error('No Ethereum wallet detected. Install MetaMask or another EIP-1193 wallet.');
@@ -400,12 +498,71 @@ async function requestAccount(provider: Eip1193Provider): Promise<{ address: str
   };
 }
 
+export async function getConnectedEthereumWalletContext(
+  expectedAddress?: string,
+): Promise<EthereumWalletContext> {
+  const normalizedExpectedAddress = normalizeWalletAddress(expectedAddress);
+
+  if (activeWalletProvider) {
+    const connectedAddress = await readConnectedAccount(activeWalletProvider, normalizedExpectedAddress ?? activeWalletAddress ?? undefined);
+    if (connectedAddress) {
+      const chainIdRaw = await activeWalletProvider.request({ method: 'eth_chainId' });
+      rememberActiveWalletProvider(activeWalletProvider, connectedAddress, activeWalletProviderId);
+
+      return {
+        provider: activeWalletProvider,
+        address: connectedAddress,
+        chainId: parseChainId(chainIdRaw),
+      };
+    }
+  }
+
+  const providers = await getKnownEthereumProviders();
+  const preferredProviderId = activeWalletProviderId ?? getStoredActiveWalletProviderId();
+
+  if (preferredProviderId) {
+    const preferredProvider = providers.find((entry) => entry.id === preferredProviderId);
+    if (preferredProvider) {
+      const connectedAddress = await readConnectedAccount(preferredProvider.provider, normalizedExpectedAddress ?? undefined);
+      if (connectedAddress) {
+        const chainIdRaw = await preferredProvider.provider.request({ method: 'eth_chainId' });
+        rememberActiveWalletProvider(preferredProvider.provider, connectedAddress, preferredProvider.id);
+
+        return {
+          provider: preferredProvider.provider,
+          address: connectedAddress,
+          chainId: parseChainId(chainIdRaw),
+        };
+      }
+    }
+  }
+
+  for (const providerEntry of providers) {
+    const connectedAddress = await readConnectedAccount(providerEntry.provider, normalizedExpectedAddress ?? undefined);
+    if (!connectedAddress) {
+      continue;
+    }
+
+    const chainIdRaw = await providerEntry.provider.request({ method: 'eth_chainId' });
+    rememberActiveWalletProvider(providerEntry.provider, connectedAddress, providerEntry.id);
+
+    return {
+      provider: providerEntry.provider,
+      address: connectedAddress,
+      chainId: parseChainId(chainIdRaw),
+    };
+  }
+
+  throw new Error('No previously connected wallet session was found in the browser. Connect your wallet again.');
+}
+
 export async function getEthereumWalletContext(): Promise<EthereumWalletContext> {
-  const provider = await resolveEthereumProvider();
-  const account = await requestAccount(provider);
+  const providerEntry = await resolveEthereumProvider();
+  const account = await requestAccount(providerEntry.provider);
+  rememberActiveWalletProvider(providerEntry.provider, account.address, providerEntry.id);
 
   return {
-    provider,
+    provider: providerEntry.provider,
     address: account.address,
     chainId: account.chainId,
   };
