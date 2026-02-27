@@ -1,12 +1,11 @@
 import { Suspense, lazy, useState, useEffect, useCallback } from 'react';
-import { Gift } from 'lucide-react';
-import { GameStateProvider, useGameState } from './context/GameState';
+import EntropyGateBanner from './components/EntropyGateBanner';
+import { GameStateProvider } from './context/GameState';
+import { EthLockStateProvider } from './context/EthLockState';
 import { WalletProvider } from './hooks/useWallet';
 import ShellNav from './components/ShellNav';
 import Hero from './components/Hero';
 import QuickActions from './components/QuickActions';
-import JourneyCue from './components/JourneyCue';
-import WelcomeBanner from './components/WelcomeBanner';
 import Footer from './components/Footer';
 import AppToaster from './components/AppToaster';
 import StarField from './components/brand/StarField';
@@ -36,30 +35,6 @@ function pageFromHash(): Page {
   return VALID_PAGES.has(hash) ? hash : 'home';
 }
 
-function HomeContent({ navigate }: { navigate: (p: Page) => void }) {
-  const game = useGameState();
-  const showFluxCue = game.fluxBalance > 0 && game.inventory.length === 0;
-
-  return (
-    <>
-      <WelcomeBanner />
-      <Hero onOpenDex={() => navigate('dex')} />
-      {showFluxCue && (
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-4 mb-4">
-          <JourneyCue
-            icon={<Gift size={16} />}
-            message={`You have ${game.fluxBalance} FLUX! Open a Star Vault box to earn rocket parts.`}
-            actionLabel="Open Star Vault"
-            onAction={() => navigate('mystery')}
-            tone="gold"
-          />
-        </div>
-      )}
-      <QuickActions onOpenDex={() => navigate('dex')} onOpenMystery={() => navigate('mystery')} onOpenLab={() => navigate('lab')} onOpenLeaderboard={() => navigate('leaderboard')} />
-    </>
-  );
-}
-
 export default function App() {
   const [page, setPage] = useState<Page>(pageFromHash);
 
@@ -77,31 +52,40 @@ export default function App() {
 
   return (
     <WalletProvider>
-      <GameStateProvider>
-        <AppToaster />
-        <div className="min-h-screen font-inter" style={{ background: 'var(--color-bg-base)' }}>
-          {page === 'home' && <StarField />}
-          <div className="relative z-10">
-            <ShellNav page={page} onNavigate={navigate} />
-            <main>
-              <Suspense fallback={<PageFallback />}>
-                {page === 'dex' ? (
-                  DEX_ENABLED ? <DexPage /> : <ComingSoon title="Entropy Exchange" subtitle="The decentralized exchange is not yet available." />
-                ) : page === 'mystery' ? (
-                  STAR_VAULT_ENABLED || NEBULA_BIDS_ENABLED ? <MysteryPage /> : <ComingSoon title="Star Vault & Nebula Bids" subtitle="Mystery boxes and auctions are not yet available." />
-                ) : page === 'lab' ? (
-                  ROCKET_LAB_ENABLED ? <RocketLabPage /> : <ComingSoon title="Rocket Lab" subtitle="Rocket building and launches are not yet available." />
-                ) : page === 'leaderboard' ? (
-                  <LeaderboardPage />
-                ) : (
-                  <HomeContent navigate={navigate} />
-                )}
-              </Suspense>
-            </main>
-            {page === 'home' && <Footer onNavigate={navigate} />}
+      <EthLockStateProvider>
+        <GameStateProvider>
+          <AppToaster />
+          <div className="min-h-screen font-inter" style={{ background: 'var(--color-bg-base)' }}>
+            {page === 'home' && <StarField />}
+            <div className="relative z-10">
+              <ShellNav page={page} onNavigate={navigate} />
+              <EntropyGateBanner
+                isHome={page === 'home'}
+                onNavigateHome={() => navigate('home')}
+              />
+              <main className="pt-12">
+                <Suspense fallback={<PageFallback />}>
+                  {page === 'dex' ? (
+                    DEX_ENABLED ? <DexPage /> : <ComingSoon title="Entropy Exchange" subtitle="The decentralized exchange is not yet available." />
+                  ) : page === 'mystery' ? (
+                    STAR_VAULT_ENABLED || NEBULA_BIDS_ENABLED ? <MysteryPage /> : <ComingSoon title="Star Vault & Nebula Bids" subtitle="Mystery boxes and auctions are not yet available." />
+                  ) : page === 'lab' ? (
+                    ROCKET_LAB_ENABLED ? <RocketLabPage /> : <ComingSoon title="Rocket Lab" subtitle="Rocket building and launches are not yet available." />
+                  ) : page === 'leaderboard' ? (
+                    <LeaderboardPage />
+                  ) : (
+                    <>
+                      <Hero onOpenDex={() => navigate('dex')} />
+                      <QuickActions onOpenDex={() => navigate('dex')} onOpenMystery={() => navigate('mystery')} onOpenLab={() => navigate('lab')} onOpenLeaderboard={() => navigate('leaderboard')} />
+                    </>
+                  )}
+                </Suspense>
+              </main>
+              {page === 'home' && <Footer onNavigate={navigate} />}
+            </div>
           </div>
-        </div>
-      </GameStateProvider>
+        </GameStateProvider>
+      </EthLockStateProvider>
     </WalletProvider>
   );
 }

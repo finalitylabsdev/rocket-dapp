@@ -52,7 +52,7 @@ The goal is to launch with a database-authoritative gameplay system that is expl
 - [x] Remove or explicitly demote Star Vault fallback catalog/config behavior from the normal launch path
 - [x] Replace page-local nav bars with one persistent cross-app shell
 - [x] Add visible ETH lock status UX (Hero shows lock state, realtime polling, retry on error)
-- [ ] Add ETH lock gating that blocks access-sensitive flows for non-locked wallets
+- [x] Add ETH lock gating UX (EntropyGateBanner on all pages, EthLockStateProvider shared context)
 - [x] Replace placeholder-heavy box/part visual logic with metadata-driven rendering (tier-keyed visuals with explicit fallback are now the launch path)
 - [x] Migrate Rocket Lab away from the legacy 5-part local model
 - [ ] Deploy `auction-tick` to production and configure cron (see `docs/11-auction-tick-runbook.md`)
@@ -83,13 +83,13 @@ These checklists describe the current codebase state as of the version/date abov
 - [x] Wallet auth and session restoration
 - [x] ETH lock verification flow with Edge Function
 - [x] ETH lock backend hardening: 20s verification cooldown, uniform 404, rate limiting (6 calls / 15 min)
-- [x] Explicit deny-all RLS on current internal tables (`app_logs`, `wallet_registry`) with defensive no-op coverage for already-dropped legacy tables
-- [ ] Launch-grade reconnect, wallet-switch, and invalid-session UX review
+- [x] Explicit deny-all RLS on internal tables (`app_logs`, `app_state_ledger`, `browser_profiles`, `browser_wallets`, `wallet_registry`) with defensive no-op coverage for already-dropped legacy tables
+- [x] Launch-grade reconnect, wallet-switch, and invalid-session UX review
 - [x] Expose ETH lock status clearly in the UI (Hero badge with LOCKED / PENDING / SENT / VERIFYING / ERROR states)
-- [ ] Add ETH lock gating enforcement on access-sensitive flows
+- [x] Add ETH lock gating enforcement (EntropyGateBanner on all pages, shared EthLockStateProvider context)
 - [ ] Support-grade audit and dispute review workflow
 
-**5/8 done. Remaining work is gating enforcement, UX review, and support tooling.**
+**7/8 done. Remaining work is support tooling only.**
 
 ### Stage 2: Build the Canonical DB Model
 
@@ -240,15 +240,15 @@ Preserve the existing wallet and ETH-lock foundation, but make it launch-safe.
 
 Work:
 
-- Audit wallet auth for reconnect, wallet switching, and invalid session handling
-- Harden ETH lock verification for idempotency and duplicate submission safety
-- Ensure verified ETH lock state is the only gating input needed for access-sensitive flows
-- Keep auditability strong for support and dispute review
+- [x] Audit wallet auth for reconnect, wallet switching, and invalid session handling
+- [x] Harden ETH lock verification for idempotency and duplicate submission safety
+- [x] Ensure verified ETH lock state is the only gating input needed for access-sensitive flows
+- [ ] Keep auditability strong for support and dispute review
 
 Exit criteria:
 
-- A user can connect, sign in, lock ETH, and reliably remain recognized across sessions
-- Wallet changes do not leak or cross-contaminate user state
+- A user can connect, sign in, lock ETH, and reliably remain recognized across sessions with gate state visible in the shared shell
+- Wallet changes self-correct instead of leaking or cross-contaminating user state
 
 ## Stage 2: Build the Canonical DB Model
 
