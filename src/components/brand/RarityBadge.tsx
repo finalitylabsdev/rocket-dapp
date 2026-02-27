@@ -16,22 +16,110 @@ export interface RarityConfig {
   intensity: number;
 }
 
-const NEUTRAL_RARITY: RarityConfig = {
-  tier: 'Common',
-  color: '#6B7280',
-  bg: 'rgba(107,114,128,0.12)',
-  border: 'rgba(107,114,128,0.3)',
-  glow: 'rgba(107,114,128,0)',
-  label: 'Loading...',
-  multiplier: 1,
-  baseBoxPriceFlux: 0,
-  approximateDropRate: 0,
-  intensity: 0,
+const LAUNCH_DEFAULT_RARITY_CONFIG: Record<RarityTier, RarityConfig> = {
+  Common: {
+    tier: 'Common',
+    color: '#6B7280',
+    bg: 'rgba(107,114,128,0.12)',
+    border: 'rgba(107,114,128,0.3)',
+    glow: 'rgba(107,114,128,0)',
+    label: 'Common',
+    multiplier: 1,
+    baseBoxPriceFlux: 10,
+    approximateDropRate: 35,
+    intensity: 0,
+  },
+  Uncommon: {
+    tier: 'Uncommon',
+    color: '#22C55E',
+    bg: 'rgba(34,197,94,0.12)',
+    border: 'rgba(34,197,94,0.3)',
+    glow: 'rgba(34,197,94,0.15)',
+    label: 'Uncommon',
+    multiplier: 1.25,
+    baseBoxPriceFlux: 25,
+    approximateDropRate: 25,
+    intensity: 1,
+  },
+  Rare: {
+    tier: 'Rare',
+    color: '#3B82F6',
+    bg: 'rgba(59,130,246,0.12)',
+    border: 'rgba(59,130,246,0.3)',
+    glow: 'rgba(59,130,246,0.2)',
+    label: 'Rare',
+    multiplier: 1.6,
+    baseBoxPriceFlux: 50,
+    approximateDropRate: 18,
+    intensity: 2,
+  },
+  Epic: {
+    tier: 'Epic',
+    color: '#8B5CF6',
+    bg: 'rgba(139,92,246,0.12)',
+    border: 'rgba(139,92,246,0.3)',
+    glow: 'rgba(139,92,246,0.25)',
+    label: 'Epic',
+    multiplier: 2,
+    baseBoxPriceFlux: 100,
+    approximateDropRate: 10,
+    intensity: 3,
+  },
+  Legendary: {
+    tier: 'Legendary',
+    color: '#F59E0B',
+    bg: 'rgba(245,158,11,0.12)',
+    border: 'rgba(245,158,11,0.3)',
+    glow: 'rgba(245,158,11,0.3)',
+    label: 'Legendary',
+    multiplier: 2.5,
+    baseBoxPriceFlux: 200,
+    approximateDropRate: 6,
+    intensity: 4,
+  },
+  Mythic: {
+    tier: 'Mythic',
+    color: '#EF4444',
+    bg: 'rgba(239,68,68,0.12)',
+    border: 'rgba(239,68,68,0.3)',
+    glow: 'rgba(239,68,68,0.35)',
+    label: 'Mythic',
+    multiplier: 3.2,
+    baseBoxPriceFlux: 350,
+    approximateDropRate: 3.5,
+    intensity: 5,
+  },
+  Celestial: {
+    tier: 'Celestial',
+    color: '#06B6D4',
+    bg: 'rgba(6,182,212,0.12)',
+    border: 'rgba(6,182,212,0.3)',
+    glow: 'rgba(6,182,212,0.4)',
+    label: 'Celestial',
+    multiplier: 4,
+    baseBoxPriceFlux: 500,
+    approximateDropRate: 1.8,
+    intensity: 6,
+  },
+  Quantum: {
+    tier: 'Quantum',
+    color: '#E8ECF4',
+    bg: 'rgba(232,236,244,0.12)',
+    border: 'rgba(232,236,244,0.3)',
+    glow: 'rgba(232,236,244,0.45)',
+    label: 'Quantum',
+    multiplier: 5,
+    baseBoxPriceFlux: 750,
+    approximateDropRate: 0.7,
+    intensity: 7,
+  },
 };
 
 let rarityConfigLoaded = false;
 
-export const RARITY_CONFIG: Partial<Record<RarityTier, RarityConfig>> = {};
+export const RARITY_CONFIG: Partial<Record<RarityTier, RarityConfig>> = {
+  ...LAUNCH_DEFAULT_RARITY_CONFIG,
+};
 
 const listeners = new Set<() => void>();
 let rarityConfigVersion = 0;
@@ -39,6 +127,26 @@ let rarityConfigVersion = 0;
 function notifyConfigListeners() {
   rarityConfigVersion += 1;
   listeners.forEach((listener) => listener());
+}
+
+function applyActiveRarityConfig(
+  nextConfig: Partial<Record<RarityTier, RarityConfig>>,
+  isLoaded: boolean,
+) {
+  for (const key of Object.keys(RARITY_CONFIG) as RarityTier[]) {
+    delete RARITY_CONFIG[key];
+  }
+
+  for (const [key, value] of Object.entries(LAUNCH_DEFAULT_RARITY_CONFIG) as [RarityTier, RarityConfig][]) {
+    RARITY_CONFIG[key] = value;
+  }
+
+  for (const [key, value] of Object.entries(nextConfig) as [RarityTier, RarityConfig][]) {
+    RARITY_CONFIG[key] = value;
+  }
+
+  rarityConfigLoaded = isLoaded;
+  notifyConfigListeners();
 }
 
 export function setRarityConfig(tiers: RarityTierConfig[]) {
@@ -59,28 +167,19 @@ export function setRarityConfig(tiers: RarityTierConfig[]) {
     };
   });
 
-  for (const key of Object.keys(RARITY_CONFIG) as RarityTier[]) {
-    delete RARITY_CONFIG[key];
-  }
-  for (const [key, value] of Object.entries(nextConfig) as [RarityTier, RarityConfig][]) {
-    RARITY_CONFIG[key] = value;
-  }
-
-  rarityConfigLoaded = true;
-  notifyConfigListeners();
+  applyActiveRarityConfig(nextConfig, true);
 }
 
 export function resetRarityConfig() {
-  for (const key of Object.keys(RARITY_CONFIG) as RarityTier[]) {
-    delete RARITY_CONFIG[key];
-  }
-  rarityConfigLoaded = false;
-  notifyConfigListeners();
+  applyActiveRarityConfig({}, false);
 }
 
 export function getRarityConfig(tier: RarityTier): RarityConfig {
-  if (!rarityConfigLoaded) return NEUTRAL_RARITY;
-  return RARITY_CONFIG[tier] ?? NEUTRAL_RARITY;
+  return RARITY_CONFIG[tier] ?? LAUNCH_DEFAULT_RARITY_CONFIG[tier];
+}
+
+export function isUsingFallbackRarityConfig(): boolean {
+  return !rarityConfigLoaded;
 }
 
 function subscribeToRarityConfig(listener: () => void): () => void {

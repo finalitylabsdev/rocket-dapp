@@ -7,6 +7,7 @@ import { useWallet } from '../../hooks/useWallet';
 import { formatStarVaultError, openMysteryBox } from '../../lib/starVault';
 import type { BoxTierConfig, InventoryPart } from '../../types/domain';
 import BoxIllustration, { type BoxAnimationState } from './BoxIllustration';
+import { SectionGlyph } from './metadataVisuals';
 import {
   APP3_INSET_STYLE,
   APP3_PANEL_STYLE,
@@ -24,6 +25,14 @@ function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => {
     window.setTimeout(resolve, ms);
   });
+}
+
+function formatMetadataKey(value: string): string {
+  return value
+    .replace(/([a-z0-9])([A-Z])/g, '$1 $2')
+    .replace(/[_-]+/g, ' ')
+    .trim()
+    .toUpperCase();
 }
 
 function AttributeBars({ part }: { part: InventoryPart }) {
@@ -136,6 +145,9 @@ export default function BoxCard({ tier }: { tier: BoxTierConfig }) {
             <p className="text-[11px] mt-1 font-mono text-text-muted">
               {tier.tagline}
             </p>
+            <p className="text-[9px] mt-2 font-mono uppercase tracking-[0.18em]" style={APP3_TEXT_SECONDARY_STYLE}>
+              Catalog Key {formatMetadataKey(tier.illustration?.key ?? tier.id)}
+            </p>
           </div>
           <div className="text-right shrink-0">
             <div className="flex items-center gap-1 justify-end">
@@ -149,7 +161,13 @@ export default function BoxCard({ tier }: { tier: BoxTierConfig }) {
         </div>
 
         <div className="flex items-center justify-center py-3 mb-4">
-          <BoxIllustration rarity={tier.rarity} state={state} />
+          <BoxIllustration
+            rarity={tier.rarity}
+            state={state}
+            asset={tier.illustration}
+            fallbackKey={tier.id}
+            label={tier.name}
+          />
         </div>
 
         {reward ? (
@@ -163,14 +181,28 @@ export default function BoxCard({ tier }: { tier: BoxTierConfig }) {
             <p className="text-[10px] font-mono font-semibold uppercase tracking-wider text-text-muted">
               You Received
             </p>
-            <p className="mt-2 font-mono font-black text-lg uppercase" style={{ color: getRarityConfig(reward.rarity).color }}>
-              {reward.name}
-            </p>
-            <div className="mt-2 flex items-center justify-between gap-2">
-              <RarityBadge tier={reward.rarity} size="xs" />
-              <span className="text-[10px] font-mono uppercase" style={APP3_TEXT_SECONDARY_STYLE}>
-                {reward.sectionName}
-              </span>
+            <div className="mt-3 flex items-start gap-3">
+              <SectionGlyph asset={reward.illustration} fallbackKey={reward.slot} size="sm" />
+              <div className="min-w-0 flex-1">
+                <p className="font-mono font-black text-lg uppercase" style={{ color: getRarityConfig(reward.rarity).color }}>
+                  {reward.name}
+                </p>
+                <div className="mt-2 flex flex-wrap items-center gap-2">
+                  <RarityBadge tier={reward.rarity} size="xs" />
+                  <span
+                    className="inline-flex items-center rounded-full px-2 py-0.5 text-[9px] font-mono font-semibold uppercase tracking-[0.16em]"
+                    style={{ background: 'rgba(15,23,42,0.65)', color: '#E2E8F0', border: '1px solid rgba(148,163,184,0.2)' }}
+                  >
+                    {reward.sectionName}
+                  </span>
+                  <span
+                    className="inline-flex items-center rounded-full px-2 py-0.5 text-[9px] font-mono font-semibold uppercase tracking-[0.16em]"
+                    style={{ background: 'rgba(15,23,42,0.52)', color: '#94A3B8', border: '1px solid rgba(148,163,184,0.16)' }}
+                  >
+                    {formatMetadataKey(reward.illustration?.key ?? reward.slot)}
+                  </span>
+                </div>
+              </div>
             </div>
             <AttributeBars part={reward} />
             <div className="mt-3 flex items-center justify-between text-xs font-mono">
@@ -185,32 +217,44 @@ export default function BoxCard({ tier }: { tier: BoxTierConfig }) {
             <p className="text-[10px] font-mono font-bold mb-2 uppercase tracking-widest text-text-muted">
               Possible Drops
             </p>
-            <div className="space-y-2">
-              {tier.rewards.map((rewardLabel) => (
-                <div key={rewardLabel} className="flex items-center gap-2">
-                  <div
-                    className="h-3 w-3 shrink-0 flex items-center justify-center"
-                    style={{ background: cfg.bg, border: `1px solid ${cfg.border}` }}
-                  >
-                    <div className="h-1 w-1" style={{ background: cfg.color }} />
+            {tier.rewards.length === 0 ? (
+              <div className="p-3 text-[11px] font-mono" style={{ ...APP3_INSET_STYLE, ...APP3_TEXT_SECONDARY_STYLE }}>
+                Reward metadata is unavailable for this box tier.
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {tier.rewards.map((rewardLabel) => (
+                  <div key={rewardLabel} className="flex items-center gap-2">
+                    <div
+                      className="h-3 w-3 shrink-0 flex items-center justify-center"
+                      style={{ background: cfg.bg, border: `1px solid ${cfg.border}` }}
+                    >
+                      <div className="h-1 w-1" style={{ background: cfg.color }} />
+                    </div>
+                    <span className="text-[11px] font-mono text-text-secondary">
+                      {rewardLabel}
+                    </span>
                   </div>
-                  <span className="text-[11px] font-mono text-text-secondary">
-                    {rewardLabel}
-                  </span>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
 
-        <div className="grid grid-cols-2 gap-2 mb-4">
-          {tier.possible.map((item) => (
-            <div key={item.label} className="p-2 text-center" style={APP3_INSET_STYLE}>
-              <p className="font-mono font-bold text-xs text-text-primary">{item.value}</p>
-              <p className="text-[9px] font-mono mt-0.5 uppercase text-text-muted">{item.label}</p>
-            </div>
-          ))}
-        </div>
+        {tier.possible.length === 0 ? (
+          <div className="mb-4 p-3 text-[11px] font-mono" style={{ ...APP3_INSET_STYLE, ...APP3_TEXT_SECONDARY_STYLE }}>
+            Drop intel is unavailable until catalog metadata syncs.
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 gap-2 mb-4">
+            {tier.possible.map((item) => (
+              <div key={item.label} className="p-2 text-center" style={APP3_INSET_STYLE}>
+                <p className="font-mono font-bold text-xs text-text-primary">{item.value}</p>
+                <p className="text-[9px] font-mono mt-0.5 uppercase text-text-muted">{item.label}</p>
+              </div>
+            ))}
+          </div>
+        )}
 
         {reward ? (
           <button

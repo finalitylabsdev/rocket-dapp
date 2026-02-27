@@ -116,10 +116,10 @@ These checklists describe the current codebase state as of the version/date abov
 - [x] Part generation is server-side with RNG
 - [x] Inventory is server-backed with realtime subscriptions
 - [x] Remove fallback catalog/config assumptions from the normal production path
-- [ ] Harden failure-mode UX around partial outages and degraded reads
-- [ ] Replace placeholder rendering with canonical metadata-driven presentation
+- [x] Harden failure-mode UX around partial outages and degraded reads
+- [x] Replace placeholder rendering with canonical metadata-driven presentation
 
-**5/7 done. Core server authority is in place. Remaining work is UX polish and visual completion.**
+**7/7 done. Core server authority, degraded-read handling, and metadata-driven rendering are in place.**
 
 ### Stage 5: Build Nebula Bids End-to-End
 
@@ -143,24 +143,24 @@ These checklists describe the current codebase state as of the version/date abov
 
 - [x] App 3 is split into Star Vault and Nebula Bids tabs
 - [x] Shared inventory surface exists
-- [x] Core loading / retry / empty states exist in App 3
+- [x] Core loading / retry / empty / degraded states exist in App 3
 - [x] Build one persistent cross-app navigation shell and wallet HUD
 - [x] Remove per-page duplicated nav chrome
 - [ ] Add clearer next-step / four-app journey cues
 - [ ] Add lightweight onboarding path
 - [ ] Replace placeholder docs links / dead-end navigation
 
-**5/8 done. Shared shell is in place. Remaining work is docs/navigation polish, journey guidance, and onboarding.**
+**5/8 done. Shared shell and core App 3 state handling are in place. Remaining work is docs/navigation polish, journey guidance, and onboarding.**
 
 ### Stage 7: Establish the Canonical Asset and Metadata Pipeline
 
 - [x] Canonical rarity / section / part / box data exists at the data-model level
-- [ ] Replace placeholder box visuals with launch-ready assets
+- [x] Replace placeholder box visuals with tier-keyed launch visual treatments (local fallback until asset URLs land)
 - [x] Define metadata-backed rendering for parts and boxes
 - [x] Make UI rendering depend on metadata references instead of hardcoded visual branching
-- [ ] Keep fallback visuals only as explicit compatibility behavior if needed
+- [x] Keep fallback visuals only as explicit compatibility behavior if needed
 
-**3/5 done. Metadata-driven rendering is in place. Remaining work is launch art and fallback cleanup.**
+**5/5 done. Metadata-driven rendering, keyed launch visuals, and explicit fallback behavior are in place.**
 
 ### Stage 8: Add App 4 Compatibility Only
 
