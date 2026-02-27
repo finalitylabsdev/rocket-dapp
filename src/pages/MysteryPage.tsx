@@ -29,7 +29,7 @@ export default function MysteryPage() {
             Star Vault &amp; Nebula Bids
           </h1>
           <p className="text-text-secondary text-lg font-mono">
-            Server-backed rewards, live auctions, and one shared inventory cache.
+            Unbox rare finds, place your bids, and build your cosmic collection.
           </p>
         </div>
 

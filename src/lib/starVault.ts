@@ -197,14 +197,14 @@ function normalizePossibleStats(value: unknown): { label: string; value: string 
 }
 
 function normalizeBoxTierRow(payload: BoxTierRow, rarityLookup: Map<number, RarityTierConfig>): BoxTierConfig {
-  const rarity = rarityLookup.get(toNumber(payload.rarity_tier_id))?.name ?? 'Common';
+  const rarityTier = rarityLookup.get(toNumber(payload.rarity_tier_id));
 
   return {
     id: payload.id,
     name: payload.name,
-    rarity,
+    rarity: rarityTier?.name ?? 'Common',
     tagline: payload.tagline,
-    price: rarityLookup.get(toNumber(payload.rarity_tier_id))?.baseBoxPriceFlux ?? 0,
+    price: rarityTier?.baseBoxPriceFlux ?? 0,
     rewards: Array.isArray(payload.rewards_description) ? payload.rewards_description : [],
     possible: normalizePossibleStats(payload.possible_stats),
     illustration: normalizeIllustration(payload, payload.id, payload.name),

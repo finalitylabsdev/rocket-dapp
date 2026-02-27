@@ -118,9 +118,13 @@ export default function RocketLabPage() {
   const metrics = computeRocketLabMetrics(slots, selectedModel);
 
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({
-      history,
-    }));
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({
+        history,
+      }));
+    } catch {
+      // Persistence is optional; keep the simulator usable even when storage is blocked.
+    }
   }, [history]);
 
   const handleLaunch = () => {
