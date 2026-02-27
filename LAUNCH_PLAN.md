@@ -44,19 +44,19 @@ The goal is to launch with a database-authoritative gameplay system that is expl
 
 ### Launch-Critical Gaps
 
-- [ ] Remove remaining local authority from Rocket Lab state (`equipped`, `levels`, `scores` still persist locally)
+- [x] Remove remaining local authority from Rocket Lab state (only non-authoritative local simulation history persists)
 - [x] Remove or explicitly demote Star Vault fallback catalog/config behavior from the normal launch path
 - [x] Replace page-local nav bars with one persistent cross-app shell
 - [ ] Add visible ETH lock status / gating UX instead of keeping it only in libs
-- [ ] Replace placeholder-heavy box/part visual logic with metadata-driven rendering
-- [ ] Migrate Rocket Lab away from the legacy 5-part local model
+- [x] Replace placeholder-heavy box/part visual logic with metadata-driven rendering (tier-keyed visuals with explicit fallback are now the launch path)
+- [x] Migrate Rocket Lab away from the legacy 5-part local model
 - [ ] Deploy `auction-tick` to production and configure cron (see `docs/11-auction-tick-runbook.md`)
 - [ ] Enable leaked password protection in Supabase Dashboard
 
 ### Remaining Launch Scope
 
-- [ ] Canonical asset and metadata pipeline for launch visuals
-- [ ] Real App 4 compatibility for the canonical 8-part inventory model
+- [x] Canonical asset and metadata pipeline for launch visuals (metadata-driven launch path shipped; asset URL swaps remain iterative art work)
+- [x] Real App 4 compatibility for the canonical 8-part inventory model (Rocket Lab now consumes the canonical 8-slot inventory through a read-only adapter)
 - [ ] Feature flags for staged rollout
 - [ ] Launch rehearsal — internal, closed beta, public gates
 - [ ] Full DB-versus-chain reconciliation workflows for later authority cutover
@@ -101,13 +101,13 @@ These checklists describe the current codebase state as of the version/date abov
 - [x] Star Vault box opening uses ledger-backed FLUX mutation
 - [x] Nebula Bids bidding uses ledger-backed FLUX escrow/refund/payout
 - [x] Faucet claims use ledger-backed FLUX mutation
-- [ ] Remove remaining implicit gameplay authority from local UI state
-- [ ] Decide whether Rocket Lab is launch-authoritative or explicitly isolate it from the launch economy
+- [x] Remove remaining implicit gameplay authority from local UI state
+- [x] Rocket Lab is explicitly isolated from the launch economy (read-only inventory adapter + local simulation-only launches)
 - [x] All FLUX mutations are reason-coded (`whitelist_bonus`, `faucet_claim`, `adjustment` with context)
 - [x] FLUX ledger reconciliation view exists (`flux_ledger_reconciliation` — balance vs ledger sum per wallet)
 - [ ] Add stronger idempotency keys for all balance-mutating flows
 
-**5/8 done. Ledger integrity tooling landed. Remaining work is local-state cleanup and idempotency hardening.**
+**7/8 done. Ledger integrity is in place and Rocket Lab is explicitly non-authoritative. Remaining work is idempotency hardening.**
 
 ### Stage 4: Replace the Star Vault Prototype with Server Authority
 
@@ -166,11 +166,11 @@ These checklists describe the current codebase state as of the version/date abov
 
 - [x] Canonical 8-section inventory model exists in App 3
 - [x] Type-level groundwork exists for canonical part data
-- [ ] Make Rocket Lab consume canonical inventory or an explicit adapter
-- [ ] Remove the legacy 5-part local-only model as the effective downstream consumer
-- [ ] Eliminate model drift between App 3 rewards and downstream usage
+- [x] Make Rocket Lab consume canonical inventory or an explicit adapter
+- [x] Remove the legacy 5-part local-only model as the effective downstream consumer
+- [x] Eliminate model drift between App 3 rewards and downstream usage
 
-**2/5 done. Type groundwork is in place. App 4 integration is not started.**
+**5/5 done. Rocket Lab now mirrors the canonical 8-slot inventory through an explicit compatibility adapter.**
 
 ### Stage 9: Add Ops Controls and Rehearse the Launch
 
@@ -268,7 +268,7 @@ Exit criteria:
 
 ## Stage 3: Promote FLUX into the Full Gameplay Ledger
 
-Turn the existing FLUX foundation into the only valid source for gameplay debits and credits.
+Turn the existing FLUX foundation into the only valid source for gameplay debits and credits, and keep non-authoritative launch simulation outside that economy.
 
 Work:
 
@@ -276,11 +276,13 @@ Work:
 - Add reason-coded credits/debits for faucet, box purchase, bid escrow, refund, payout, and operational adjustments
 - Add idempotency keys for all balance-mutating operations
 - Remove any remaining implicit balance authority from local state
+- Keep Rocket Lab as a read-only compatibility simulation until a server-authoritative launch path exists
 
 Exit criteria:
 
 - No user can gain or lose FLUX without a corresponding ledger record
 - FLUX balances are reproducible from ledger history
+- Rocket Lab cannot imply FLUX payout authority or write launch-side gameplay state in the compatibility branch
 
 ## Stage 4: Replace the Star Vault Prototype with Server Authority
 
@@ -360,16 +362,19 @@ Do the minimum needed so App 3 outputs fit the broader product loop.
 Work:
 
 - Migrate domain types toward the canonical 8-part model
-- Add adapters so Rocket Lab can consume DB-backed inventory
+- Add a read-only adapter so Rocket Lab consumes canonical DB-backed inventory through the 8-slot section layout
 - Remove model drift between App 3 rewards and downstream usage
+- Keep Rocket Lab labeled as local simulation only until a server-authoritative launch path exists
 
 Boundary:
 
 - Do not attempt a full App 4 rebuild in this launch cycle
+- Do not add a launch RPC, ledger write, or economic authority in this compatibility stage
 
 Exit criteria:
 
 - A canonical part earned in App 3 can be surfaced coherently outside App 3
+- Rocket Lab uses canonical 8-slot section keys throughout and marks launch history/results as local simulation only
 
 ## Stage 9: Add Ops Controls and Rehearse the Launch
 

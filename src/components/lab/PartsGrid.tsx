@@ -1,248 +1,206 @@
-/**
- * @deprecated This module uses hardcoded legacy part definitions and will be replaced
- * when Rocket Lab consumes canonical inventory from the database.
- */
-
-import { ArrowUp, CheckCircle2, Zap } from 'lucide-react';
-import RarityBadge, { type RarityTier, getRarityConfig } from '../brand/RarityBadge';
+import RarityBadge, { getRarityConfig } from '../brand/RarityBadge';
 import PhiSymbol from '../brand/PhiSymbol';
-
-export interface EquippedParts {
-  engine: boolean;
-  fuel: boolean;
-  body: boolean;
-  wings: boolean;
-  booster: boolean;
-}
-
-export type EquippedPartId = keyof EquippedParts;
-
-interface Part {
-  id: EquippedPartId;
-  name: string;
-  label: string;
-  rarity: RarityTier;
-  power: number;
-  upgradeCost: number;
-  maxLevel: number;
-  description: string;
-}
+import { SectionIllustration } from './PartIllustrations';
+import { type RocketLabSlotView, type RocketLabSlots } from './rocketLabAdapter';
+import { ROCKET_SECTIONS } from '../../types/domain';
 
 interface PartsGridProps {
-  equipped: EquippedParts;
-  levels: Record<EquippedPartId, number>;
-  onToggle: (id: EquippedPartId) => void;
-  onUpgrade: (id: EquippedPartId) => void;
+  slots: RocketLabSlots;
+  isSyncing: boolean;
 }
 
-/** @deprecated Hardcoded legacy part definitions — will be replaced by canonical inventory. */
-const PARTS: Part[] = [
-  {
-    id: 'engine',
-    name: 'Pulse Engine',
-    label: 'Core Engine',
-    rarity: 'Legendary',
-    power: 92,
-    upgradeCost: 120,
-    maxLevel: 3,
-    description: 'Rhythmic energy rings from a central core.',
-  },
-  {
-    id: 'fuel',
-    name: 'Nebula Tank',
-    label: 'Fuel Cells',
-    rarity: 'Rare',
-    power: 74,
-    upgradeCost: 80,
-    maxLevel: 3,
-    description: 'Swirling nebula-coloured fluid within.',
-  },
-  {
-    id: 'body',
-    name: 'Radiation Mantle',
-    label: 'Shielding',
-    rarity: 'Common',
-    power: 68,
-    upgradeCost: 40,
-    maxLevel: 3,
-    description: 'Layered, cape-like protective panels.',
-  },
-  {
-    id: 'wings',
-    name: 'Solar Wings',
-    label: 'Wing-Plates',
-    rarity: 'Epic',
-    power: 55,
-    upgradeCost: 95,
-    maxLevel: 3,
-    description: 'Wide panels with embedded solar cells.',
-  },
-  {
-    id: 'booster',
-    name: 'Ion Array',
-    label: 'Thruster Array',
-    rarity: 'Rare',
-    power: 88,
-    upgradeCost: 60,
-    maxLevel: 3,
-    description: 'Grid of ion emitters, uniform glow.',
-  },
-];
+function getSlotStatusCopy(slot: RocketLabSlotView) {
+  if (slot.status === 'ready') {
+    return {
+      label: 'Ready',
+      summary: 'Using the best unlocked inventory part for this slot.',
+      border: slot.part ? getRarityConfig(slot.part.rarity).color : '#4ADE80',
+      accent: slot.part ? getRarityConfig(slot.part.rarity).bg : 'rgba(74,222,128,0.08)',
+      text: slot.part ? getRarityConfig(slot.part.rarity).color : '#4ADE80',
+    };
+  }
 
-export const PART_UPGRADE_COSTS: Record<EquippedPartId, number> = PARTS.reduce(
-  (costs, part) => ({
-    ...costs,
-    [part.id]: part.upgradeCost,
-  }),
-  {
-    engine: 0,
-    fuel: 0,
-    body: 0,
-    wings: 0,
-    booster: 0,
-  } as Record<EquippedPartId, number>,
-);
+  if (slot.status === 'locked') {
+    return {
+      label: 'Auction-Locked',
+      summary: 'A part exists here, but it is locked and excluded from the simulated build.',
+      border: '#F59E0B',
+      accent: 'rgba(245,158,11,0.08)',
+      text: '#F59E0B',
+    };
+  }
 
-function PartCard({ part, equipped, level, onToggle, onUpgrade }: {
-  part: Part;
-  equipped: boolean;
-  level: number;
-  onToggle: () => void;
-  onUpgrade: () => void;
-}) {
-  const cfg = getRarityConfig(part.rarity);
-  const effectivePower = part.power + (level - 1) * 8;
-  const levelProgress = (level / part.maxLevel) * 100;
+  return {
+    label: 'Missing',
+    summary: 'No owned part is available for this canonical slot yet.',
+    border: 'var(--color-border-subtle)',
+    accent: 'var(--color-bg-base)',
+    text: 'var(--color-text-muted)',
+  };
+}
+
+function SlotCard({ slot }: { slot: RocketLabSlotView }) {
+  const status = getSlotStatusCopy(slot);
+  const part = slot.part;
+  const rarity = part?.rarity ?? 'Common';
 
   return (
     <div
-      className="relative overflow-hidden cursor-pointer select-none transition-all duration-200"
-      style={equipped ? {
-        background: 'var(--color-bg-inset)',
-        border: `1px solid ${cfg.color}`,
-      } : {
-        background: 'var(--color-bg-base)',
-        border: '1px solid var(--color-border-subtle)',
+      className="relative overflow-hidden"
+      style={{
+        background: slot.status === 'ready' ? 'var(--color-bg-inset)' : 'var(--color-bg-base)',
+        border: `1px solid ${status.border}`,
       }}
-      onClick={onToggle}
     >
-      {equipped && (
-        <div
-          className="absolute top-0 left-0 right-0 h-[1px]"
-          style={{ background: `linear-gradient(90deg, transparent, ${cfg.color}, transparent)` }}
-        />
-      )}
+      <div
+        className="absolute inset-x-0 top-0 h-px"
+        style={{ background: `linear-gradient(90deg, transparent, ${status.border}, transparent)` }}
+      />
 
       <div className="p-3">
-        <div className="relative mb-3">
-          <div
-            className="w-full aspect-square overflow-hidden flex items-center justify-center"
-            style={{
-              background: 'var(--color-bg-base)',
-              border: `1px solid ${equipped ? cfg.border : 'var(--color-border-subtle)'}`,
-            }}
-          >
-            <Zap size={32} style={{ color: equipped ? cfg.color : 'var(--color-border-default)' }} />
+        <div className="flex items-start justify-between gap-2 mb-3">
+          <div>
+            <p className="font-mono font-bold text-[11px] uppercase tracking-[0.16em] text-text-muted">
+              {slot.displayName}
+            </p>
+            <p className="mt-1 font-mono font-bold text-sm leading-tight text-text-primary">
+              {slot.part?.name ?? 'Slot Unfilled'}
+            </p>
           </div>
-          {equipped && (
-            <div className="absolute top-2 right-2">
-              <CheckCircle2 size={14} style={{ color: '#4ADE80' }} />
-            </div>
-          )}
-          <div className="absolute bottom-2 left-2">
-            <RarityBadge tier={part.rarity} size="xs" showIcon={false} />
-          </div>
-        </div>
-
-        <p className="font-mono font-bold text-sm mb-0.5 leading-tight uppercase tracking-wider text-text-primary">
-          {part.name}
-        </p>
-        <p className="text-[10px] mb-2 leading-snug font-mono text-text-muted">
-          {part.description}
-        </p>
-
-        <div className="flex items-center gap-1 mb-2">
-          <Zap size={9} className="text-text-muted" />
-          <span className="font-mono font-bold text-xs text-text-secondary">{effectivePower}</span>
-          <span className="text-[9px] font-mono text-text-muted">PWR</span>
-          <span className="text-[9px] font-mono ml-auto uppercase text-text-muted">{part.label}</span>
-        </div>
-
-        <div className="mb-2.5">
-          <div className="flex items-center justify-between mb-1">
-            <span className="text-[9px] font-mono uppercase text-text-muted">Level</span>
-            <span className="font-mono text-[9px] text-text-muted">
-              Lv.{level}/{part.maxLevel}
-            </span>
-          </div>
-          <div className="h-1 overflow-hidden" style={{ background: 'var(--color-border-subtle)' }}>
-            <div
-              className="h-full transition-all duration-500"
+          {part ? (
+            <RarityBadge tier={rarity} size="xs" showIcon={slot.status === 'ready'} />
+          ) : (
+            <span
+              className="px-2 py-1 font-mono text-[10px] uppercase tracking-[0.16em]"
               style={{
-                width: `${levelProgress}%`,
-                background: cfg.color,
+                background: 'var(--color-bg-card)',
+                border: '1px solid var(--color-border-subtle)',
+                color: 'var(--color-text-muted)',
               }}
-            />
-          </div>
+            >
+              Empty
+            </span>
+          )}
         </div>
 
-        <button
-          onClick={(e) => { e.stopPropagation(); onUpgrade(); }}
-          disabled={level >= part.maxLevel}
-          className="w-full flex items-center justify-center gap-1 py-1.5 text-[10px] font-mono font-bold transition-all duration-200 active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed uppercase tracking-wider"
-          style={level < part.maxLevel ? {
-            background: cfg.bg,
-            color: cfg.color,
-            border: `1px solid ${cfg.border}`,
-          } : {
-            background: 'var(--color-bg-base)',
-            color: 'var(--color-text-muted)',
+        <div
+          className="mb-3 flex items-center justify-center"
+          style={{
+            background: status.accent,
+            border: `1px solid ${slot.status === 'missing' ? 'var(--color-border-subtle)' : status.border}`,
+          }}
+        >
+          <SectionIllustration
+            section={slot.section}
+            equipped={slot.status === 'ready'}
+            rarity={rarity}
+            size={72}
+          />
+        </div>
+
+        <div
+          className="mb-3 px-2.5 py-2"
+          style={{
+            background: 'var(--color-bg-card)',
             border: '1px solid var(--color-border-subtle)',
           }}
         >
-          {level >= part.maxLevel ? (
-            'MAX LEVEL'
-          ) : (
-            <>
-              <ArrowUp size={10} />
-              <PhiSymbol size={9} color="currentColor" />
-              {part.upgradeCost}
-            </>
-          )}
-        </button>
+          <div className="flex items-center justify-between gap-2">
+            <span className="font-mono text-[10px] uppercase tracking-[0.16em]" style={{ color: status.text }}>
+              {status.label}
+            </span>
+            <span className="font-mono text-[10px] uppercase tracking-[0.16em] text-text-muted">
+              {slot.availableCount} open / {slot.lockedCount} locked
+            </span>
+          </div>
+          <p className="mt-2 text-[10px] leading-relaxed font-mono text-text-muted">
+            {status.summary}
+          </p>
+        </div>
+
+        {part ? (
+          <>
+            <div className="space-y-2">
+              {part.attributes.map((value, index) => (
+                <div key={`${part.id}-${part.attributeNames[index]}`}>
+                  <div className="mb-1 flex items-center justify-between text-[10px] font-mono uppercase tracking-wider">
+                    <span className="text-text-muted">{part.attributeNames[index]}</span>
+                    <span className="text-text-primary">{value}</span>
+                  </div>
+                  <div className="h-1 overflow-hidden" style={{ background: 'var(--color-border-subtle)' }}>
+                    <div
+                      className="h-full"
+                      style={{
+                        width: `${value}%`,
+                        background: slot.status === 'ready'
+                          ? `linear-gradient(90deg, ${status.border}66, ${status.border})`
+                          : 'linear-gradient(90deg, rgba(245,158,11,0.28), rgba(245,158,11,0.72))',
+                      }}
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="mt-3 grid grid-cols-2 gap-2">
+              <div
+                className="px-2.5 py-2"
+                style={{ background: 'var(--color-bg-card)', border: '1px solid var(--color-border-subtle)' }}
+              >
+                <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-text-muted">Power</p>
+                <p className="mt-1 font-mono font-bold text-sm text-text-primary">{part.power}</p>
+              </div>
+              <div
+                className="px-2.5 py-2"
+                style={{ background: 'var(--color-bg-card)', border: '1px solid var(--color-border-subtle)' }}
+              >
+                <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-text-muted">Part Value</p>
+                <p className="mt-1 flex items-center gap-1 font-mono font-bold text-sm text-text-primary">
+                  <PhiSymbol size={10} color="currentColor" />
+                  {part.partValue}
+                </p>
+              </div>
+            </div>
+          </>
+        ) : (
+          <p className="text-[10px] leading-relaxed font-mono text-text-muted">
+            {slot.description}
+          </p>
+        )}
       </div>
     </div>
   );
 }
 
-export default function PartsGrid({ equipped, levels, onToggle, onUpgrade }: PartsGridProps) {
-  const equippedCount = Object.values(equipped).filter(Boolean).length;
-  const totalParts = Object.keys(equipped).length;
+export default function PartsGrid({ slots, isSyncing }: PartsGridProps) {
+  const readyCount = ROCKET_SECTIONS.reduce(
+    (count, section) => count + (slots[section].status === 'ready' ? 1 : 0),
+    0,
+  );
+  const lockedCount = ROCKET_SECTIONS.reduce(
+    (count, section) => count + (slots[section].status === 'locked' ? 1 : 0),
+    0,
+  );
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-5">
+      <div className="mb-5 flex items-center justify-between gap-4">
         <div>
           <p className="font-mono font-bold text-base uppercase tracking-wider text-text-primary">
-            Parts Inventory
+            Canonical Inventory Adapter
           </p>
-          <p className="text-xs mt-0.5 font-mono text-text-muted">
-            {equippedCount}/{totalParts} equipped · Click to toggle
+          <p className="mt-0.5 text-xs font-mono text-text-muted">
+            {isSyncing
+              ? 'Syncing GameState.inventory into the 8-slot compatibility view…'
+              : `${readyCount}/${ROCKET_SECTIONS.length} launch-ready · ${lockedCount} auction-locked`}
           </p>
         </div>
-        <span className="tag text-[10px]">Season 1</span>
+        <span className="tag text-[10px]">Read-Only</span>
       </div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-3">
-        {PARTS.map((part) => (
-          <PartCard
-            key={part.id}
-            part={part}
-            equipped={equipped[part.id]}
-            level={levels[part.id]}
-            onToggle={() => onToggle(part.id)}
-            onUpgrade={() => onUpgrade(part.id)}
-          />
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
+        {ROCKET_SECTIONS.map((section) => (
+          <SlotCard key={section} slot={slots[section]} />
         ))}
       </div>
     </div>

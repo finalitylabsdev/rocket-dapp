@@ -1,28 +1,33 @@
 import { useEffect } from 'react';
 import type { RocketModelId } from './RocketModels';
 import { useTheme } from '../../context/ThemeContext';
-
-interface EquippedParts {
-  engine: boolean;
-  fuel: boolean;
-  body: boolean;
-  wings: boolean;
-  booster: boolean;
-  noseCone?: boolean;
-  heatShield?: boolean;
-  gyroscope?: boolean;
-  solarPanels?: boolean;
-  landingStruts?: boolean;
-}
+import { ROCKET_SECTIONS } from '../../types/domain';
+import type { RocketLabSlots } from './rocketLabAdapter';
 
 interface RocketPreviewProps {
-  equipped: EquippedParts;
+  slots: RocketLabSlots;
   model: RocketModelId;
   launching: boolean;
   onLaunchComplete: () => void;
 }
 
-function StandardRocket({ equipped, light }: { equipped: EquippedParts; light: boolean }) {
+function getPreviewAssembly(slots: RocketLabSlots) {
+  return {
+    engine: slots.coreEngine.status === 'ready',
+    fuel: slots.fuelCell.status === 'ready',
+    body: slots.shielding.status === 'ready',
+    wings: slots.wingPlate.status === 'ready',
+    booster: slots.thrusterArray.status === 'ready',
+    noseCone: slots.navigationModule.status === 'ready',
+    heatShield: slots.shielding.status === 'ready',
+    gyroscope: slots.navigationModule.status === 'ready',
+    solarPanels: slots.payloadBay.status === 'ready',
+    landingStruts: slots.propulsionCables.status === 'ready',
+  };
+}
+
+function StandardRocket({ slots, light }: { slots: RocketLabSlots; light: boolean }) {
+  const equipped = getPreviewAssembly(slots);
   const c = light
     ? { body0: '#8a8a8a', body1: '#555555', nozzle0: '#9a9a9a', nozzle1: '#606060', stroke: '#888', strokeSub: '#777', detail: '#6a6a6a', detailStroke: '#888', inner: '#5a5a5a', innerStroke: '#7a7a7a', empty: '#c8c8c8', emptyStroke: '#aaa', sheenOp: '0.12', band: '#999' }
     : { body0: '#404040', body1: '#1a1a1a', nozzle0: '#606060', nozzle1: '#222', stroke: '#383838', strokeSub: '#353535', detail: '#2a2a2a', detailStroke: '#404040', inner: '#1f1f1f', innerStroke: '#2d2d2d', empty: '#0e0e0e', emptyStroke: '#222', sheenOp: '0.06', band: '#2a2a2a' };
@@ -181,7 +186,8 @@ function StandardRocket({ equipped, light }: { equipped: EquippedParts; light: b
   );
 }
 
-function HeavyRocket({ equipped, light }: { equipped: EquippedParts; light: boolean }) {
+function HeavyRocket({ slots, light }: { slots: RocketLabSlots; light: boolean }) {
+  const equipped = getPreviewAssembly(slots);
   const c = light
     ? { body0: '#8a8a70', body1: '#5a5a40', nozzle0: '#9a9a78', nozzle1: '#686848', stroke: '#8a8a68', strokeSub: '#7a7a58', detail: '#6a6a50', detailStroke: '#8a8a68', inner: '#585838', innerStroke: '#7a7a58', empty: '#c8c8b8', emptyStroke: '#aaa898', sheenOp: '0.10', band: '#8a8a68' }
     : { body0: '#3a3a2a', body1: '#1a1a0e', nozzle0: '#585840', nozzle1: '#202010', stroke: '#4a4a30', strokeSub: '#3a3a22', detail: '#2a2a18', detailStroke: '#5a5a38', inner: '#1a1a10', innerStroke: '#2e2e1e', empty: '#0e0e0a', emptyStroke: '#1e1e12', sheenOp: '0.05', band: '#3a3a28' };
@@ -348,7 +354,8 @@ function HeavyRocket({ equipped, light }: { equipped: EquippedParts; light: bool
   );
 }
 
-function ScoutRocket({ equipped, light }: { equipped: EquippedParts; light: boolean }) {
+function ScoutRocket({ slots, light }: { slots: RocketLabSlots; light: boolean }) {
+  const equipped = getPreviewAssembly(slots);
   const c = light
     ? { body0: '#5a8a82', body1: '#3a6a62', nozzle0: '#6a9a92', nozzle1: '#4a7a72', stroke: '#5a9a90', strokeSub: '#4a8a80', detail: '#3a7a70', detailStroke: '#5a9a90', inner: '#3a6a62', innerStroke: '#5a8a82', empty: '#b8d0cc', emptyStroke: '#90b0a8', sheenOp: '0.12', band: '#5a9a90' }
     : { body0: '#1a3a35', body1: '#0a1a18', nozzle0: '#20504a', nozzle1: '#0a1e1c', stroke: '#1a4a44', strokeSub: '#1a3a35', detail: '#0a2220', detailStroke: '#1a4a44', inner: '#0a1e1c', innerStroke: '#183830', empty: '#0a1210', emptyStroke: '#152522', sheenOp: '0.07', band: '#1a4a44' };
@@ -504,7 +511,7 @@ function ScoutRocket({ equipped, light }: { equipped: EquippedParts; light: bool
   );
 }
 
-export default function RocketPreview({ equipped, model, launching, onLaunchComplete }: RocketPreviewProps) {
+export default function RocketPreview({ slots, model, launching, onLaunchComplete }: RocketPreviewProps) {
   const { theme } = useTheme();
   const light = theme === 'light';
 
@@ -515,9 +522,11 @@ export default function RocketPreview({ equipped, model, launching, onLaunchComp
     }
   }, [launching, onLaunchComplete]);
 
-  const totalParts = Object.keys(equipped).length;
-  const equippedCount = Object.values(equipped).filter(Boolean).length;
-  const completeness = equippedCount / totalParts;
+  const readyCount = ROCKET_SECTIONS.reduce(
+    (count, section) => count + (slots[section].status === 'ready' ? 1 : 0),
+    0,
+  );
+  const completeness = readyCount / ROCKET_SECTIONS.length;
   const glowIntensity = 0.03 + completeness * 0.15;
 
   const modelColor = model === 'heavy' ? 'rgba(245,158,11,' : model === 'scout' ? 'rgba(6,214,160,' : 'rgba(255,255,255,';
@@ -585,11 +594,11 @@ export default function RocketPreview({ equipped, model, launching, onLaunchComp
           />
         )}
 
-        {model === 'standard' && <StandardRocket equipped={equipped} light={light} />}
-        {model === 'heavy' && <HeavyRocket equipped={equipped} light={light} />}
-        {model === 'scout' && <ScoutRocket equipped={equipped} light={light} />}
+        {model === 'standard' && <StandardRocket slots={slots} light={light} />}
+        {model === 'heavy' && <HeavyRocket slots={slots} light={light} />}
+        {model === 'scout' && <ScoutRocket slots={slots} light={light} />}
 
-        {(equipped.booster || equipped.engine) && !launching && (
+        {(slots.coreEngine.status === 'ready' || slots.thrusterArray.status === 'ready') && !launching && (
           <div className="relative -mt-3 flex flex-col items-center">
             <svg width="60" height="48" viewBox="0 0 60 48" style={{ animation: 'thrustFlame 0.3s ease-in-out infinite', transformOrigin: 'top center' }}>
               <defs>
@@ -630,8 +639,18 @@ export default function RocketPreview({ equipped, model, launching, onLaunchComp
 
       <div className="absolute bottom-4 left-0 right-0 flex justify-center">
         <div className="flex items-center gap-1.5">
-          {Object.entries(equipped).map(([key, on]) => (
-            <div key={key} className={`w-1.5 h-1.5 rounded-full transition-all duration-500 ${on ? 'bg-dot-green' : 'bg-bg-inset'}`} />
+          {ROCKET_SECTIONS.map((section) => (
+            <div
+              key={section}
+              className="w-1.5 h-1.5 rounded-full transition-all duration-500"
+              style={{
+                background: slots[section].status === 'ready'
+                  ? '#4ADE80'
+                  : slots[section].status === 'locked'
+                    ? '#F59E0B'
+                    : 'var(--color-bg-inset)',
+              }}
+            />
           ))}
         </div>
       </div>

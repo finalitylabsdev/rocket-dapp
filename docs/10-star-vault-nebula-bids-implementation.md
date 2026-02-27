@@ -37,7 +37,7 @@ This work sits on top of the earlier auth, ETH lock, and FLUX ledger migrations 
 
 - Supabase is the gameplay source of truth for FLUX, inventory, and auctions.
 - The chain is authoritative only for wallet-linked proof and ETH lock evidence.
-- `GameState` and the App 3 UI mirror server snapshots; they do not author gameplay state.
+- `GameState`, the App 3 UI, and the Rocket Lab compatibility view mirror server snapshots; they do not author gameplay state.
 
 ### Reserved cutover metadata
 
@@ -154,7 +154,7 @@ The backend implementation is present, but several launch tasks are still outsid
 - Register and monitor a production cron job.
 - Run production lifecycle verification across round start, transition, finalization, and restart.
 - Add stronger balance-flow idempotency if the team wants stricter replay protection for all FLUX mutations.
-- Migrate Rocket Lab off the legacy local-only 5-part downstream model.
+- Keep Rocket Lab as a read-only compatibility surface over the canonical 8-slot inventory until a server-authoritative launch flow exists.
 
 This branch does not change auction refund semantics and does not add balance-flow idempotency changes.
 
