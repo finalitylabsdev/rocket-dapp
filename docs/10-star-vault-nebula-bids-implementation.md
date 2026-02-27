@@ -6,7 +6,7 @@
 
 ## Context
 
-The Star Vault (Mystery Box) page currently uses hardcoded client-side data for box tiers, drop tables, part names, and RNG. The spec (docs 04, 05, 06) requires 64 named part variants (8 sections × 8 each), 3 individual attributes per part, a Part Value formula, and an entire Nebula Bids auction system — none of which are implemented. This plan migrates all game logic to server-side Supabase RPCs, adds the missing part catalog, and builds the auction system from scratch.
+The Star Vault (Mystery Box) page currently uses hardcoded client-side data for box tiers, drop tables, part names, and RNG. The spec (docs 04, 05, 06) requires 64 named part variants (8 sections × 8 each), 3 individual attributes per part, a Part Value formula, and an entire Nebula Bids auction system — none of which are implemented end-to-end in the current product. This plan migrates all game logic to server-side Supabase RPCs, adds the missing part catalog, and builds the auction system from scratch.
 
 ### Key Decisions
 
@@ -15,6 +15,10 @@ The Star Vault (Mystery Box) page currently uses hardcoded client-side data for 
 | Rarity visual config (colors, glows) | **Database-driven** | Stored in `rarity_tiers` table so changes don't require a deploy |
 | Auction scheduler | **Edge Function + Cron** | `supabase/functions/auction-tick/` called on a schedule, follows existing `verify-eth-lock` pattern |
 | Legacy localStorage inventory | **Fresh start** | Old parts are ignored; users begin fresh with server-backed inventory |
+| Inventory + FLUX authority | **Supabase is authoritative until on-chain settlement exists** | One canonical source of truth now; later the blockchain becomes authoritative and Supabase mirrors confirmed settlements |
+| Client-side ownership | **`GameState` remains the single UI cache, but only mirrors server snapshots** | Avoid duplicate caches (`GameState` vs `useInventory`) and keep navbar / page balance displays in sync |
+| Auction phase split | **Explicit `submission_ends_at` column; 30m submissions + 3h30m bidding** | Scheduler transitions become deterministic instead of being hidden in cron timing |
+| Star Vault box pricing | **Database-driven; retire runtime client scaling for this flow** | Avoid split authority between seeded DB prices and `VITE_SPEC_BOX_PRICE_MULTIPLIER` |
 
 ***
 
@@ -29,7 +33,7 @@ The Star Vault (Mystery Box) page currently uses hardcoded client-side data for 
 | `src/components/mystery/BoxSection.tsx` | Primary refactor target — remove hardcoded data, wire to RPCs |
 | `src/context/GameState.tsx` | Transition inventory from localStorage to server-backed |
 | `src/types/domain.ts` | Extend `InventoryPart` with attributes, add auction types |
-| `src/config/spec.ts` | Already has `AUCTION_ROUND_SECONDS`, `AUCTION_MIN_INCREMENT_BPS`, `AUCTION_MIN_RARITY_TIER` |
+| `src/config/spec.ts` | Already has `AUCTION_ROUND_SECONDS`, `AUCTION_MIN_INCREMENT_BPS`, `AUCTION_MIN_RARITY_TIER`; add `AUCTION_SUBMISSION_WINDOW_SECONDS = 1800` |
 | `src/components/brand/RarityBadge.tsx` | Currently has hardcoded `RARITY_CONFIG` — will consume from database |
 | `docs/05-app_overview.md` | Canonical spec for all 64 part names, rarity tiers, auction rules (sections 3.1–3.2) |
 | `supabase/functions/verify-eth-lock/index.ts` | Pattern for Edge Functions (JWT validation, service role key, rate limiting) |
@@ -45,6 +49,8 @@ These are read-only reference tables. They store the 64 part variants, 8 rarity 
 ### Table 1: `rarity_tiers`
 
 Replaces hardcoded `RARITY_MULTIPLIER`, `RARITY_BOX_PRICE_FLUX` (from `src/config/spec.ts`) and `RARITY_CONFIG` (from `src/components/brand/RarityBadge.tsx`). All display config is database-driven.
+
+For Star Vault, `VITE_SPEC_BOX_PRICE_MULTIPLIER` stops applying at runtime once this lands. If a local fast-economy mode is still needed, use a local-only seed override / alternate seed data instead of scaling prices in the client.
 
 ```sql
 CREATE TABLE IF NOT EXISTS rarity_tiers (
@@ -255,7 +261,8 @@ CREATE TABLE IF NOT EXISTS box_drop_weights (
   box_tier_id text NOT NULL REFERENCES box_tiers(id),
   rarity_tier_id smallint NOT NULL REFERENCES rarity_tiers(id),
   weight smallint NOT NULL CHECK (weight > 0),
-  created_at timestamptz NOT NULL DEFAULT now()
+  created_at timestamptz NOT NULL DEFAULT now(),
+  UNIQUE (box_tier_id, rarity_tier_id)
 );
 
 CREATE INDEX IF NOT EXISTS box_drop_weights_tier_idx
@@ -309,19 +316,20 @@ ALTER TABLE part_variants ENABLE ROW LEVEL SECURITY;
 ALTER TABLE box_tiers ENABLE ROW LEVEL SECURITY;
 ALTER TABLE box_drop_weights ENABLE ROW LEVEL SECURITY;
 
--- Allow reading catalog data
-CREATE POLICY "Allow read access" ON rarity_tiers FOR SELECT TO authenticated USING (true);
-CREATE POLICY "Allow read access" ON rocket_sections FOR SELECT TO authenticated USING (true);
-CREATE POLICY "Allow read access" ON part_variants FOR SELECT TO authenticated USING (true);
-CREATE POLICY "Allow read access" ON box_tiers FOR SELECT TO authenticated USING (true);
-CREATE POLICY "Allow read access" ON box_drop_weights FOR SELECT TO authenticated USING (true);
+-- Allow public read access; this data is non-sensitive and the current UI renders
+-- Star Vault content before the wallet is connected.
+CREATE POLICY "Allow public read access" ON rarity_tiers FOR SELECT TO anon, authenticated USING (true);
+CREATE POLICY "Allow public read access" ON rocket_sections FOR SELECT TO anon, authenticated USING (true);
+CREATE POLICY "Allow public read access" ON part_variants FOR SELECT TO anon, authenticated USING (true);
+CREATE POLICY "Allow public read access" ON box_tiers FOR SELECT TO anon, authenticated USING (true);
+CREATE POLICY "Allow public read access" ON box_drop_weights FOR SELECT TO anon, authenticated USING (true);
 
 -- Grant SELECT, revoke everything else
-GRANT SELECT ON rarity_tiers TO authenticated;
-GRANT SELECT ON rocket_sections TO authenticated;
-GRANT SELECT ON part_variants TO authenticated;
-GRANT SELECT ON box_tiers TO authenticated;
-GRANT SELECT ON box_drop_weights TO authenticated;
+GRANT SELECT ON rarity_tiers TO anon, authenticated;
+GRANT SELECT ON rocket_sections TO anon, authenticated;
+GRANT SELECT ON part_variants TO anon, authenticated;
+GRANT SELECT ON box_tiers TO anon, authenticated;
+GRANT SELECT ON box_drop_weights TO anon, authenticated;
 ```
 
 ***
@@ -418,6 +426,8 @@ DECLARE
   v_part_value numeric(10,2);
   v_part_id uuid;
   v_ledger_id bigint;
+  v_total_weight integer;
+  v_roll numeric;
 BEGIN
   -- 1. Authenticate wallet (reuses existing helper)
   SELECT rw.auth_user_id, rw.wallet_address
@@ -452,12 +462,29 @@ BEGIN
   END IF;
 
   -- 6. Weighted random rarity selection from drop table
-  -- Higher weights = more likely (ORDER BY random() / weight gives weighted sampling)
+  -- Roll once across the total weight, then take the first cumulative bucket.
+  SELECT COALESCE(SUM(weight), 0)
+  INTO v_total_weight
+  FROM box_drop_weights
+  WHERE box_tier_id = p_box_tier_id;
+
+  IF v_total_weight <= 0 THEN
+    RAISE EXCEPTION 'drop table is not configured for box tier: %', p_box_tier_id;
+  END IF;
+
+  v_roll := random() * v_total_weight;
+
   SELECT rt.* INTO v_drop_rarity
-  FROM box_drop_weights dw
-  JOIN rarity_tiers rt ON rt.id = dw.rarity_tier_id
-  WHERE dw.box_tier_id = p_box_tier_id
-  ORDER BY random() * (1.0 / dw.weight)
+  FROM (
+    SELECT
+      dw.rarity_tier_id,
+      SUM(dw.weight) OVER (ORDER BY dw.rarity_tier_id, dw.id) AS cumulative_weight
+    FROM box_drop_weights dw
+    WHERE dw.box_tier_id = p_box_tier_id
+  ) weighted
+  JOIN rarity_tiers rt ON rt.id = weighted.rarity_tier_id
+  WHERE v_roll < weighted.cumulative_weight
+  ORDER BY weighted.cumulative_weight
   LIMIT 1;
 
   -- 7. Random section (uniform 1-8)
@@ -606,6 +633,28 @@ REVOKE ALL ON FUNCTION public.get_user_inventory(text) FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION public.get_user_inventory(text) TO authenticated;
 ```
 
+### Realtime Publication Wiring
+
+The frontend inventory panel depends on `postgres_changes`. Add the table to the realtime publication in the same migration:
+
+```sql
+DO $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM pg_publication WHERE pubname = 'supabase_realtime') THEN
+    IF NOT EXISTS (
+      SELECT 1
+      FROM pg_publication_tables
+      WHERE pubname = 'supabase_realtime'
+        AND schemaname = 'public'
+        AND tablename = 'inventory_parts'
+    ) THEN
+      ALTER PUBLICATION supabase_realtime ADD TABLE public.inventory_parts;
+    END IF;
+  END IF;
+END;
+$$;
+```
+
 ***
 
 ## Phase 3: Database — Auction System
@@ -620,8 +669,9 @@ CREATE TABLE IF NOT EXISTS auction_rounds (
   status text NOT NULL DEFAULT 'accepting_submissions'
     CHECK (status IN ('accepting_submissions', 'bidding', 'finalizing', 'completed', 'no_submissions')),
   starts_at timestamptz NOT NULL,
+  submission_ends_at timestamptz NOT NULL,
   bidding_opens_at timestamptz,
-  ends_at timestamptz NOT NULL,
+  ends_at timestamptz NOT NULL,                  -- bidding close / round end
   selected_part_id uuid REFERENCES inventory_parts(id),
   selected_by_wallet text REFERENCES wallet_registry(wallet_address),
   winning_bid_id bigint,                          -- FK added after auction_bids table
@@ -707,6 +757,45 @@ GRANT SELECT ON auction_submissions TO authenticated;
 GRANT SELECT ON auction_bids TO authenticated;
 ```
 
+### Realtime Publication Wiring
+
+`useAuctions` depends on `postgres_changes`, so publish all three tables in the same migration:
+
+```sql
+DO $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM pg_publication WHERE pubname = 'supabase_realtime') THEN
+    IF NOT EXISTS (
+      SELECT 1 FROM pg_publication_tables
+      WHERE pubname = 'supabase_realtime'
+        AND schemaname = 'public'
+        AND tablename = 'auction_rounds'
+    ) THEN
+      ALTER PUBLICATION supabase_realtime ADD TABLE public.auction_rounds;
+    END IF;
+
+    IF NOT EXISTS (
+      SELECT 1 FROM pg_publication_tables
+      WHERE pubname = 'supabase_realtime'
+        AND schemaname = 'public'
+        AND tablename = 'auction_submissions'
+    ) THEN
+      ALTER PUBLICATION supabase_realtime ADD TABLE public.auction_submissions;
+    END IF;
+
+    IF NOT EXISTS (
+      SELECT 1 FROM pg_publication_tables
+      WHERE pubname = 'supabase_realtime'
+        AND schemaname = 'public'
+        AND tablename = 'auction_bids'
+    ) THEN
+      ALTER PUBLICATION supabase_realtime ADD TABLE public.auction_bids;
+    END IF;
+  END IF;
+END;
+$$;
+```
+
 ### RPC: `submit_auction_item`
 
 ```sql
@@ -763,7 +852,7 @@ BEGIN
   FROM auction_rounds
   WHERE status = 'accepting_submissions'
     AND starts_at <= now()
-    AND ends_at > now()
+    AND submission_ends_at > now()
   ORDER BY starts_at DESC
   LIMIT 1
   FOR UPDATE;
@@ -935,7 +1024,8 @@ BEGIN
     available_balance = v_new_balance,
     lifetime_spent = lifetime_spent + v_effective_deduction,
     updated_at = now()
-  WHERE wallet_address = v_wallet;
+  WHERE wallet_address = v_wallet
+  RETURNING * INTO v_balance;
 
   -- 10. Insert bid record
   INSERT INTO auction_bids (
@@ -952,9 +1042,7 @@ BEGIN
     'round_id', p_round_id,
     'amount', p_amount,
     'min_next_bid', p_amount + (p_amount * v_min_increment_bps / 10000),
-    'balance', to_jsonb(v_balance) || jsonb_build_object(
-      'available_balance', v_new_balance
-    )
+    'balance', to_jsonb(v_balance)
   );
 END;
 $$;
@@ -981,18 +1069,18 @@ DECLARE
   v_refund_bid RECORD;
   v_refund_ledger_id bigint;
 BEGIN
-  -- 1. Find round to finalize
+  -- 1. Find bidding round to finalize
   IF p_round_id IS NOT NULL THEN
     SELECT * INTO v_round
     FROM auction_rounds
     WHERE id = p_round_id
-      AND status IN ('bidding', 'accepting_submissions')
+      AND status = 'bidding'
       AND ends_at <= now()
     FOR UPDATE;
   ELSE
     SELECT * INTO v_round
     FROM auction_rounds
-    WHERE status IN ('bidding', 'accepting_submissions')
+    WHERE status = 'bidding'
       AND ends_at <= now()
     ORDER BY ends_at ASC
     LIMIT 1
@@ -1003,37 +1091,20 @@ BEGIN
     RETURN jsonb_build_object('status', 'no_round_to_finalize');
   END IF;
 
-  -- 2. If still accepting submissions, select the best item
-  IF v_round.status = 'accepting_submissions' THEN
-    SELECT * INTO v_selected_submission
-    FROM auction_submissions
-    WHERE round_id = v_round.id
-    ORDER BY rarity_tier_id DESC, part_value DESC
-    LIMIT 1;
+  -- 2. Validate the round already has a selected submission from the transition step
+  SELECT * INTO v_selected_submission
+  FROM auction_submissions
+  WHERE round_id = v_round.id
+    AND is_selected = true
+  LIMIT 1;
 
-    IF NOT FOUND THEN
-      UPDATE auction_rounds
-      SET status = 'no_submissions', updated_at = now()
-      WHERE id = v_round.id;
-
-      RETURN jsonb_build_object('status', 'no_submissions', 'round_id', v_round.id);
-    END IF;
-
-    UPDATE auction_submissions SET is_selected = true WHERE id = v_selected_submission.id;
-
-    UPDATE auction_rounds
-    SET
-      status = 'finalizing',
-      selected_part_id = v_selected_submission.part_id,
-      selected_by_wallet = v_selected_submission.wallet_address,
-      bidding_opens_at = now(),
-      updated_at = now()
-    WHERE id = v_round.id;
-  ELSE
-    UPDATE auction_rounds
-    SET status = 'finalizing', updated_at = now()
-    WHERE id = v_round.id;
+  IF NOT FOUND OR v_round.selected_part_id IS NULL OR v_round.selected_by_wallet IS NULL THEN
+    RAISE EXCEPTION 'auction round % is missing its selected submission', v_round.id;
   END IF;
+
+  UPDATE auction_rounds
+  SET status = 'finalizing', updated_at = now()
+  WHERE id = v_round.id;
 
   -- 3. Find highest non-refunded bid
   SELECT * INTO v_winning_bid
@@ -1109,12 +1180,20 @@ BEGIN
   WHERE id = v_round.selected_part_id;
 
   -- 7. Pay seller
+  PERFORM public.ensure_wallet_flux_balance_row(
+    v_round.selected_by_wallet,
+    v_selected_submission.auth_user_id,
+    0,
+    NULL,
+    'auction-finalize'
+  );
+
   INSERT INTO flux_ledger_entries (
     wallet_address, auth_user_id, entry_type, amount_flux,
     settlement_kind, settlement_status, payload
   ) VALUES (
     v_round.selected_by_wallet,
-    (SELECT auth_user_id FROM wallet_flux_balances WHERE wallet_address = v_round.selected_by_wallet),
+    v_selected_submission.auth_user_id,
     'adjustment', v_winning_bid.amount,
     'offchain_message', 'confirmed',
     jsonb_build_object(
@@ -1160,6 +1239,7 @@ $$;
 
 REVOKE ALL ON FUNCTION public.finalize_auction(bigint) FROM PUBLIC;
 REVOKE ALL ON FUNCTION public.finalize_auction(bigint) FROM anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.finalize_auction(bigint) TO service_role;
 ```
 
 ### RPC: `start_auction_round` (service-role only)
@@ -1173,8 +1253,10 @@ SET search_path = public
 AS $$
 DECLARE
   v_round_seconds integer := 14400;  -- 4 hours (AUCTION_ROUND_SECONDS)
+  v_submission_window_seconds integer := 1800;  -- 30 minutes (AUCTION_SUBMISSION_WINDOW_SECONDS)
   v_new_round_id bigint;
   v_starts_at timestamptz;
+  v_submission_ends_at timestamptz;
   v_ends_at timestamptz;
 BEGIN
   IF EXISTS (
@@ -1186,16 +1268,18 @@ BEGIN
   END IF;
 
   v_starts_at := now();
+  v_submission_ends_at := v_starts_at + make_interval(secs => v_submission_window_seconds);
   v_ends_at := v_starts_at + make_interval(secs => v_round_seconds);
 
-  INSERT INTO auction_rounds (status, starts_at, ends_at)
-  VALUES ('accepting_submissions', v_starts_at, v_ends_at)
+  INSERT INTO auction_rounds (status, starts_at, submission_ends_at, ends_at)
+  VALUES ('accepting_submissions', v_starts_at, v_submission_ends_at, v_ends_at)
   RETURNING id INTO v_new_round_id;
 
   RETURN jsonb_build_object(
     'status', 'round_started',
     'round_id', v_new_round_id,
     'starts_at', v_starts_at,
+    'submission_ends_at', v_submission_ends_at,
     'ends_at', v_ends_at
   );
 END;
@@ -1203,6 +1287,7 @@ $$;
 
 REVOKE ALL ON FUNCTION public.start_auction_round() FROM PUBLIC;
 REVOKE ALL ON FUNCTION public.start_auction_round() FROM anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.start_auction_round() TO service_role;
 ```
 
 ### RPC: `transition_auction_to_bidding` (service-role only)
@@ -1222,11 +1307,13 @@ DECLARE
 BEGIN
   SELECT * INTO v_round
   FROM auction_rounds
-  WHERE id = p_round_id AND status = 'accepting_submissions'
+  WHERE id = p_round_id
+    AND status = 'accepting_submissions'
+    AND submission_ends_at <= now()
   FOR UPDATE;
 
   IF NOT FOUND THEN
-    RETURN jsonb_build_object('status', 'round_not_in_submission_phase');
+    RETURN jsonb_build_object('status', 'round_not_ready_for_transition');
   END IF;
 
   SELECT * INTO v_best_submission
@@ -1236,7 +1323,11 @@ BEGIN
   LIMIT 1;
 
   IF NOT FOUND THEN
-    RETURN jsonb_build_object('status', 'no_submissions');
+    UPDATE auction_rounds
+    SET status = 'no_submissions', updated_at = now()
+    WHERE id = p_round_id;
+
+    RETURN jsonb_build_object('status', 'no_submissions', 'round_id', p_round_id);
   END IF;
 
   UPDATE auction_submissions SET is_selected = true WHERE id = v_best_submission.id;
@@ -1268,6 +1359,7 @@ $$;
 
 REVOKE ALL ON FUNCTION public.transition_auction_to_bidding(bigint) FROM PUBLIC;
 REVOKE ALL ON FUNCTION public.transition_auction_to_bidding(bigint) FROM anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.transition_auction_to_bidding(bigint) TO service_role;
 ```
 
 ### RPC: `get_active_auction` (authenticated read)
@@ -1329,6 +1421,7 @@ BEGIN
     'round_id', v_round.id,
     'status', v_round.status,
     'starts_at', v_round.starts_at,
+    'submission_ends_at', v_round.submission_ends_at,
     'ends_at', v_round.ends_at,
     'bidding_opens_at', v_round.bidding_opens_at,
     'part', v_part_info,
@@ -1397,10 +1490,12 @@ GRANT EXECUTE ON FUNCTION public.get_auction_history(integer, integer) TO authen
 Follows the `verify-eth-lock` pattern: JWT validation, service role key, rate limiting.
 
 - Uses `SUPABASE_SERVICE_ROLE_KEY` to call `finalize_auction()`, `transition_auction_to_bidding()`, `start_auction_round()` as service role
-- Single endpoint that checks current state and performs the appropriate transitions
-- Called on a cron schedule via Supabase Dashboard (every 30 minutes)
-- Every 4 hours: finalize expired rounds + start new round
-- Every 30 min: transition submission phase to bidding if submission window elapsed
+- Single endpoint that performs three passes in order:
+  1. Find all `accepting_submissions` rounds where `submission_ends_at <= now()` and call `transition_auction_to_bidding(round_id)`
+  2. Find all `bidding` rounds where `ends_at <= now()` and call `finalize_auction(round_id)`
+  3. Call `start_auction_round()` once if no active round remains
+- Called on a cron schedule via Supabase Dashboard every 5 minutes (not every 30 minutes)
+- The explicit `submission_ends_at` timestamp, not cron cadence, determines when submissions close
 
 ***
 
@@ -1409,12 +1504,20 @@ Follows the `verify-eth-lock` pattern: JWT validation, service role key, rate li
 ### Extend `src/types/domain.ts`
 
 ```typescript
-// New interface extending InventoryPart with required attributes
-export interface PartWithValue extends InventoryPart {
-  attributes: [number, number, number]; // no longer optional
+// Replace the legacy local-only InventoryPart shape with the canonical server-backed model.
+// Do not model this as `PartWithValue extends InventoryPart`; the old `slot` + `power`
+// contract no longer matches the database source of truth.
+export interface InventoryPart {
+  id: string;
+  name: string;
+  slot: RocketSection; // canonical section only; legacy aliases are removed from inventory rows
+  rarity: RarityTier;
+  power: number; // temporary derived UI alias until Rocket Lab stops reading "power"
+  attributes: [number, number, number];
   attributeNames: [string, string, string];
   partValue: number; // (sum of attrs) * multiplier
   sectionName: string;
+  rarityTierId: number;
   isLocked?: boolean;
 }
 
@@ -1448,6 +1551,7 @@ export interface AuctionRound {
   roundId: number;
   status: 'accepting_submissions' | 'bidding' | 'finalizing' | 'completed' | 'no_submissions';
   startsAt: string;
+  submissionEndsAt: string;
   endsAt: string;
   biddingOpensAt: string | null;
   part: AuctionPartInfo | null;
@@ -1482,6 +1586,8 @@ export type InventorySortDir = 'asc' | 'desc';
 
 Follows `src/lib/flux.ts` pattern (`assertSupabaseConfigured()`, RPC calls, error normalization):
 
+`openMysteryBox()` returns the canonical post-write balance snapshot from the database. Callers must feed that snapshot into `GameState` (new `applyServerSnapshot()` / `replaceInventory()` helpers) instead of calling `game.spendFlux()` or doing any local balance math.
+
 ```typescript
 export async function fetchCatalog(): Promise<{
   rarityTiers: RarityTierConfig[];
@@ -1492,14 +1598,16 @@ export async function fetchCatalog(): Promise<{
 export async function openMysteryBox(
   walletAddress: string,
   boxTierId: string,
-): Promise<{ part: PartWithValue; balance: FluxBalance; ledgerEntryId: number }>
+): Promise<{ part: InventoryPart; balance: FluxBalance; ledgerEntryId: number }>
 
 export async function getUserInventory(
   walletAddress: string,
-): Promise<PartWithValue[]>
+): Promise<InventoryPart[]>
 ```
 
 ### New: `src/lib/nebulaBids.ts`
+
+`placeAuctionBid()` and `submitAuctionItem()` also return canonical server results. UI code must treat the RPC response as authoritative and update the shared `GameState` cache from it. After `submitAuctionItem()`, call `game.refreshInventory()` immediately if the realtime event has not landed yet so the newly locked part is reflected in the shared inventory list.
 
 ```typescript
 export async function submitAuctionItem(
@@ -1527,14 +1635,16 @@ export async function getAuctionHistory(
 |------|------|---------|
 | `useRarityConfig` | `src/hooks/useRarityConfig.ts` | Fetch rarity tiers (colors, multipliers, prices) from DB; replaces hardcoded `RARITY_CONFIG` |
 | `useBoxTiers` | `src/hooks/useBoxTiers.ts` | Fetch + cache box tier configs from DB |
-| `useInventory` | `src/hooks/useInventory.ts` | Fetch inventory, realtime subscription on `inventory_parts`, sort/filter state |
 | `useAuctions` | `src/hooks/useAuctions.ts` | Fetch active auction, bid history, realtime subscription on auction tables |
 | `useCountdown` | `src/hooks/useCountdown.ts` | Countdown timer utility (1-second interval, returns `{ timeRemaining, formatted, isExpired }`) |
 
 ### Modify: `src/components/brand/RarityBadge.tsx`
 
-- Remove hardcoded `RARITY_CONFIG` object
-- Consume rarity config from `useRarityConfig` hook or a `RarityConfigProvider` context
+- Remove the hardcoded `RARITY_CONFIG` literal
+- Replace it with a shared rarity-config adapter that supports:
+  - a bootstrap fallback derived from `spec.ts` for pre-hydration and legacy screens
+  - runtime overrides loaded from `useRarityConfig`
+- Keep the export surface compatible until `PartsGrid` and `PartIllustrations` stop importing `RARITY_CONFIG` directly
 - SVG gem icons remain in the component (purely visual assets)
 
 ***
@@ -1557,6 +1667,10 @@ export async function getAuctionHistory(
 
 **`src/components/mystery/BoxCard.tsx`** (extracted from BoxSection.tsx)
 - Replace `randomPart()` with `openMysteryBox()` RPC call
+- Start the cracking animation immediately, but gate the final reveal on both:
+  - minimum animation duration elapsed
+  - RPC result resolved successfully
+- On RPC failure, cancel the reveal state, reset to `idle`, and surface the server error (no local fallback reward generation)
 - Show 3 individual attribute bars (not just power) on revealed state
 - Show Part Value = (sum of attrs) × multiplier
 - Enhanced animation states: `idle → shaking → cracking → revealed`
@@ -1573,14 +1687,16 @@ Delete from `BoxSection.tsx`:
 - `PART_NAMES` record (lines 121-130)
 - `randomPart()` function (lines 150-162)
 
-Data now flows from database through hooks.
+Data now flows from the database through `useBoxTiers` / `useRarityConfig` plus the shared `GameState` server-snapshot cache.
 
 ### New: `src/components/mystery/InventoryPanel.tsx`
 
 Right sidebar, shared between both tabs:
+- Reads inventory from `GameState` (the shared server-snapshot cache), not a separate inventory hook
 - Lists all owned parts with RarityBadge, 3 attribute bars, Part Value
 - Sort by section/rarity/value, filter by rarity/section
-- Action buttons: View Stats, Send to Auction, Equip to Rocket
+- Action buttons: View Stats, Send to Auction
+- `Equip to Rocket` stays hidden / disabled until Rocket Lab is migrated to the same 8-slot server-backed inventory model
 
 ### New: `src/components/mystery/InventoryPartCard.tsx`
 
@@ -1612,11 +1728,15 @@ Compact card for each inventory part:
 
 ### Modify `src/context/GameState.tsx`
 
-- `addPart()` now receives server-generated parts (attributes populated, partValue computed)
-- Add `refreshInventory()` method that fetches from `get_user_inventory` RPC
-- On wallet connect: fetch inventory from server only — **fresh start, no localStorage migration**
-- Remove `inventory` from `StoredGameState` localStorage persistence
+- `GameState` remains the single client-wide cache for displayed FLUX + inventory, but it is no longer authoritative
+- Remove local balance math for Star Vault / Nebula Bids flows; all writes go through RPCs and `GameState` only applies server snapshots
+- Add `applyServerSnapshot({ balance?, inventory? })`, `replaceInventory()`, and `refreshInventory()` helpers
+- Move the single `inventory_parts` realtime subscription into `GameState` so the shared cache refreshes in one place
+- On wallet connect: fetch FLUX + inventory from server only
+- On wallet disconnect or wallet change: immediately clear server-backed inventory and any server-backed equipped references before refetching
+- Remove `inventory` and `fluxBalance` from `StoredGameState` localStorage persistence
 - Old localStorage inventory data is ignored (users start fresh with server-backed inventory)
+- Legacy Rocket Lab-only local state can remain temporary, but must not be treated as the source of truth for Star Vault or auction inventory
 
 ***
 
@@ -1626,17 +1746,17 @@ Compact card for each inventory part:
 |------|-------|--------------|
 | 1 | Migration A: catalog tables + seed data | None |
 | 2 | Migration B: inventory table + `open_mystery_box` + `get_user_inventory` | Step 1 |
-| 3 | Migration C: auction tables + all auction RPCs | Steps 1-2 |
-| 4 | `src/lib/starVault.ts` + `src/hooks/useRarityConfig.ts` + `src/hooks/useBoxTiers.ts` + `src/hooks/useInventory.ts` | Step 2 |
-| 5 | Refactor BoxSection → VaultTab + BoxCard (server-side opening) | Step 4 |
-| 6 | MysteryPage tab switcher + InventoryPanel | Step 5 |
-| 7 | GameState: remove localStorage inventory, wire to server (fresh start) | Steps 4-6 |
+| 3 | Add `AUCTION_SUBMISSION_WINDOW_SECONDS` to `src/config/spec.ts`, then Migration C: auction tables + realtime wiring + all auction RPCs | Steps 1-2 |
+| 4 | `src/lib/starVault.ts` + `src/hooks/useRarityConfig.ts` + `src/hooks/useBoxTiers.ts` | Step 2 |
+| 5 | GameState: remove persisted inventory / FLUX authority, add server snapshot helpers | Steps 2, 4 |
+| 6 | Refactor BoxSection → VaultTab + BoxCard (server-side opening) | Steps 4-5 |
+| 7 | MysteryPage tab switcher + InventoryPanel | Step 6 |
 | 8 | `src/lib/nebulaBids.ts` + `src/hooks/useAuctions.ts` + `src/hooks/useCountdown.ts` | Step 3 |
 | 9 | BidsTab + AuctionGrid + AuctionDetail + BidInput | Step 8 |
 | 10 | SubmitToAuctionPanel + AuctionResultModal + TopContributors | Step 9 |
 | 11 | Auction scheduler edge function (`supabase/functions/auction-tick/`) | Step 3 |
 
-Steps 1-3 are pure database (no frontend impact). Steps 4-7 can ship as "Star Vault v2". Steps 8-11 are the Nebula Bids build.
+Steps 1-3 are mostly database + config. Steps 4-7 can ship as "Star Vault v2". Steps 8-11 are the Nebula Bids build.
 
 ***
 
@@ -1652,7 +1772,6 @@ Steps 1-3 are pure database (no frontend impact). Steps 4-7 can ship as "Star Va
 | `src/lib/nebulaBids.ts` | Service | Supabase RPCs for auction system |
 | `src/hooks/useRarityConfig.ts` | Hook | Fetch rarity config from DB |
 | `src/hooks/useBoxTiers.ts` | Hook | Fetch box tier configs from DB |
-| `src/hooks/useInventory.ts` | Hook | Fetch + realtime inventory |
 | `src/hooks/useAuctions.ts` | Hook | Fetch + realtime auction state |
 | `src/hooks/useCountdown.ts` | Hook | Countdown timer utility |
 | `src/components/mystery/VaultTab.tsx` | Component | Star Vault tab content |
@@ -1673,9 +1792,10 @@ Steps 1-3 are pure database (no frontend impact). Steps 4-7 can ship as "Star Va
 | Path | Changes |
 |------|---------|
 | `src/pages/MysteryPage.tsx` | Tab switcher, layout restructure, header update |
-| `src/types/domain.ts` | Add PartWithValue, RarityTierConfig, auction types |
-| `src/components/brand/RarityBadge.tsx` | Remove hardcoded RARITY_CONFIG, consume from hook/context |
-| `src/context/GameState.tsx` | Remove localStorage inventory, add refreshInventory(), wire to server |
+| `src/config/spec.ts` | Add `AUCTION_SUBMISSION_WINDOW_SECONDS`; retire Star Vault runtime box-price scaling |
+| `src/types/domain.ts` | Replace legacy `InventoryPart` shape, add `RarityTierConfig`, and add auction types |
+| `src/components/brand/RarityBadge.tsx` | Replace hardcoded RARITY_CONFIG with shared adapter + DB overrides |
+| `src/context/GameState.tsx` | Stop treating local state as authoritative; add server snapshot helpers and remove persisted inventory / FLUX authority |
 | `src/components/mystery/BoxSection.tsx` | Deprecated / replaced by VaultTab + BoxCard |
 
 ***
@@ -1689,6 +1809,7 @@ Steps 1-3 are pure database (no frontend impact). Steps 4-7 can ship as "Star Va
 | Auction bid manipulation | `FOR UPDATE` row locks on round and bid records; atomic escrow |
 | Inventory theft | `resolve_authenticated_wallet()` verifies wallet ownership against `auth.identities` |
 | Direct table writes | `REVOKE INSERT/UPDATE/DELETE` from `authenticated`; writes only via SECURITY DEFINER RPCs |
+| Client/server drift | `GameState` only mirrors server snapshots; Star Vault and auction flows stop doing local balance math |
 | Auction finalization tampering | `finalize_auction` only callable by service role (not exposed to clients) |
 | Catalog data integrity | Catalog tables grant only SELECT to clients; seed data applied via migration |
 
@@ -1697,9 +1818,12 @@ Steps 1-3 are pure database (no frontend impact). Steps 4-7 can ship as "Star Va
 ## Verification
 
 1. **Catalog seed**: Query `SELECT count(*) FROM part_variants` — should return 64
-2. **Box opening**: Open a box via UI, verify part appears in `inventory_parts` table with 3 attributes and correct part_value
-3. **Inventory panel**: Verify parts load from server, sort/filter works, no stale localStorage data shown
-4. **Auction flow**: Submit eligible part → transition to bidding → place bids → finalize → verify winner gets part, seller gets Flux, losers get refunds
-5. **Realtime**: Open two browser tabs, bid in one — verify other tab sees update via realtime subscription
-6. **Error cases**: Insufficient Flux, ineligible part for auction, bid below minimum, expired auction round
-7. **Rarity config**: Verify `RarityBadge` renders correctly from database-driven config (no hardcoded colors)
+2. **Public catalog reads**: Load Star Vault before connecting a wallet and verify box tiers / rarity visuals still render from the DB
+3. **Box opening**: Open a box via UI, verify part appears in `inventory_parts` with 3 attributes and correct `part_value`, and verify the returned balance snapshot updates `GameState`
+4. **Weighted drops**: Run a local sampling test (for example 10k simulated opens against one box tier) and confirm the observed rarity distribution is close to `box_drop_weights`
+5. **Inventory panel**: Verify parts load from server, sort/filter works, and no stale localStorage inventory or FLUX value is shown after wallet switch
+6. **Auction flow**: Submit eligible part → wait until `submission_ends_at` → transition to bidding → place bids → finalize → verify winner gets part, seller gets FLUX, losers get refunds
+7. **Scheduler / service role**: Manually invoke the Edge Function with the service role key and verify it can transition and finalize rounds without permission errors
+8. **Realtime**: Open two browser tabs, bid in one, and verify the other tab updates via realtime subscriptions
+9. **Error cases**: Insufficient FLUX, ineligible part for auction, bid below minimum, submission closed, expired auction round
+10. **Rarity config**: Verify `RarityBadge` renders correctly from database-driven config while legacy consumers still render through the shared fallback adapter
