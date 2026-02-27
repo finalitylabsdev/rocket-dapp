@@ -345,15 +345,6 @@ export default function Hero({ onOpenDex }: HeroProps) {
                 <p className="text-sm font-mono font-semibold text-text-primary uppercase tracking-wider">Season 1</p>
                 <p className="text-xs text-text-muted font-mono">Cosmic Jackpot open</p>
               </div>
-              {game.scores.length > 0 && (
-                <>
-                  <div className="h-8 w-px bg-border-subtle" />
-                  <div>
-                    <p className="text-sm font-mono font-semibold text-text-primary">{Math.max(...game.scores).toLocaleString()}</p>
-                    <p className="text-xs text-text-muted font-mono">Best Grav Score</p>
-                  </div>
-                </>
-              )}
             </div>
           </div>
 

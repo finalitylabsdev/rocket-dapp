@@ -3,16 +3,11 @@ import {
   useCallback,
   useContext,
   useEffect,
-  useMemo,
   useState,
   type ReactNode,
 } from 'react';
 import {
-  ALL_PART_SLOTS,
-  ROCKET_SECTIONS,
   type InventoryPart,
-  type PartSlot,
-  type RocketSection,
 } from '../types/domain';
 import {
   EFFECTIVE_DAILY_CLAIM_FLUX,
@@ -31,7 +26,7 @@ import { formatStarVaultError, getUserInventory } from '../lib/starVault';
 import { supabase } from '../lib/supabase';
 import { useWallet } from '../hooks/useWallet';
 
-export type { InventoryPart, PartSlot, RarityTier, RocketSection } from '../types/domain';
+export type { InventoryPart, RarityTier, RocketSection } from '../types/domain';
 
 interface ServerSnapshot {
   balance?: FluxBalance | null;
@@ -41,10 +36,6 @@ interface ServerSnapshot {
 interface GameState {
   fluxBalance: number;
   inventory: InventoryPart[];
-  equipped: Record<PartSlot, InventoryPart | null>;
-  canonicalEquipped: Record<RocketSection, InventoryPart | null>;
-  levels: Record<PartSlot, number>;
-  scores: number[];
   lockedEth: boolean;
   lastDailyClaim: number | null;
   isFluxSyncing: boolean;
@@ -58,79 +49,14 @@ interface GameState {
   replaceInventory: (inventory: InventoryPart[]) => void;
   refreshInventory: () => Promise<void>;
   applyServerSnapshot: (snapshot: ServerSnapshot) => void;
-  equipPart: (slot: PartSlot, part: InventoryPart) => void;
-  unequipPart: (slot: PartSlot) => void;
-  upgradePart: (slot: PartSlot) => Promise<boolean>;
-  recordScore: (score: number) => void;
 }
-
-const STORAGE_KEY = 'phinet-game-state';
-
-interface StoredGameState {
-  equipped: Record<PartSlot, InventoryPart | null>;
-  levels: Record<PartSlot, number>;
-  scores: number[];
-}
-
-const equippedDefaults = Object.fromEntries(
-  ALL_PART_SLOTS.map((slot) => [slot, null]),
-) as Record<PartSlot, InventoryPart | null>;
-
-const levelDefaults = Object.fromEntries(
-  ALL_PART_SLOTS.map((slot) => [slot, 1]),
-) as Record<PartSlot, number>;
-
-const canonicalDefaults = Object.fromEntries(
-  ROCKET_SECTIONS.map((section) => [section, null]),
-) as Record<RocketSection, InventoryPart | null>;
 
 const defaults = {
   fluxBalance: 0,
   inventory: [] as InventoryPart[],
-  equipped: equippedDefaults,
-  levels: levelDefaults,
-  scores: [] as number[],
   lockedEth: false,
   lastDailyClaim: null as number | null,
 };
-
-function deriveCanonicalEquipped(
-  equipped: Record<PartSlot, InventoryPart | null>,
-): Record<RocketSection, InventoryPart | null> {
-  const canonical = { ...canonicalDefaults };
-
-  for (const section of ROCKET_SECTIONS) {
-    canonical[section] = equipped[section];
-  }
-
-  return canonical;
-}
-
-function load() {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) {
-      return {
-        equipped: { ...equippedDefaults },
-        levels: { ...levelDefaults },
-        scores: [],
-      };
-    }
-
-    const parsed = JSON.parse(raw) as Partial<StoredGameState>;
-    return {
-      equipped: { ...equippedDefaults, ...(parsed.equipped || {}) },
-      levels: { ...levelDefaults, ...(parsed.levels || {}) },
-      scores: Array.isArray(parsed.scores) ? parsed.scores : [],
-    };
-  } catch {
-    return {
-      equipped: { ...equippedDefaults },
-      levels: { ...levelDefaults },
-      scores: [],
-    };
-  }
-}
 
 function clearServerBackedState<T extends typeof defaults>(state: T): T {
   return {
@@ -139,7 +65,6 @@ function clearServerBackedState<T extends typeof defaults>(state: T): T {
     inventory: [],
     lockedEth: false,
     lastDailyClaim: null,
-    equipped: { ...equippedDefaults },
   };
 }
 
@@ -147,27 +72,10 @@ const GameStateContext = createContext<GameState | null>(null);
 
 export function GameStateProvider({ children }: { children: ReactNode }) {
   const wallet = useWallet();
-  const persistedState = useMemo(load, []);
-  const [state, setState] = useState({
-    ...defaults,
-    equipped: persistedState.equipped,
-    levels: persistedState.levels,
-    scores: persistedState.scores,
-  });
+  const [state, setState] = useState({ ...defaults });
   const [isFluxSyncing, setIsFluxSyncing] = useState(false);
   const [isClaimingFlux, setIsClaimingFlux] = useState(false);
   const [isInventorySyncing, setIsInventorySyncing] = useState(false);
-  const persistedEquipped = state.equipped;
-  const persistedLevels = state.levels;
-  const persistedScores = state.scores;
-
-  useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({
-      equipped: persistedEquipped,
-      levels: persistedLevels,
-      scores: persistedScores,
-    }));
-  }, [persistedEquipped, persistedLevels, persistedScores]);
 
   const applyRemoteFluxBalance = useCallback((nextBalance: FluxBalance) => {
     setState((current) => ({
@@ -366,63 +274,10 @@ export function GameStateProvider({ children }: { children: ReactNode }) {
     }));
   }, []);
 
-  const equipPart = useCallback((slot: PartSlot, part: InventoryPart) => {
-    setState((current) => ({
-      ...current,
-      equipped: { ...current.equipped, [slot]: part },
-    }));
-  }, []);
-
-  const unequipPart = useCallback((slot: PartSlot) => {
-    setState((current) => ({
-      ...current,
-      equipped: { ...current.equipped, [slot]: null },
-    }));
-  }, []);
-
-  const upgradePart = useCallback(async (slot: PartSlot) => {
-    if (state.levels[slot] >= 3) {
-      return false;
-    }
-
-    const cost = 20 + state.levels[slot] * 15;
-    const didSpend = await spendFlux(
-      cost,
-      'legacy_part_upgrade',
-      {
-        slot,
-        next_level: state.levels[slot] + 1,
-      },
-    );
-
-    if (!didSpend) {
-      return false;
-    }
-
-    setState((current) => ({
-      ...current,
-      levels: { ...current.levels, [slot]: current.levels[slot] + 1 },
-    }));
-    return true;
-  }, [spendFlux, state.levels]);
-
-  const recordScore = useCallback((score: number) => {
-    setState((current) => ({
-      ...current,
-      scores: [...current.scores, score],
-    }));
-  }, []);
-
-  const canonicalEquipped = useMemo(
-    () => deriveCanonicalEquipped(state.equipped),
-    [state.equipped],
-  );
-
   return (
     <GameStateContext.Provider
       value={{
         ...state,
-        canonicalEquipped,
         isFluxSyncing,
         isClaimingFlux,
         isInventorySyncing,
@@ -434,10 +289,6 @@ export function GameStateProvider({ children }: { children: ReactNode }) {
         replaceInventory,
         refreshInventory,
         applyServerSnapshot,
-        equipPart,
-        unequipPart,
-        upgradePart,
-        recordScore,
       }}
     >
       {children}

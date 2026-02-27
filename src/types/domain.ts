@@ -26,36 +26,6 @@ export const ROCKET_SECTIONS = [
 ] as const;
 export type RocketSection = typeof ROCKET_SECTIONS[number];
 
-export const LEGACY_PART_SLOTS = [
-  'engine',
-  'fuel',
-  'body',
-  'wings',
-  'booster',
-  'noseCone',
-  'heatShield',
-  'gyroscope',
-  'solarPanels',
-  'landingStruts',
-] as const;
-export type LegacyPartSlot = typeof LEGACY_PART_SLOTS[number];
-
-export const ALL_PART_SLOTS = [...ROCKET_SECTIONS, ...LEGACY_PART_SLOTS] as const;
-export type PartSlot = typeof ALL_PART_SLOTS[number];
-
-export const LEGACY_TO_CANONICAL_SECTION: Record<LegacyPartSlot, RocketSection> = {
-  engine: 'coreEngine',
-  fuel: 'fuelCell',
-  body: 'shielding',
-  wings: 'wingPlate',
-  booster: 'thrusterArray',
-  noseCone: 'navigationModule',
-  heatShield: 'shielding',
-  gyroscope: 'navigationModule',
-  solarPanels: 'payloadBay',
-  landingStruts: 'propulsionCables',
-};
-
 export interface InventoryPart {
   id: string;
   name: string;
