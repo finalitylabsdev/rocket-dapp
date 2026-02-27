@@ -330,11 +330,13 @@ export async function fetchCatalog(): Promise<{
 }
 
 function createIdempotencyKey(): string {
-  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
-    return crypto.randomUUID();
+  const cryptoApi = globalThis.crypto;
+
+  if (!cryptoApi || typeof cryptoApi.randomUUID !== 'function') {
+    throw new Error('Secure randomness is unavailable in this environment.');
   }
 
-  return `${Date.now()}-${Math.random().toString(36).slice(2, 12)}`;
+  return cryptoApi.randomUUID();
 }
 
 export async function openMysteryBox(

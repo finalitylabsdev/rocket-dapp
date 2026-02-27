@@ -69,13 +69,15 @@ export function clearActiveEthereumWalletContext(): void {
 }
 
 function getRandomHex(bytes = 16): string {
-  if (typeof crypto !== 'undefined' && typeof crypto.getRandomValues === 'function') {
-    const value = new Uint8Array(bytes);
-    crypto.getRandomValues(value);
-    return Array.from(value, (entry) => entry.toString(16).padStart(2, '0')).join('');
+  const cryptoApi = globalThis.crypto;
+
+  if (!cryptoApi || typeof cryptoApi.getRandomValues !== 'function') {
+    throw new Error('Secure randomness is unavailable in this environment.');
   }
 
-  return Array.from({ length: bytes * 2 }, () => Math.floor(Math.random() * 16).toString(16)).join('');
+  const value = new Uint8Array(bytes);
+  cryptoApi.getRandomValues(value);
+  return Array.from(value, (entry) => entry.toString(16).padStart(2, '0')).join('');
 }
 
 function parseChainId(raw: unknown): number {

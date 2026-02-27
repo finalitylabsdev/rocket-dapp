@@ -308,7 +308,7 @@ export default function LaunchSequence(props: LaunchSequenceProps) {
   const [showLandingDust, setShowLandingDust] = useState(false);
   const [showLandedRocket, setShowLandedRocket] = useState(false);
   const [landingComplete, setLandingComplete] = useState(false);
-  const phaseTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const timeoutRefs = useRef<ReturnType<typeof setTimeout>[]>([]);
 
   const modelColor = model === 'heavy' ? '#F59E0B' : model === 'scout' ? '#06D6A0' : '#94A3B8';
   const clampedPower = Math.max(5, Math.min(100, power));
@@ -317,6 +317,16 @@ export default function LaunchSequence(props: LaunchSequenceProps) {
   const marsDisplaySize = isFullPower ? 340 : clampedPower >= 50 ? 220 : clampedPower >= 25 ? 140 : 90;
 
   useEffect(() => {
+    const queueTimeout = (callback: () => void, delay: number) => {
+      const timeoutId = setTimeout(() => {
+        timeoutRefs.current = timeoutRefs.current.filter((entry) => entry !== timeoutId);
+        callback();
+      }, delay);
+
+      timeoutRefs.current.push(timeoutId);
+      return timeoutId;
+    };
+
     const cdInterval = setInterval(() => {
       setCountdown((n) => {
         if (n <= 1) { clearInterval(cdInterval); return 0; }
@@ -324,25 +334,25 @@ export default function LaunchSequence(props: LaunchSequenceProps) {
       });
     }, 700);
 
-    phaseTimer.current = setTimeout(() => {
+    queueTimeout(() => {
       setPhase('liftoff');
-      setTimeout(() => {
+      queueTimeout(() => {
         setPhase('atmosphere');
-        setTimeout(() => {
+        queueTimeout(() => {
           setPhase('space');
-          setTimeout(() => {
+          queueTimeout(() => {
             setPhase('mars');
-            setTimeout(() => {
+            queueTimeout(() => {
               setPhase('result');
               if (isFullPower) {
                 setShowLandedRocket(true);
-                setTimeout(() => {
+                queueTimeout(() => {
                   setShowLandingDust(true);
-                  setTimeout(() => setShowLandingDust(false), 2200);
+                  queueTimeout(() => setShowLandingDust(false), 2200);
                 }, 2600);
-                setTimeout(() => setLandingComplete(true), 3400);
+                queueTimeout(() => setLandingComplete(true), 3400);
               }
-              setTimeout(() => setShowResultCard(true), 800);
+              queueTimeout(() => setShowResultCard(true), 800);
             }, PHASE_DURATIONS.mars);
           }, PHASE_DURATIONS.space);
         }, PHASE_DURATIONS.atmosphere);
@@ -351,9 +361,12 @@ export default function LaunchSequence(props: LaunchSequenceProps) {
 
     return () => {
       clearInterval(cdInterval);
-      if (phaseTimer.current) clearTimeout(phaseTimer.current);
+      for (const timeoutId of timeoutRefs.current) {
+        clearTimeout(timeoutId);
+      }
+      timeoutRefs.current = [];
     };
-  }, []);
+  }, [isFullPower]);
 
   const bgGradient = () => {
     if (phase === 'countdown' || phase === 'liftoff') {
