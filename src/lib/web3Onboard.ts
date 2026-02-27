@@ -169,7 +169,7 @@ function getBackpackProvider(): Eip1193Provider | null {
 
 const backpackWallet = {
   label: BACKPACK_LABEL,
-  injectedNamespace: 'backpack' as unknown as InjectedNameSpace,
+  injectedNamespace: InjectedNameSpace.Ethereum,
   checkProviderIdentity: ({ provider }: { provider: unknown; device: Device }) => {
     return isBackpackHost(provider);
   },
