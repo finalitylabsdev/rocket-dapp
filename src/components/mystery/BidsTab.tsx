@@ -8,6 +8,7 @@ import { formatAuctionError, placeAuctionBid, submitAuctionItem } from '../../li
 import type { AuctionHistoryEntry, InventoryPart } from '../../types/domain';
 import AuctionDetail from './AuctionDetail';
 import AuctionGrid from './AuctionGrid';
+import AuctionOpsPanel from './AuctionOpsPanel';
 import AuctionResultModal from './AuctionResultModal';
 import SubmitToAuctionPanel from './SubmitToAuctionPanel';
 import TopContributors from './TopContributors';
@@ -151,6 +152,12 @@ export default function BidsTab({ preferredPartId, onPreferredPartHandled }: Bid
               preferredPartId={preferredPartId}
               isSubmitting={isSubmittingItem}
               onSubmit={handleSubmitItem}
+            />
+            <AuctionOpsPanel
+              activeAuction={activeAuction}
+              history={history}
+              isLoading={isLoading}
+              onRefresh={() => void refresh()}
             />
           </div>
 
