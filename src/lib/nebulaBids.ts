@@ -1,25 +1,15 @@
-import { AUCTION_MIN_INCREMENT_BPS, WHITELIST_BONUS_FLUX } from '../config/spec';
+import { AUCTION_MAX_BID_FLUX, AUCTION_MIN_INCREMENT_BPS, WHITELIST_BONUS_FLUX } from '../config/spec';
 import type {
   AuctionBid,
   AuctionHistoryEntry,
   AuctionPartInfo,
   AuctionRound,
-  RarityTier,
 } from '../types/domain';
 import type { FluxBalance } from './flux';
+import type { FluxBalancePayload } from './fluxBalance';
+import { normalizeFluxBalance } from './fluxBalance';
+import { assertSupabaseConfigured, isRarityTier, toErrorMessage, toNumber } from './shared';
 import { supabase } from './supabase';
-
-interface FluxBalancePayload {
-  wallet_address?: string;
-  auth_user_id?: string;
-  available_balance?: number | string;
-  lifetime_claimed?: number | string;
-  lifetime_spent?: number | string;
-  last_faucet_claimed_at?: string | null;
-  whitelist_bonus_granted_at?: string | null;
-  created_at?: string;
-  updated_at?: string;
-}
 
 interface BidResponsePayload {
   bid_id?: number | string;
@@ -77,28 +67,8 @@ interface AuctionHistoryPayload {
   seller_wallet?: string | null;
 }
 
-function assertSupabaseConfigured(): void {
-  if (!supabase) {
-    throw new Error('Supabase is not configured in this environment.');
-  }
-}
-
-function toNumber(value: number | string | undefined | null): number {
-  const parsed = typeof value === 'number' ? value : Number(value);
-  return Number.isFinite(parsed) ? parsed : 0;
-}
-
-function toErrorMessage(error: unknown, fallback: string): string {
-  if (error instanceof Error && error.message) {
-    return error.message;
-  }
-
-  if (typeof error === 'string' && error.trim().length > 0) {
-    return error;
-  }
-
-  return fallback;
-}
+const FLUX_CENTS_SCALE = 100;
+const BID_PRECISION_EPSILON = 0.000001;
 
 function toFriendlyAuctionError(message: string | undefined, fallback: string): string {
   if (!message) {
@@ -117,29 +87,41 @@ function toFriendlyAuctionError(message: string | undefined, fallback: string): 
     return 'Insufficient FLUX balance.';
   }
 
+  if (message.includes('bid must use at most 2 decimal places')) {
+    return 'Bids support up to 2 decimal places.';
+  }
+
   return message;
 }
 
-function isRarityTier(value: string): value is RarityTier {
-  return ['Common', 'Uncommon', 'Rare', 'Epic', 'Legendary', 'Mythic', 'Celestial', 'Quantum'].includes(value);
+function formatBidAmount(value: number): string {
+  return value.toLocaleString(undefined, {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2,
+  });
 }
 
-function normalizeFluxBalance(payload: FluxBalancePayload): FluxBalance {
-  if (typeof payload.wallet_address !== 'string' || typeof payload.auth_user_id !== 'string') {
-    throw new Error('Flux balance response was incomplete.');
+function toRoundedFluxCents(value: number): number {
+  const safeValue = Number.isFinite(value) ? Math.max(0, value) : 0;
+  const [whole = '0', fraction = '00'] = safeValue.toFixed(2).split('.');
+  return (Number(whole) * FLUX_CENTS_SCALE) + Number(fraction);
+}
+
+export function normalizeAuctionBidAmount(amount: number): number {
+  if (!Number.isFinite(amount) || amount <= 0) {
+    throw new Error('Enter a valid bid amount.');
   }
 
-  return {
-    walletAddress: payload.wallet_address,
-    authUserId: payload.auth_user_id,
-    availableBalance: toNumber(payload.available_balance),
-    lifetimeClaimed: toNumber(payload.lifetime_claimed),
-    lifetimeSpent: toNumber(payload.lifetime_spent),
-    lastFaucetClaimedAt: typeof payload.last_faucet_claimed_at === 'string' ? payload.last_faucet_claimed_at : null,
-    whitelistBonusGrantedAt: typeof payload.whitelist_bonus_granted_at === 'string' ? payload.whitelist_bonus_granted_at : null,
-    createdAt: typeof payload.created_at === 'string' ? payload.created_at : new Date(0).toISOString(),
-    updatedAt: typeof payload.updated_at === 'string' ? payload.updated_at : new Date(0).toISOString(),
-  };
+  const normalizedAmount = Number(amount.toFixed(2));
+  if (Math.abs(amount - normalizedAmount) > BID_PRECISION_EPSILON) {
+    throw new Error('Bids support up to 2 decimal places.');
+  }
+
+  if (normalizedAmount > AUCTION_MAX_BID_FLUX) {
+    throw new Error(`Bid must be ${formatBidAmount(AUCTION_MAX_BID_FLUX)} FLUX or less.`);
+  }
+
+  return normalizedAmount;
 }
 
 function normalizeAuctionBid(payload: AuctionBidPayload): AuctionBid {
@@ -232,7 +214,7 @@ export async function submitAuctionItem(
   walletAddress: string,
   partId: string,
 ): Promise<{ submissionId: number; roundId: number }> {
-  assertSupabaseConfigured();
+  assertSupabaseConfigured(supabase);
 
   const { data, error } = await supabase!.rpc('submit_auction_item', {
     p_wallet_address: walletAddress,
@@ -257,14 +239,15 @@ export async function placeAuctionBid(
   roundId: number,
   amount: number,
 ): Promise<{ bidId: number; minNextBid: number; balance: FluxBalance }> {
-  assertSupabaseConfigured();
+  assertSupabaseConfigured(supabase);
 
-  const idempotencyKey = `bid:${walletAddress.toLowerCase()}:${roundId}:${amount}`;
+  const normalizedAmount = normalizeAuctionBidAmount(amount);
+  const idempotencyKey = `bid:${walletAddress.toLowerCase()}:${roundId}:${normalizedAmount.toFixed(2)}`;
 
   const { data, error } = await supabase!.rpc('place_auction_bid', {
     p_wallet_address: walletAddress,
     p_round_id: roundId,
-    p_amount: amount,
+    p_amount: normalizedAmount,
     p_whitelist_bonus_amount: WHITELIST_BONUS_FLUX,
     p_client_timestamp: new Date().toISOString(),
     p_user_agent: typeof navigator !== 'undefined' ? navigator.userAgent : null,
@@ -288,7 +271,7 @@ export async function placeAuctionBid(
 }
 
 export async function getActiveAuction(): Promise<AuctionRound | null> {
-  assertSupabaseConfigured();
+  assertSupabaseConfigured(supabase);
 
   const { data, error } = await supabase!.rpc('get_active_auction');
 
@@ -303,7 +286,7 @@ export async function getAuctionHistory(
   limit = 20,
   offset = 0,
 ): Promise<AuctionHistoryEntry[]> {
-  assertSupabaseConfigured();
+  assertSupabaseConfigured(supabase);
 
   const { data, error } = await supabase!.rpc('get_auction_history', {
     p_limit: limit,
@@ -326,8 +309,9 @@ export function computeMinNextBid(currentHighestBid: number): number {
     return 1;
   }
 
-  const minIncrement = currentHighestBid * (AUCTION_MIN_INCREMENT_BPS / 10_000);
-  return Math.max(1, Math.round((currentHighestBid + minIncrement) * 100) / 100);
+  const currentHighestBidCents = toRoundedFluxCents(currentHighestBid);
+  const minIncrementCents = Math.round((currentHighestBidCents * AUCTION_MIN_INCREMENT_BPS) / 10_000);
+  return Math.max(1, (currentHighestBidCents + minIncrementCents) / FLUX_CENTS_SCALE);
 }
 
 export function formatAuctionError(error: unknown, fallback: string): string {

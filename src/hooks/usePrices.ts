@@ -20,6 +20,43 @@ const POLL_INTERVAL = 60_000;
 const FLUX_USD = 0.042;
 const UVD_USD = 1.0;
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null;
+}
+
+function readFiniteNumber(value: unknown): number | null {
+  return typeof value === 'number' && Number.isFinite(value) ? value : null;
+}
+
+function normalizeUsdQuote(value: unknown, assetName: string): { usd: number; usd_24h_change: number } {
+  if (!isRecord(value)) {
+    throw new Error(`CoinGecko payload for ${assetName} was malformed.`);
+  }
+
+  const usd = readFiniteNumber(value.usd);
+  const usd24hChange = readFiniteNumber(value.usd_24h_change);
+
+  if (usd === null || usd24hChange === null) {
+    throw new Error(`CoinGecko payload for ${assetName} was incomplete.`);
+  }
+
+  return {
+    usd,
+    usd_24h_change: usd24hChange,
+  };
+}
+
+function normalizePriceData(payload: unknown): PriceData {
+  if (!isRecord(payload)) {
+    throw new Error('CoinGecko payload was malformed.');
+  }
+
+  return {
+    ethereum: normalizeUsdQuote(payload.ethereum, 'ethereum'),
+    bitcoin: normalizeUsdQuote(payload.bitcoin, 'bitcoin'),
+  };
+}
+
 const PriceContext = createContext<PriceState>({
   prices: null,
   isLoading: true,
@@ -37,7 +74,7 @@ export function PriceProvider({ children }: { children: ReactNode }) {
     try {
       const res = await fetch(COINGECKO_URL);
       if (!res.ok) throw new Error(`CoinGecko ${res.status}`);
-      const data: PriceData = await res.json();
+      const data = normalizePriceData(await res.json());
       setState({ prices: data, isLoading: false, error: null });
     } catch (err) {
       setState((prev) => ({

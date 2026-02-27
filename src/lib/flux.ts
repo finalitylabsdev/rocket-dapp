@@ -3,20 +3,10 @@ import {
   FAUCET_INTERVAL_SECONDS,
   WHITELIST_BONUS_FLUX,
 } from '../config/spec';
+import { normalizeFluxBalance } from './fluxBalance';
+import { assertSupabaseConfigured, toErrorMessage } from './shared';
 import { supabase } from './supabase';
 import { signConnectedEthereumMessage } from './web3Auth';
-
-interface FluxBalanceRow {
-  wallet_address: string;
-  auth_user_id: string;
-  available_balance: number | string;
-  lifetime_claimed: number | string;
-  lifetime_spent: number | string;
-  last_faucet_claimed_at: string | null;
-  whitelist_bonus_granted_at: string | null;
-  created_at: string;
-  updated_at: string;
-}
 
 export interface FluxBalance {
   walletAddress: string;
@@ -46,24 +36,6 @@ export type FluxFaucetSettlement =
     chainId: number | null;
   };
 
-function assertSupabaseConfigured(): void {
-  if (!supabase) {
-    throw new Error('Supabase is not configured in this environment.');
-  }
-}
-
-function toErrorMessage(error: unknown, fallback: string): string {
-  if (error instanceof Error && error.message) {
-    return error.message;
-  }
-
-  if (typeof error === 'string' && error.trim().length > 0) {
-    return error;
-  }
-
-  return fallback;
-}
-
 function toFriendlyFluxError(message: string | undefined, fallback: string): string {
   if (!message) {
     return fallback;
@@ -86,34 +58,6 @@ function toFriendlyFluxError(message: string | undefined, fallback: string): str
   }
 
   return message;
-}
-
-function toNumber(value: number | string): number {
-  const parsed = typeof value === 'number' ? value : Number(value);
-  return Number.isFinite(parsed) ? parsed : 0;
-}
-
-function normalizeBalanceRow(payload: unknown): FluxBalance {
-  if (!payload || typeof payload !== 'object') {
-    throw new Error('Flux balance response was malformed.');
-  }
-
-  const row = payload as Partial<FluxBalanceRow>;
-  if (typeof row.wallet_address !== 'string' || typeof row.auth_user_id !== 'string') {
-    throw new Error('Flux balance response was incomplete.');
-  }
-
-  return {
-    walletAddress: row.wallet_address,
-    authUserId: row.auth_user_id,
-    availableBalance: toNumber(row.available_balance ?? 0),
-    lifetimeClaimed: toNumber(row.lifetime_claimed ?? 0),
-    lifetimeSpent: toNumber(row.lifetime_spent ?? 0),
-    lastFaucetClaimedAt: typeof row.last_faucet_claimed_at === 'string' ? row.last_faucet_claimed_at : null,
-    whitelistBonusGrantedAt: typeof row.whitelist_bonus_granted_at === 'string' ? row.whitelist_bonus_granted_at : null,
-    createdAt: typeof row.created_at === 'string' ? row.created_at : new Date(0).toISOString(),
-    updatedAt: typeof row.updated_at === 'string' ? row.updated_at : new Date(0).toISOString(),
-  };
 }
 
 function createClaimNonce(): string {
@@ -151,7 +95,7 @@ export async function syncFluxBalance(
   walletAddress: string,
   whitelistBonusAmount = WHITELIST_BONUS_FLUX,
 ): Promise<FluxBalance> {
-  assertSupabaseConfigured();
+  assertSupabaseConfigured(supabase);
 
   const { data, error } = await supabase!.rpc('sync_wallet_flux_balance', {
     p_wallet_address: walletAddress,
@@ -164,7 +108,7 @@ export async function syncFluxBalance(
     throw new Error(toFriendlyFluxError(error.message, 'Failed to sync Flux balance.'));
   }
 
-  return normalizeBalanceRow(data);
+  return normalizeFluxBalance(data);
 }
 
 export async function claimFluxFromFaucet(
@@ -227,7 +171,7 @@ export async function submitFluxFaucetClaim(
   settlement: FluxFaucetSettlement,
   whitelistBonusAmount = WHITELIST_BONUS_FLUX,
 ): Promise<FluxBalance> {
-  assertSupabaseConfigured();
+  assertSupabaseConfigured(supabase);
 
   const issuedAt = new Date().toISOString();
 
@@ -252,7 +196,7 @@ export async function submitFluxFaucetClaim(
     throw new Error(toFriendlyFluxError(error.message, 'Failed to claim Flux.'));
   }
 
-  return normalizeBalanceRow(data);
+  return normalizeFluxBalance(data);
 }
 
 export async function adjustFluxBalance(
@@ -263,7 +207,7 @@ export async function adjustFluxBalance(
   whitelistBonusAmount = WHITELIST_BONUS_FLUX,
   idempotencyKey: string | null = null,
 ): Promise<FluxBalance> {
-  assertSupabaseConfigured();
+  assertSupabaseConfigured(supabase);
 
   const { data, error } = await supabase!.rpc('adjust_wallet_flux_balance', {
     p_wallet_address: walletAddress,
@@ -280,7 +224,7 @@ export async function adjustFluxBalance(
     throw new Error(toFriendlyFluxError(error.message, 'Failed to update Flux balance.'));
   }
 
-  return normalizeBalanceRow(data);
+  return normalizeFluxBalance(data);
 }
 
 export function formatFluxError(error: unknown, fallback: string): string {

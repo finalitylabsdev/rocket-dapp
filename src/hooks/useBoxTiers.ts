@@ -19,11 +19,11 @@ export function useBoxTiers(): UseBoxTiersResult {
   const [readState, setReadState] = useState<BoxTierReadState>('loading');
   const hasLoadedCatalog = useRef(false);
 
-  const refresh = useCallback(async () => {
+  const loadCatalog = useCallback(async (forceRefresh = false) => {
     setIsLoading(true);
 
     try {
-      const catalog = await fetchCatalog();
+      const catalog = await fetchCatalog({ forceRefresh });
       if (catalog.boxTiers.length === 0) {
         if (hasLoadedCatalog.current) {
           setError('Box tier catalog returned no entries. Showing the last synced Star Vault layout.');
@@ -57,9 +57,13 @@ export function useBoxTiers(): UseBoxTiersResult {
     }
   }, []);
 
+  const refresh = useCallback(async () => {
+    await loadCatalog(true);
+  }, [loadCatalog]);
+
   useEffect(() => {
-    void refresh();
-  }, [refresh]);
+    void loadCatalog();
+  }, [loadCatalog]);
 
   return {
     boxTiers,

@@ -1,6 +1,10 @@
 import { useEffect, useState } from 'react';
+import { AUCTION_MAX_BID_FLUX } from '../../config/spec';
+import { normalizeAuctionBidAmount } from '../../lib/nebulaBids';
 import PhiSymbol from '../brand/PhiSymbol';
 import { APP3_CONTROL_STYLE, APP3_TEXT_PRIMARY_STYLE, APP3_TEXT_SECONDARY_STYLE, formatFluxValue } from './ui';
+
+const BID_INPUT_PATTERN = /^(?:\d+(?:\.\d{1,2})?|\.\d{1,2})$/;
 
 interface BidInputProps {
   minBid: number;
@@ -17,9 +21,27 @@ export default function BidInput({ minBid, isSubmitting, onSubmit }: BidInputPro
   }, [minBid]);
 
   const handleSubmit = async () => {
-    const parsed = Number(amount);
+    const trimmedAmount = amount.trim();
+    if (!trimmedAmount) {
+      setError('Enter a valid bid amount.');
+      return;
+    }
 
-    if (!Number.isFinite(parsed) || parsed < minBid) {
+    if (!BID_INPUT_PATTERN.test(trimmedAmount)) {
+      setError('Use digits only, with up to 2 decimal places.');
+      return;
+    }
+
+    let parsed: number;
+
+    try {
+      parsed = normalizeAuctionBidAmount(Number(trimmedAmount));
+    } catch (nextError) {
+      setError(nextError instanceof Error ? nextError.message : 'Enter a valid bid amount.');
+      return;
+    }
+
+    if (parsed < minBid) {
       setError(`Bid must be at least ${formatFluxValue(minBid)} FLUX.`);
       return;
     }
@@ -41,6 +63,7 @@ export default function BidInput({ minBid, isSubmitting, onSubmit }: BidInputPro
           <input
             type="number"
             min={minBid}
+            max={AUCTION_MAX_BID_FLUX}
             step="0.01"
             inputMode="decimal"
             value={amount}

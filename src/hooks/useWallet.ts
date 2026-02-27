@@ -181,7 +181,11 @@ function useProvideWallet(): WalletContextValue {
       failedAuthAddressRef.current = null;
 
       if (nextAddress !== previousAddress) {
-        await recordWalletConnect(nextAddress);
+        const ledgerResult = await recordWalletConnect(nextAddress);
+        if (!ledgerResult.ok) {
+          setError(ledgerResult.message);
+          console.warn('Wallet connect activity log warning:', ledgerResult.cause ?? ledgerResult.message);
+        }
       }
 
       return true;
@@ -350,10 +354,15 @@ function useProvideWallet(): WalletContextValue {
     setError(null);
     setIsDisconnecting(true);
     manualDisconnectRef.current = true;
+    let ledgerWarning: string | null = null;
 
     try {
       if (address) {
-        await recordWalletDisconnect(address);
+        const ledgerResult = await recordWalletDisconnect(address);
+        if (!ledgerResult.ok) {
+          ledgerWarning = ledgerResult.message;
+          console.warn('Wallet disconnect activity log warning:', ledgerResult.cause ?? ledgerResult.message);
+        }
       }
 
       if (supabase) {
@@ -367,6 +376,9 @@ function useProvideWallet(): WalletContextValue {
       clearActiveEthereumWalletContext();
       failedAuthAddressRef.current = null;
       setAddress(null);
+      if (ledgerWarning) {
+        setError(ledgerWarning);
+      }
     } catch (disconnectError) {
       const message = toErrorMessage(disconnectError);
       setError(message);

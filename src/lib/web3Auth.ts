@@ -1,4 +1,5 @@
 import type { User } from '@supabase/supabase-js';
+import { getWalletAuthConfigErrorMessage } from './startupConfig';
 import { getWeb3OnboardPrimaryWallet } from './web3Onboard';
 import { SUPABASE_PUBLISHABLE_KEY, SUPABASE_URL, supabase } from './supabase';
 
@@ -403,17 +404,9 @@ export async function signInWithConnectedEthereumWallet(
   address: string,
   chainIdOverride?: number | null,
 ): Promise<string> {
-  if (!supabase || !SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
-    const missing: string[] = [];
-    if (!SUPABASE_URL) {
-      missing.push('VITE_SUPABASE_URL');
-    }
-    if (!SUPABASE_PUBLISHABLE_KEY) {
-      missing.push('VITE_SUPABASE_PUBLISHABLE_KEY or VITE_SUPABASE_ANON_KEY');
-    }
-
-    const detail = missing.length > 0 ? ` Missing: ${missing.join(', ')}.` : '';
-    throw new Error(`Supabase is not configured in this environment.${detail}`);
+  const startupConfigError = getWalletAuthConfigErrorMessage();
+  if (!supabase || !SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY || startupConfigError) {
+    throw new Error(startupConfigError ?? 'Wallet authentication is unavailable in this environment.');
   }
 
   const normalizedAddress = normalizeWalletAddress(address);

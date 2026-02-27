@@ -1,3 +1,5 @@
+import { readBooleanEnv } from './env';
+
 /**
  * Feature flags for staged rollout.
  *
@@ -5,15 +7,6 @@
  * spec.ts.  All flags default to **true** so the app works unchanged without
  * any env vars set — disable a feature by setting its var to "false" / "0".
  */
-
-function readBooleanEnv(key: string): boolean | null {
-  const raw = import.meta.env[key];
-  if (raw === undefined || raw === null || raw === '') return null;
-  const normalized = String(raw).trim().toLowerCase();
-  if (['1', 'true', 'yes', 'on'].includes(normalized)) return true;
-  if (['0', 'false', 'no', 'off'].includes(normalized)) return false;
-  return null;
-}
 
 export const STAR_VAULT_ENABLED = readBooleanEnv('VITE_FLAG_STAR_VAULT_ENABLED') ?? true;
 export const NEBULA_BIDS_ENABLED = readBooleanEnv('VITE_FLAG_NEBULA_BIDS_ENABLED') ?? true;

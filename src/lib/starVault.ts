@@ -4,11 +4,13 @@ import type {
   BoxTierConfig,
   InventoryPart,
   RocketSectionConfig,
-  RarityTier,
   RarityTierConfig,
   RocketSection,
 } from '../types/domain';
 import type { FluxBalance } from './flux';
+import type { FluxBalancePayload } from './fluxBalance';
+import { normalizeFluxBalance } from './fluxBalance';
+import { assertSupabaseConfigured, isRarityTier, toErrorMessage, toNumber } from './shared';
 import { supabase } from './supabase';
 
 interface RarityTierRow {
@@ -82,28 +84,19 @@ interface OpenMysteryBoxResponse {
   ledger_entry_id?: number | string;
 }
 
-interface FluxBalancePayload {
-  wallet_address?: string;
-  auth_user_id?: string;
-  available_balance?: number | string;
-  lifetime_claimed?: number | string;
-  lifetime_spent?: number | string;
-  last_faucet_claimed_at?: string | null;
-  whitelist_bonus_granted_at?: string | null;
-  created_at?: string;
-  updated_at?: string;
+export interface StarVaultCatalog {
+  rarityTiers: RarityTierConfig[];
+  rocketSections: RocketSectionConfig[];
+  boxTiers: BoxTierConfig[];
 }
 
-function assertSupabaseConfigured(): void {
-  if (!supabase) {
-    throw new Error('Supabase is not configured in this environment.');
-  }
+interface FetchCatalogOptions {
+  forceRefresh?: boolean;
 }
 
-function toNumber(value: number | string | undefined | null): number {
-  const parsed = typeof value === 'number' ? value : Number(value);
-  return Number.isFinite(parsed) ? parsed : 0;
-}
+const CATALOG_CACHE_TTL_MS = 5 * 60_000;
+let catalogCache: { value: StarVaultCatalog; expiresAt: number } | null = null;
+let catalogRequestInFlight: Promise<StarVaultCatalog> | null = null;
 
 function toOptionalText(value: unknown): string | null {
   if (typeof value !== 'string') {
@@ -112,18 +105,6 @@ function toOptionalText(value: unknown): string | null {
 
   const trimmed = value.trim();
   return trimmed.length > 0 ? trimmed : null;
-}
-
-function toErrorMessage(error: unknown, fallback: string): string {
-  if (error instanceof Error && error.message) {
-    return error.message;
-  }
-
-  if (typeof error === 'string' && error.trim().length > 0) {
-    return error;
-  }
-
-  return fallback;
 }
 
 function toFriendlyStarVaultError(message: string | undefined, fallback: string): string {
@@ -144,10 +125,6 @@ function toFriendlyStarVaultError(message: string | undefined, fallback: string)
   }
 
   return message;
-}
-
-function isRarityTier(value: string): value is RarityTier {
-  return ['Common', 'Uncommon', 'Rare', 'Epic', 'Legendary', 'Mythic', 'Celestial', 'Quantum'].includes(value);
 }
 
 function normalizeIllustration(
@@ -234,24 +211,6 @@ function normalizeBoxTierRow(payload: BoxTierRow, rarityLookup: Map<number, Rari
   };
 }
 
-function normalizeFluxBalance(payload: FluxBalancePayload): FluxBalance {
-  if (typeof payload.wallet_address !== 'string' || typeof payload.auth_user_id !== 'string') {
-    throw new Error('Flux balance response was incomplete.');
-  }
-
-  return {
-    walletAddress: payload.wallet_address,
-    authUserId: payload.auth_user_id,
-    availableBalance: toNumber(payload.available_balance),
-    lifetimeClaimed: toNumber(payload.lifetime_claimed),
-    lifetimeSpent: toNumber(payload.lifetime_spent),
-    lastFaucetClaimedAt: typeof payload.last_faucet_claimed_at === 'string' ? payload.last_faucet_claimed_at : null,
-    whitelistBonusGrantedAt: typeof payload.whitelist_bonus_granted_at === 'string' ? payload.whitelist_bonus_granted_at : null,
-    createdAt: typeof payload.created_at === 'string' ? payload.created_at : new Date(0).toISOString(),
-    updatedAt: typeof payload.updated_at === 'string' ? payload.updated_at : new Date(0).toISOString(),
-  };
-}
-
 function normalizeInventoryPart(payload: InventoryPartPayload): InventoryPart {
   if (
     typeof payload.id !== 'string' ||
@@ -292,12 +251,8 @@ function normalizeInventoryPart(payload: InventoryPartPayload): InventoryPart {
   };
 }
 
-export async function fetchCatalog(): Promise<{
-  rarityTiers: RarityTierConfig[];
-  rocketSections: RocketSectionConfig[];
-  boxTiers: BoxTierConfig[];
-}> {
-  assertSupabaseConfigured();
+async function fetchCatalogFromSource(): Promise<StarVaultCatalog> {
+  assertSupabaseConfigured(supabase);
 
   const [rarityResult, sectionResult, boxResult] = await Promise.all([
     supabase!.from('rarity_tiers').select('*').order('id', { ascending: true }),
@@ -329,6 +284,36 @@ export async function fetchCatalog(): Promise<{
   };
 }
 
+export async function fetchCatalog(options: FetchCatalogOptions = {}): Promise<StarVaultCatalog> {
+  const { forceRefresh = false } = options;
+  const now = Date.now();
+
+  if (!forceRefresh && catalogCache && catalogCache.expiresAt > now) {
+    return catalogCache.value;
+  }
+
+  if (catalogRequestInFlight) {
+    return catalogRequestInFlight;
+  }
+
+  const request = fetchCatalogFromSource()
+    .then((catalog) => {
+      catalogCache = {
+        value: catalog,
+        expiresAt: Date.now() + CATALOG_CACHE_TTL_MS,
+      };
+      return catalog;
+    })
+    .finally(() => {
+      if (catalogRequestInFlight === request) {
+        catalogRequestInFlight = null;
+      }
+    });
+
+  catalogRequestInFlight = request;
+  return request;
+}
+
 function createIdempotencyKey(): string {
   const cryptoApi = globalThis.crypto;
 
@@ -343,7 +328,7 @@ export async function openMysteryBox(
   walletAddress: string,
   boxTierId: string,
 ): Promise<{ part: InventoryPart; balance: FluxBalance; ledgerEntryId: number }> {
-  assertSupabaseConfigured();
+  assertSupabaseConfigured(supabase);
 
   const idempotencyKey = `box_open:${walletAddress.toLowerCase()}:${createIdempotencyKey()}`;
 
@@ -375,7 +360,7 @@ export async function openMysteryBox(
 export async function getUserInventory(
   walletAddress: string,
 ): Promise<InventoryPart[]> {
-  assertSupabaseConfigured();
+  assertSupabaseConfigured(supabase);
 
   const { data, error } = await supabase!.rpc('get_user_inventory', {
     p_wallet_address: walletAddress,

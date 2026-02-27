@@ -26,11 +26,11 @@ export function useRarityConfig(): UseRarityConfigResult {
   const [readState, setReadState] = useState<RarityConfigReadState>('loading');
   const hasLoadedCatalogConfig = useRef(false);
 
-  const refresh = useCallback(async () => {
+  const loadCatalog = useCallback(async (forceRefresh = false) => {
     setIsLoading(true);
 
     try {
-      const catalog = await fetchCatalog();
+      const catalog = await fetchCatalog({ forceRefresh });
       if (catalog.rarityTiers.length === 0) {
         if (hasLoadedCatalogConfig.current) {
           setError('Rarity config returned no tiers. Continuing with the last synced catalog treatment.');
@@ -67,9 +67,13 @@ export function useRarityConfig(): UseRarityConfigResult {
     }
   }, []);
 
+  const refresh = useCallback(async () => {
+    await loadCatalog(true);
+  }, [loadCatalog]);
+
   useEffect(() => {
-    void refresh();
-  }, [refresh]);
+    void loadCatalog();
+  }, [loadCatalog]);
 
   const configByTier = useMemo(
     () => Object.fromEntries(rarityTiers.map((tier) => [tier.name, tier])) as Partial<Record<RarityTier, RarityTierConfig>>,

@@ -1,23 +1,42 @@
 import { supabase } from './supabase';
 
-export async function recordWalletConnect(walletAddress: string): Promise<void> {
-  await recordWalletAuthEvent('record_wallet_connect', walletAddress);
+export interface WalletAuthEventResult {
+  ok: boolean;
+  message: string | null;
+  cause: string | null;
 }
 
-export async function recordWalletDisconnect(walletAddress: string): Promise<void> {
-  await recordWalletAuthEvent('record_wallet_disconnect', walletAddress);
+export async function recordWalletConnect(walletAddress: string): Promise<WalletAuthEventResult> {
+  return recordWalletAuthEvent('record_wallet_connect', walletAddress);
+}
+
+export async function recordWalletDisconnect(walletAddress: string): Promise<WalletAuthEventResult> {
+  return recordWalletAuthEvent('record_wallet_disconnect', walletAddress);
 }
 
 async function recordWalletAuthEvent(
   rpcName: 'record_wallet_connect' | 'record_wallet_disconnect',
   walletAddress: string,
-): Promise<void> {
+): Promise<WalletAuthEventResult> {
+  const normalizedWalletAddress = normalizeWalletAddress(walletAddress);
+  if (!normalizedWalletAddress) {
+    return {
+      ok: false,
+      message: buildLedgerFailureMessage(rpcName),
+      cause: 'Wallet activity log skipped because the wallet address was invalid.',
+    };
+  }
+
   if (!supabase) {
-    return;
+    return {
+      ok: false,
+      message: buildLedgerFailureMessage(rpcName),
+      cause: 'Wallet activity log is unavailable because Supabase is not configured.',
+    };
   }
 
   const rpcPayload = {
-    p_wallet_address: walletAddress,
+    p_wallet_address: normalizedWalletAddress,
     p_client_timestamp: new Date().toISOString(),
     p_user_agent: typeof navigator !== 'undefined' ? navigator.userAgent : null,
   };
@@ -36,8 +55,18 @@ async function recordWalletAuthEvent(
   }
 
   if (error) {
-    console.error(`Failed to record ${rpcName} event:`, error.message);
+    return {
+      ok: false,
+      message: buildLedgerFailureMessage(rpcName),
+      cause: error.message,
+    };
   }
+
+  return {
+    ok: true,
+    message: null,
+    cause: null,
+  };
 }
 
 function isMissingRpcSignature(message: string | undefined): boolean {
@@ -49,4 +78,21 @@ function isMissingRpcSignature(message: string | undefined): boolean {
     message.includes('Could not find the function public.record_wallet_') &&
     message.includes('in the schema cache')
   );
+}
+
+function normalizeWalletAddress(value: unknown): string | null {
+  if (typeof value !== 'string') {
+    return null;
+  }
+
+  const normalized = value.trim().toLowerCase();
+  return /^0x[0-9a-f]{40}$/.test(normalized) ? normalized : null;
+}
+
+function buildLedgerFailureMessage(
+  rpcName: 'record_wallet_connect' | 'record_wallet_disconnect',
+): string {
+  return rpcName === 'record_wallet_connect'
+    ? 'Wallet connected, but the activity log could not be recorded.'
+    : 'Wallet disconnected, but the activity log could not be recorded.';
 }
