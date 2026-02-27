@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { Zap, ExternalLink, ChevronDown, Lock, Clock } from 'lucide-react';
 import { toast } from 'sonner';
+import { useEthLockState } from '../context/EthLockState';
 import { useGameState } from '../context/GameState';
-import { useEthLock } from '../hooks/useEthLock';
 import { useWallet } from '../hooks/useWallet';
 import PhiSymbol from './brand/PhiSymbol';
 import {
@@ -61,7 +61,7 @@ function openExternalUrl(url: string): void {
 export default function Hero({ onOpenDex }: HeroProps) {
   const game = useGameState();
   const wallet = useWallet();
-  const ethLock = useEthLock(wallet.address);
+  const ethLock = useEthLockState();
   const [now, setNow] = useState(() => Date.now());
   const submittedLockRef = useRef(false);
   const lastWalletErrorRef = useRef<string | null>(null);

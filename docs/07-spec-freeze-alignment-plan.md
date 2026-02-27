@@ -138,12 +138,16 @@ Required:
 ## 6.2 Entropy Gate
 
 Current:
-- Hero has lock and daily claim interactions (`src/components/Hero.tsx`) but uses simulated rewards and no streak/XP logic.
+- `src/context/EthLockState.tsx` runs one shared `useEthLock(wallet.address)` source for visible gate state across the shell and hero.
+- `src/components/EntropyGateBanner.tsx` keeps ETH lock status, next-step guidance, loading, verification, and config errors visible outside the home-only hero flow.
+- `src/hooks/useWallet.ts` uses Reown AppKit as the single wallet connect surface and clears stale Supabase wallet sessions when the provider disconnects, switches accounts, or fails reconciliation after chain changes.
+- Daily claim still has no streak/XP logic.
 
 Required:
-1. Enforce canonical whitelist and faucet values.
-2. Add streak/XP model and milestones (7/14/30 days).
-3. Add wallet/network status and prize trigger CTA conditions.
+1. Keep the shared shell banner + hero flow as the single client-side authority path for visible ETH lock state.
+2. Keep Reown/AppKit as the only wallet connect modal; do not reintroduce a custom injected-wallet selector path.
+3. Add streak/XP model and milestones (7/14/30 days).
+4. Expand prize-trigger CTA conditions/copy beyond the current connect, lock, verify, and reconnect states.
 
 ## 6.3 Entropy Exchange
 
@@ -366,4 +370,3 @@ The following are intentionally deferred unless explicitly approved:
 1. Approve this freeze baseline.
 2. Implement Phase 0 and Phase 1 first (no feature work before shared model/config freeze).
 3. Open tracked work items per phase with file-level owners.
-

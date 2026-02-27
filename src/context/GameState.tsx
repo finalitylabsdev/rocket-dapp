@@ -36,7 +36,6 @@ interface ServerSnapshot {
 interface GameState {
   fluxBalance: number;
   inventory: InventoryPart[];
-  lockedEth: boolean;
   lastDailyClaim: number | null;
   isFluxSyncing: boolean;
   isClaimingFlux: boolean;
@@ -54,16 +53,16 @@ interface GameState {
 const defaults = {
   fluxBalance: 0,
   inventory: [] as InventoryPart[],
-  lockedEth: false,
   lastDailyClaim: null as number | null,
 };
+
+// ETH lock truth now lives in EthLockState/useEthLock so shell and feature gates share one source.
 
 function clearServerBackedState<T extends typeof defaults>(state: T): T {
   return {
     ...state,
     fluxBalance: 0,
     inventory: [],
-    lockedEth: false,
     lastDailyClaim: null,
   };
 }
@@ -84,7 +83,6 @@ export function GameStateProvider({ children }: { children: ReactNode }) {
       lastDailyClaim: nextBalance.lastFaucetClaimedAt
         ? new Date(nextBalance.lastFaucetClaimedAt).getTime()
         : null,
-      lockedEth: nextBalance.whitelistBonusGrantedAt !== null,
     }));
   }, []);
 
