@@ -25,11 +25,20 @@ interface BidsTabProps {
 export default function BidsTab({ preferredPartId, onPreferredPartHandled, onNavigateLab }: BidsTabProps) {
   const wallet = useWallet();
   const game = useGameState();
-  const { activeAuction, history, isLoading, error, refresh } = useAuctions(Boolean(wallet.address) && NEBULA_BIDS_ENABLED);
+  const {
+    activeAuction,
+    history,
+    isLoading,
+    error,
+    realtimeState,
+    realtimeIssue,
+    refresh,
+  } = useAuctions(Boolean(wallet.address) && NEBULA_BIDS_ENABLED);
   const [selectedRoundId, setSelectedRoundId] = useState<number | null>(null);
   const [isPlacingBid, setIsPlacingBid] = useState(false);
   const [isSubmittingItem, setIsSubmittingItem] = useState(false);
-  const [latestResult, setLatestResult] = useState<AuctionHistoryEntry | null>(history[0] ?? null);
+  const [latestResult, setLatestResult] = useState<AuctionHistoryEntry | null>(null);
+  const [isResultModalOpen, setIsResultModalOpen] = useState(false);
   const hasCompletedInitialLoad = useRef(false);
   const lastShownRoundId = useRef<number | null>(null);
 
@@ -42,22 +51,31 @@ export default function BidsTab({ preferredPartId, onPreferredPartHandled, onNav
   }, [activeAuction]);
 
   useEffect(() => {
-    if (!history[0]) {
+    const latestHistoryEntry = history[0] ?? null;
+
+    if (!latestHistoryEntry) {
+      hasCompletedInitialLoad.current = false;
+      lastShownRoundId.current = null;
+      setLatestResult(null);
+      setIsResultModalOpen(false);
       return;
     }
 
     if (!hasCompletedInitialLoad.current) {
       hasCompletedInitialLoad.current = true;
-      lastShownRoundId.current = history[0].roundId;
+      lastShownRoundId.current = latestHistoryEntry.roundId;
+      setLatestResult(latestHistoryEntry);
       return;
     }
 
-    if (lastShownRoundId.current === history[0].roundId) {
+    if (lastShownRoundId.current === latestHistoryEntry.roundId) {
+      setLatestResult(latestHistoryEntry);
       return;
     }
 
-    lastShownRoundId.current = history[0].roundId;
-    setLatestResult(history[0]);
+    lastShownRoundId.current = latestHistoryEntry.roundId;
+    setLatestResult(latestHistoryEntry);
+    setIsResultModalOpen(true);
   }, [history]);
 
   const handleSubmitItem = async (part: InventoryPart) => {
@@ -168,6 +186,15 @@ export default function BidsTab({ preferredPartId, onPreferredPartHandled, onNav
           </div>
         )}
 
+        {realtimeState !== 'disabled' && realtimeState !== 'connected' && (
+          <div
+            className="p-4 font-mono text-sm"
+            style={{ background: '#1C1307', border: '1px solid rgba(245,158,11,0.28)', color: '#FCD34D' }}
+          >
+            {realtimeIssue ?? 'Live auction updates are reconnecting. Use Refresh if the view looks stale.'}
+          </div>
+        )}
+
         <div className="grid grid-cols-1 xl:grid-cols-[300px_1fr] gap-6">
           <div className="space-y-4">
             <AuctionGrid
@@ -207,13 +234,24 @@ export default function BidsTab({ preferredPartId, onPreferredPartHandled, onNav
                   {isLoading ? 'Refreshing...' : `${history.length} records`}
                 </p>
               </div>
-              <button
-                onClick={() => void refresh()}
-                className="px-3 py-2 text-[10px] font-mono font-semibold uppercase tracking-wider"
-                style={{ ...APP3_INSET_STYLE, color: '#C084FC' }}
-              >
-                Refresh
-              </button>
+              <div className="flex items-center gap-2">
+                {latestResult && (
+                  <button
+                    onClick={() => setIsResultModalOpen(true)}
+                    className="px-3 py-2 text-[10px] font-mono font-semibold uppercase tracking-wider"
+                    style={{ ...APP3_INSET_STYLE, color: '#F6C547' }}
+                  >
+                    Latest Result
+                  </button>
+                )}
+                <button
+                  onClick={() => void refresh()}
+                  className="px-3 py-2 text-[10px] font-mono font-semibold uppercase tracking-wider"
+                  style={{ ...APP3_INSET_STYLE, color: '#C084FC' }}
+                >
+                  Refresh
+                </button>
+              </div>
             </div>
 
             <div className="space-y-2">
@@ -260,8 +298,8 @@ export default function BidsTab({ preferredPartId, onPreferredPartHandled, onNav
       </section>
 
       <AuctionResultModal
-        result={latestResult}
-        onClose={() => setLatestResult(null)}
+        result={isResultModalOpen ? latestResult : null}
+        onClose={() => setIsResultModalOpen(false)}
       />
     </>
   );

@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
+import { safeGetStorageItem, safeSetStorageItem } from '../lib/safeStorage';
 
 type Theme = 'dark' | 'light';
 
@@ -13,14 +14,14 @@ const ThemeContext = createContext<ThemeContextValue | null>(null);
 
 function getInitialTheme(): Theme {
   if (typeof window === 'undefined') return 'dark';
-  const stored = localStorage.getItem('entropy-theme');
+  const stored = safeGetStorageItem('entropy-theme');
   if (stored === 'light' || stored === 'dark') return stored;
   return 'dark';
 }
 
 function getInitialAmbientFx(): boolean {
   if (typeof window === 'undefined') return false;
-  return localStorage.getItem('entropy-ambient-fx') === 'enabled';
+  return safeGetStorageItem('entropy-ambient-fx') === 'enabled';
 }
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
@@ -29,7 +30,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
-    localStorage.setItem('entropy-theme', theme);
+    safeSetStorageItem('entropy-theme', theme);
 
     const meta = document.querySelector('meta[name="theme-color"]');
     if (meta) {
@@ -39,7 +40,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     document.documentElement.setAttribute('data-ambient-fx', ambientFxEnabled ? 'enabled' : 'disabled');
-    localStorage.setItem('entropy-ambient-fx', ambientFxEnabled ? 'enabled' : 'disabled');
+    safeSetStorageItem('entropy-ambient-fx', ambientFxEnabled ? 'enabled' : 'disabled');
   }, [ambientFxEnabled]);
 
   const toggleTheme = () => setTheme((t) => (t === 'dark' ? 'light' : 'dark'));

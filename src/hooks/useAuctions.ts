@@ -5,11 +5,15 @@ import { supabase } from '../lib/supabase';
 
 const REFRESH_DEBOUNCE_MS = 500;
 
+export type AuctionsRealtimeState = 'disabled' | 'connecting' | 'connected' | 'degraded';
+
 interface UseAuctionsResult {
   activeAuction: AuctionRound | null;
   history: AuctionHistoryEntry[];
   isLoading: boolean;
   error: string | null;
+  realtimeState: AuctionsRealtimeState;
+  realtimeIssue: string | null;
   refresh: () => Promise<void>;
 }
 
@@ -18,6 +22,8 @@ export function useAuctions(enabled: boolean): UseAuctionsResult {
   const [history, setHistory] = useState<AuctionHistoryEntry[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [realtimeState, setRealtimeState] = useState<AuctionsRealtimeState>('disabled');
+  const [realtimeIssue, setRealtimeIssue] = useState<string | null>(null);
   const enabledRef = useRef(enabled);
   const pendingRefreshRef = useRef(false);
   const refreshInFlightRef = useRef<Promise<void> | null>(null);
@@ -36,6 +42,8 @@ export function useAuctions(enabled: boolean): UseAuctionsResult {
       setHistory([]);
       setError(null);
       setIsLoading(false);
+      setRealtimeState('disabled');
+      setRealtimeIssue(null);
       return;
     }
 
@@ -109,8 +117,13 @@ export function useAuctions(enabled: boolean): UseAuctionsResult {
     const supabaseClient = supabase;
 
     if (!enabled || !supabaseClient) {
+      setRealtimeState('disabled');
+      setRealtimeIssue(null);
       return;
     }
+
+    setRealtimeState('connecting');
+    setRealtimeIssue(null);
 
     const channel = supabaseClient
       .channel('nebula-bids')
@@ -135,12 +148,31 @@ export function useAuctions(enabled: boolean): UseAuctionsResult {
           scheduleRefresh();
         },
       )
-      .subscribe();
+      .subscribe((status, nextError) => {
+        if (status === 'SUBSCRIBED') {
+          setRealtimeState('connected');
+          setRealtimeIssue(null);
+          void refresh();
+          return;
+        }
+
+        if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+          setRealtimeState('degraded');
+          setRealtimeIssue(toRealtimeIssueMessage(status, nextError));
+          scheduleRefresh();
+          return;
+        }
+
+        if (status === 'CLOSED' && enabledRef.current) {
+          setRealtimeState('degraded');
+          setRealtimeIssue('Live auction updates are disconnected. Use Refresh if the view looks stale.');
+        }
+      });
 
     return () => {
       void supabaseClient.removeChannel(channel);
     };
-  }, [enabled, scheduleRefresh]);
+  }, [enabled, refresh, scheduleRefresh]);
 
   useEffect(() => {
     return () => {
@@ -157,8 +189,20 @@ export function useAuctions(enabled: boolean): UseAuctionsResult {
       history,
       isLoading,
       error,
+      realtimeState,
+      realtimeIssue,
       refresh,
     }),
-    [activeAuction, error, history, isLoading, refresh],
+    [activeAuction, error, history, isLoading, realtimeIssue, realtimeState, refresh],
   );
+}
+
+function toRealtimeIssueMessage(status: 'CHANNEL_ERROR' | 'TIMED_OUT', error: Error | undefined): string {
+  const suffix = error?.message ? ` (${error.message})` : '';
+
+  if (status === 'TIMED_OUT') {
+    return `Live auction updates timed out. Falling back to manual refresh until the channel recovers${suffix}.`;
+  }
+
+  return `Live auction updates hit a realtime channel error. Falling back to manual refresh until the channel recovers${suffix}.`;
 }

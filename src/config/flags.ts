@@ -14,16 +14,3 @@ export const ROCKET_LAB_ENABLED = readBooleanEnv('VITE_FLAG_ROCKET_LAB_ENABLED')
 export const DEX_ENABLED = readBooleanEnv('VITE_FLAG_DEX_ENABLED') ?? true;
 export const FAUCET_ENABLED = readBooleanEnv('VITE_FLAG_FAUCET_ENABLED') ?? true;
 export const AUCTION_SCHEDULER_ENABLED = readBooleanEnv('VITE_FLAG_AUCTION_SCHEDULER_ENABLED') ?? true;
-
-export const featureFlags = {
-  STAR_VAULT_ENABLED,
-  NEBULA_BIDS_ENABLED,
-  ROCKET_LAB_ENABLED,
-  DEX_ENABLED,
-  FAUCET_ENABLED,
-  AUCTION_SCHEDULER_ENABLED,
-} as const;
-
-export function useFeatureFlags() {
-  return featureFlags;
-}

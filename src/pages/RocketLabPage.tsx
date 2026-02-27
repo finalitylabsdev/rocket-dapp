@@ -11,6 +11,7 @@ import {
   simulateRocketLabLaunch,
   type RocketLabSimulationResult,
 } from '../components/lab/rocketLabAdapter';
+import { safeGetStorageItem, safeSetStorageItem } from '../lib/safeStorage';
 
 type LaunchResult = RocketLabSimulationResult | null;
 
@@ -51,7 +52,7 @@ function normalizeHistoryEntry(value: unknown): SimulationHistoryEntry | null {
 
 function loadRocketLabState(): StoredRocketLabState {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
+    const raw = safeGetStorageItem(STORAGE_KEY);
     if (!raw) {
       return {};
     }
@@ -118,13 +119,9 @@ export default function RocketLabPage() {
   const metrics = computeRocketLabMetrics(slots, selectedModel);
 
   useEffect(() => {
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify({
-        history,
-      }));
-    } catch {
-      // Persistence is optional; keep the simulator usable even when storage is blocked.
-    }
+    safeSetStorageItem(STORAGE_KEY, JSON.stringify({
+      history,
+    }));
   }, [history]);
 
   const handleLaunch = () => {

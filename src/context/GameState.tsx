@@ -172,9 +172,20 @@ export function GameStateProvider({ children }: { children: ReactNode }) {
           void refreshInventory();
         },
       )
-      .subscribe((status) => {
+      .subscribe((status, error) => {
         if (status === 'SUBSCRIBED') {
           void refreshInventory();
+          return;
+        }
+
+        if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+          console.warn('Inventory realtime subscription degraded:', error?.message ?? status);
+          void refreshInventory();
+          return;
+        }
+
+        if (status === 'CLOSED') {
+          console.warn('Inventory realtime subscription closed. Falling back to manual refresh until it reconnects.');
         }
       });
 

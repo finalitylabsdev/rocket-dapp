@@ -1,7 +1,4 @@
 import { readBooleanEnv } from './env';
-import type { RarityTier } from '../types/domain';
-
-export const SPEC_FREEZE_VERSION = '2026-02-26-v1';
 
 function readPositiveNumberEnv(key: string): number | null {
   const raw = import.meta.env[key];
@@ -44,25 +41,3 @@ export const PRIZE_SPLIT_BPS = [5_000, 2_500, 2_500] as const;
 
 export const ROCKET_SLOT_COUNT = 8;
 export const DEX_DEFAULT_SLIPPAGE = 0.5;
-
-export const RARITY_MULTIPLIER: Record<RarityTier, number> = {
-  Common: 1.0,
-  Uncommon: 1.25,
-  Rare: 1.6,
-  Epic: 2.0,
-  Legendary: 2.5,
-  Mythic: 3.2,
-  Celestial: 4.0,
-  Quantum: 5.0,
-};
-
-export const RARITY_BOX_PRICE_FLUX: Record<RarityTier, number> = {
-  Common: 10,
-  Uncommon: 25,
-  Rare: 50,
-  Epic: 100,
-  Legendary: 200,
-  Mythic: 350,
-  Celestial: 500,
-  Quantum: 750,
-};

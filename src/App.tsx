@@ -8,6 +8,7 @@ import Hero from './components/Hero';
 import QuickActions from './components/QuickActions';
 import Footer from './components/Footer';
 import AppToaster from './components/AppToaster';
+import RouteErrorBoundary from './components/RouteErrorBoundary';
 import StarField from './components/brand/StarField';
 import ComingSoon from './components/ComingSoon';
 import {
@@ -28,6 +29,14 @@ const VALID_PAGES = new Set<Page>(['home', 'dex', 'mystery', 'lab', 'leaderboard
 
 function PageFallback() {
   return <div className="min-h-screen bg-bg-base" />;
+}
+
+function getPageBoundaryLabel(page: Page): string {
+  if (page === 'dex') return 'Entropy Exchange';
+  if (page === 'mystery') return 'Star Vault & Nebula Bids';
+  if (page === 'lab') return 'Rocket Lab';
+  if (page === 'leaderboard') return 'Leaderboard';
+  return 'Home';
 }
 
 function pageFromHash(): Page {
@@ -65,20 +74,26 @@ export default function App() {
               />
               <main className="pt-12">
                 <Suspense fallback={<PageFallback />}>
-                  {page === 'dex' ? (
-                    DEX_ENABLED ? <DexPage /> : <ComingSoon title="Entropy Exchange" subtitle="The decentralized exchange is not yet available." />
-                  ) : page === 'mystery' ? (
-                    STAR_VAULT_ENABLED || NEBULA_BIDS_ENABLED ? <MysteryPage /> : <ComingSoon title="Star Vault & Nebula Bids" subtitle="Mystery boxes and auctions are not yet available." />
-                  ) : page === 'lab' ? (
-                    ROCKET_LAB_ENABLED ? <RocketLabPage /> : <ComingSoon title="Rocket Lab" subtitle="Rocket building and launches are not yet available." />
-                  ) : page === 'leaderboard' ? (
-                    <LeaderboardPage />
-                  ) : (
-                    <>
-                      <Hero onOpenDex={() => navigate('dex')} />
-                      <QuickActions onOpenDex={() => navigate('dex')} onOpenMystery={() => navigate('mystery')} onOpenLab={() => navigate('lab')} onOpenLeaderboard={() => navigate('leaderboard')} />
-                    </>
-                  )}
+                  <RouteErrorBoundary
+                    onNavigateHome={page === 'home' ? undefined : () => navigate('home')}
+                    resetKey={page}
+                    sectionLabel={getPageBoundaryLabel(page)}
+                  >
+                    {page === 'dex' ? (
+                      DEX_ENABLED ? <DexPage /> : <ComingSoon title="Entropy Exchange" subtitle="The decentralized exchange is not yet available." />
+                    ) : page === 'mystery' ? (
+                      STAR_VAULT_ENABLED || NEBULA_BIDS_ENABLED ? <MysteryPage /> : <ComingSoon title="Star Vault & Nebula Bids" subtitle="Mystery boxes and auctions are not yet available." />
+                    ) : page === 'lab' ? (
+                      ROCKET_LAB_ENABLED ? <RocketLabPage /> : <ComingSoon title="Rocket Lab" subtitle="Rocket building and launches are not yet available." />
+                    ) : page === 'leaderboard' ? (
+                      <LeaderboardPage />
+                    ) : (
+                      <>
+                        <Hero onOpenDex={() => navigate('dex')} />
+                        <QuickActions onOpenDex={() => navigate('dex')} onOpenMystery={() => navigate('mystery')} onOpenLab={() => navigate('lab')} onOpenLeaderboard={() => navigate('leaderboard')} />
+                      </>
+                    )}
+                  </RouteErrorBoundary>
                 </Suspense>
               </main>
               {page === 'home' && <Footer onNavigate={navigate} />}

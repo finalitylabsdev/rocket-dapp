@@ -4,6 +4,7 @@ import { InjectedNameSpace } from '@web3-onboard/injected-wallets/dist/types';
 import type { WalletState } from '@web3-onboard/core';
 import type { Device, EIP1193Provider as OnboardEip1193Provider, Platform, WalletModule } from '@web3-onboard/common';
 import type { InjectedWalletModule } from '@web3-onboard/injected-wallets/dist/types';
+import { safeGetStorageItem } from './safeStorage';
 
 export const WEB3_ONBOARD_MAINNET_CHAIN_ID = '0x1' as const;
 export const WEB3_ONBOARD_MAINNET_CHAIN_DECIMAL = 1;
@@ -36,7 +37,7 @@ function getEntropyThemeMode(): EntropyThemeMode {
     return 'dark';
   }
 
-  const storedTheme = window.localStorage.getItem('entropy-theme');
+  const storedTheme = safeGetStorageItem('entropy-theme');
   if (storedTheme === 'light' || storedTheme === 'dark') {
     return storedTheme;
   }
@@ -426,13 +427,6 @@ const ONBOARD_STYLE_OVERRIDES = `
     height: 1rem !important;
   }
 `.trim();
-const ONBOARD_CLOSE_ICON_SVG = `
-  <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">
-    <path d="M3 3L13 13" />
-    <path d="M13 3L3 13" />
-  </svg>
-`.trim();
-
 function stripWalletCountFromHeader(root: ShadowRoot): void {
   const header = root.querySelector('.header-heading');
   if (!(header instanceof HTMLElement)) {
@@ -458,8 +452,6 @@ function replaceCloseButtonIcon(root: ShadowRoot): void {
     return;
   }
 
-  button.innerHTML = '';
-
   const wrapper = document.createElement('span');
   wrapper.className = ONBOARD_CLOSE_ICON_WRAPPER;
   wrapper.setAttribute('aria-hidden', 'true');
@@ -468,25 +460,33 @@ function replaceCloseButtonIcon(root: ShadowRoot): void {
   wrapper.style.justifyContent = 'center';
   wrapper.style.width = '100%';
   wrapper.style.height = '100%';
-  wrapper.innerHTML = ONBOARD_CLOSE_ICON_SVG;
+  wrapper.appendChild(createCloseIconSvg());
 
-  const svg = wrapper.querySelector('svg');
-  if (svg instanceof SVGElement) {
-    svg.style.width = '1rem';
-    svg.style.height = '1rem';
-    svg.style.display = 'block';
+  button.replaceChildren(wrapper);
+}
 
-    const paths = svg.querySelectorAll('path');
-    paths.forEach((path) => {
-      path.setAttribute('stroke', 'currentColor');
-      path.setAttribute('stroke-width', '1.75');
-      path.setAttribute('stroke-linecap', 'square');
-      path.setAttribute('vector-effect', 'non-scaling-stroke');
-      path.setAttribute('fill', 'none');
-    });
+function createCloseIconSvg(): SVGElement {
+  const svgNamespace = 'http://www.w3.org/2000/svg';
+  const svg = document.createElementNS(svgNamespace, 'svg');
+  svg.setAttribute('viewBox', '0 0 16 16');
+  svg.setAttribute('aria-hidden', 'true');
+  svg.setAttribute('focusable', 'false');
+  svg.style.width = '1rem';
+  svg.style.height = '1rem';
+  svg.style.display = 'block';
+
+  for (const d of ['M3 3L13 13', 'M13 3L3 13']) {
+    const path = document.createElementNS(svgNamespace, 'path');
+    path.setAttribute('d', d);
+    path.setAttribute('stroke', 'currentColor');
+    path.setAttribute('stroke-width', '1.75');
+    path.setAttribute('stroke-linecap', 'square');
+    path.setAttribute('vector-effect', 'non-scaling-stroke');
+    path.setAttribute('fill', 'none');
+    svg.appendChild(path);
   }
 
-  button.appendChild(wrapper);
+  return svg;
 }
 
 function ensureStyleOverrides(root: ShadowRoot): void {

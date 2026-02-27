@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { X, Lock, Zap, Gift, Rocket } from 'lucide-react';
+import { safeGetStorageItem, safeSetStorageItem } from '../lib/safeStorage';
 
 const STORAGE_KEY = 'entropy-onboarding-dismissed';
 
@@ -27,21 +28,13 @@ const STEPS = [
 ] as const;
 
 export default function WelcomeBanner() {
-  const [visible, setVisible] = useState(() => {
-    try {
-      return !localStorage.getItem(STORAGE_KEY);
-    } catch {
-      return true;
-    }
-  });
+  const [visible, setVisible] = useState(() => !safeGetStorageItem(STORAGE_KEY));
 
   if (!visible) return null;
 
   const dismiss = () => {
     setVisible(false);
-    try {
-      localStorage.setItem(STORAGE_KEY, '1');
-    } catch { /* noop */ }
+    safeSetStorageItem(STORAGE_KEY, '1');
   };
 
   return (
