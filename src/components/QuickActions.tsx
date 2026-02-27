@@ -3,6 +3,13 @@ import { ArrowLeftRight, Gift, Rocket, Trophy, Lock, ChevronRight } from 'lucide
 import { useIntersectionObserver } from '../hooks/useCountUp';
 import { WHITELIST_ETH } from '../config/spec';
 import { formatEthAmount } from '../lib/ethLock';
+import {
+  FAUCET_ENABLED,
+  DEX_ENABLED,
+  STAR_VAULT_ENABLED,
+  NEBULA_BIDS_ENABLED,
+  ROCKET_LAB_ENABLED,
+} from '../config/flags';
 
 interface ActionCard {
   id: string;
@@ -81,6 +88,14 @@ const cards: ActionCard[] = [
   },
 ];
 
+const cardEnabled: Record<string, boolean> = {
+  faucet: FAUCET_ENABLED,
+  dex: DEX_ENABLED,
+  mystery: STAR_VAULT_ENABLED || NEBULA_BIDS_ENABLED,
+  lab: ROCKET_LAB_ENABLED,
+  leaderboard: true,
+};
+
 interface QuickActionsProps {
   onOpenDex: () => void;
   onOpenMystery: () => void;
@@ -108,22 +123,34 @@ export default function QuickActions({ onOpenDex, onOpenMystery, onOpenLab, onOp
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
-          {cards.map((card, i) => (
+          {cards.map((card, i) => {
+            const enabled = cardEnabled[card.id] ?? true;
+            const badge = enabled ? card.badge : 'Coming Soon';
+            return (
             <div
               key={card.id}
-              className={`relative bg-bg-card border overflow-hidden cursor-pointer transition-all duration-300 ${
-                hovered === card.id
+              className={`relative bg-bg-card border overflow-hidden transition-all duration-300 ${
+                enabled ? 'cursor-pointer' : 'cursor-default'
+              } ${
+                !enabled ? 'opacity-50 grayscale' : ''
+              } ${
+                enabled && hovered === card.id
                   ? 'border-border-strong bg-bg-card-hover'
                   : 'border-border-subtle'
               } ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
-              style={{ transitionDelay: `${i * 70}ms` }}
-              onMouseEnter={() => setHovered(card.id)}
+              style={{
+                transitionDelay: `${i * 70}ms`,
+                ...(!enabled ? { opacity: 0.45, filter: 'grayscale(0.6)' } : {}),
+              }}
+              onMouseEnter={() => enabled && setHovered(card.id)}
               onMouseLeave={() => setHovered(null)}
             >
-              {card.badge && (
+              {badge && (
                 <div className="absolute top-3 right-3 z-10">
-                  <span className="bg-dot-green text-black text-[10px] font-mono font-bold px-2 py-0.5 uppercase tracking-wider">
-                    {card.badge}
+                  <span className={`text-[10px] font-mono font-bold px-2 py-0.5 uppercase tracking-wider ${
+                    enabled ? 'bg-dot-green text-black' : 'bg-text-muted text-bg-base'
+                  }`}>
+                    {badge}
                   </span>
                 </div>
               )}
@@ -149,15 +176,21 @@ export default function QuickActions({ onOpenDex, onOpenMystery, onOpenLab, onOp
                 </div>
 
                 <button
-                  onClick={card.id === 'dex' ? onOpenDex : card.id === 'mystery' ? onOpenMystery : card.id === 'lab' ? onOpenLab : card.id === 'leaderboard' ? onOpenLeaderboard : undefined}
-                  className="w-full border border-dot-green text-dot-green hover:bg-dot-green/10 font-mono font-semibold text-sm py-2.5 transition-all duration-200 flex items-center justify-center gap-1.5 active:scale-95 uppercase tracking-wider"
+                  onClick={enabled ? (card.id === 'dex' ? onOpenDex : card.id === 'mystery' ? onOpenMystery : card.id === 'lab' ? onOpenLab : card.id === 'leaderboard' ? onOpenLeaderboard : undefined) : undefined}
+                  disabled={!enabled}
+                  className={`w-full border font-mono font-semibold text-sm py-2.5 transition-all duration-200 flex items-center justify-center gap-1.5 uppercase tracking-wider ${
+                    enabled
+                      ? 'border-dot-green text-dot-green hover:bg-dot-green/10 active:scale-95'
+                      : 'border-border-subtle text-text-muted cursor-not-allowed'
+                  }`}
                 >
-                  {card.buttonLabel}
-                  <ChevronRight size={13} />
+                  {enabled ? card.buttonLabel : 'Coming Soon'}
+                  {enabled && <ChevronRight size={13} />}
                 </button>
               </div>
             </div>
-          ))}
+            );
+          })}
         </div>
       </div>
     </section>
