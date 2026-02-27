@@ -37,6 +37,8 @@ Run the SQL in:
 - `supabase/migrations/20260227113000_eth_lock_status_workflow.sql`
 - `supabase/migrations/20260227124500_add_eth_lock_active_override.sql`
 - `supabase/migrations/20260227125500_fix_touch_eth_lock_submission_search_path.sql`
+- `supabase/migrations/20260227134500_harden_eth_lock_rate_limits.sql`
+- `supabase/migrations/20260227143000_add_explicit_deny_policies_for_internal_tables.sql`
 
 This creates:
 - `leaderboard` table
@@ -66,6 +68,7 @@ Retest behavior:
 - The frontend treats the wallet as unlocked again
 - `record_eth_lock_sent(...)` will allow the same wallet to submit a new test transaction
 - The next successful verification sets `is_lock_active = true` again
+- Repeated submit attempts are still throttled to 6 calls per 15 minutes per authenticated user
 
 ### Copy/Paste SQL
 
@@ -118,7 +121,8 @@ where wallet_address = '0x6e0871b8c18b9090d36c03465c50b7a5c264908b';
 
 Current expected outcomes:
 - `Function Search Path Mutable` on `public.touch_eth_lock_submission` is addressed by `20260227125500_fix_touch_eth_lock_submission_search_path.sql`
-- `RLS Enabled No Policy` on internal tables (`app_logs`, `app_state_ledger`, `browser_profiles`, `browser_wallets`, `wallet_registry`) is informational only as long as direct client access is intentionally blocked and all access stays behind controlled RPCs / server code
+- `record_eth_lock_sent(...)` now rate-limits repeated submissions, and `verify-eth-lock` applies a 20-second server-side verification cooldown to reduce RPC abuse
+- Internal tables (`app_logs`, `app_state_ledger`, `browser_profiles`, `browser_wallets`, `wallet_registry`) now use explicit deny-all client policies so Security Advisor no longer flags them as policy-less
 
 Recommended follow-up:
 - Keep the internal tables private if that is the intent, but consider adding explicit deny-all policies if you want to make the no-direct-access stance obvious and silence those Advisor items

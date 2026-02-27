@@ -1,5 +1,5 @@
 import { WHITELIST_ETH } from '../config/spec';
-import { SUPABASE_ANON_KEY, supabase } from './supabase';
+import { supabase } from './supabase';
 import { getConnectedEthereumWalletContext } from './web3Auth';
 
 const ETH_WEI_MULTIPLIER = 1_000_000_000_000_000_000n;
@@ -159,6 +159,14 @@ function isSchemaNotReady(message: string | undefined): boolean {
   );
 }
 
+function isEthLockSubmissionRateLimited(message: string | undefined): boolean {
+  if (!message) {
+    return false;
+  }
+
+  return message.includes('rate limit exceeded for eth lock submissions');
+}
+
 function isVerifierFunctionUnavailable(message: string | undefined): boolean {
   if (!message) {
     return false;
@@ -174,6 +182,10 @@ function isVerifierFunctionUnavailable(message: string | undefined): boolean {
 function toFriendlyDbError(message: string | undefined): string {
   if (isSchemaNotReady(message)) {
     return 'ETH lock status migration is not applied yet.';
+  }
+
+  if (isEthLockSubmissionRateLimited(message)) {
+    return 'Too many ETH lock attempts were submitted. Wait a few minutes before trying again.';
   }
 
   return message || 'Failed to persist ETH lock submission.';
@@ -193,10 +205,6 @@ function toFriendlyVerifierError(message: string | undefined): string {
 
 async function getVerifierAuthToken(): Promise<string> {
   if (!supabase) {
-    if (SUPABASE_ANON_KEY) {
-      return SUPABASE_ANON_KEY;
-    }
-
     throw new Error('Supabase is not configured in this environment.');
   }
 
@@ -210,11 +218,7 @@ async function getVerifierAuthToken(): Promise<string> {
     return accessToken;
   }
 
-  if (SUPABASE_ANON_KEY) {
-    return SUPABASE_ANON_KEY;
-  }
-
-  throw new Error('No valid auth token is available for ETH lock verification.');
+  throw new Error('A signed-in wallet session is required to verify an ETH lock.');
 }
 
 export function formatEthAmount(value: number): string {

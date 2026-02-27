@@ -23,6 +23,7 @@ interface SubmissionRow {
   amount_wei: string | null;
   status: EthLockStatus;
   is_lock_active: boolean;
+  verifying_started_at: string | null;
   verification_attempts: number | null;
 }
 
@@ -35,6 +36,7 @@ interface RuntimeConfig {
   minConfirmations: number;
   pollAttempts: number;
   pollIntervalMs: number;
+  verificationCooldownMs: number;
 }
 
 interface AuthenticatedUser {
@@ -120,6 +122,19 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null;
 }
 
+function getElapsedMsSince(value: string | null): number | null {
+  if (!value) {
+    return null;
+  }
+
+  const timestamp = Date.parse(value);
+  if (Number.isNaN(timestamp)) {
+    return null;
+  }
+
+  return Date.now() - timestamp;
+}
+
 function resolveConfig(): RuntimeConfig {
   const supabaseUrl = Deno.env.get('SUPABASE_URL');
   const supabaseServiceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
@@ -143,6 +158,7 @@ function resolveConfig(): RuntimeConfig {
     minConfirmations: parsePositiveInt(Deno.env.get('ETH_LOCK_MIN_CONFIRMATIONS'), 1),
     pollAttempts: parsePositiveInt(Deno.env.get('ETH_LOCK_VERIFY_POLL_ATTEMPTS'), 8),
     pollIntervalMs: parsePositiveInt(Deno.env.get('ETH_LOCK_VERIFY_POLL_INTERVAL_MS'), 3_000),
+    verificationCooldownMs: parsePositiveInt(Deno.env.get('ETH_LOCK_VERIFY_COOLDOWN_MS'), 20_000),
   };
 }
 
@@ -303,7 +319,7 @@ Deno.serve(async (req: Request) => {
 
   const { data: submissionRaw, error: submissionError } = await admin
     .from('eth_lock_submissions')
-    .select('id, wallet_address, auth_user_id, tx_hash, chain_id, from_address, to_address, amount_wei, status, is_lock_active, verification_attempts')
+    .select('id, wallet_address, auth_user_id, tx_hash, chain_id, from_address, to_address, amount_wei, status, is_lock_active, verifying_started_at, verification_attempts')
     .eq('wallet_address', input.walletAddress)
     .maybeSingle();
 
@@ -311,15 +327,11 @@ Deno.serve(async (req: Request) => {
     return jsonResponse({ error: submissionError.message }, 500);
   }
 
-  if (!submissionRaw) {
+  if (!submissionRaw || submissionRaw.auth_user_id !== authenticatedUser.id) {
     return jsonResponse({ error: 'ETH lock submission not found for wallet.' }, 404);
   }
 
   const submission = submissionRaw as SubmissionRow;
-
-  if (submission.auth_user_id !== authenticatedUser.id) {
-    return jsonResponse({ error: 'ETH lock submission does not belong to the authenticated user.' }, 403);
-  }
 
   if (submission.tx_hash && submission.tx_hash !== input.txHash) {
     return jsonResponse({
@@ -332,6 +344,20 @@ Deno.serve(async (req: Request) => {
       status: 'confirmed',
       message: 'ETH lock already confirmed.',
     });
+  }
+
+  const elapsedSinceVerifyStartMs = getElapsedMsSince(submission.verifying_started_at);
+  if (
+    submission.status === 'verifying'
+    && elapsedSinceVerifyStartMs !== null
+    && elapsedSinceVerifyStartMs >= 0
+    && elapsedSinceVerifyStartMs < config.verificationCooldownMs
+  ) {
+    return jsonResponse({
+      status: 'verifying',
+      message: 'Verification is already in progress. Please wait before retrying.',
+      retry_after_ms: config.verificationCooldownMs - elapsedSinceVerifyStartMs,
+    }, 202);
   }
 
   const verificationAttempts = (submission.verification_attempts ?? 0) + 1;

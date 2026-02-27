@@ -11,6 +11,8 @@ import {
   type EthLockSubmission,
 } from '../lib/ethLock';
 
+const ETH_LOCK_VERIFY_POLL_MS = 20_000;
+
 interface UseEthLockResult {
   submission: EthLockSubmission | null;
   status: EthLockStatus;
@@ -208,7 +210,7 @@ export function useEthLock(walletAddress: string | null): UseEthLockResult {
 
     const timer = window.setInterval(() => {
       void triggerVerification(submission.txHash ?? undefined);
-    }, 12_000);
+    }, ETH_LOCK_VERIFY_POLL_MS);
 
     return () => {
       window.clearInterval(timer);
