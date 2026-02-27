@@ -1,11 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
-import { Gavel } from 'lucide-react';
+import { Gavel, Rocket } from 'lucide-react';
 import { toast } from 'sonner';
 import { useGameState } from '../../context/GameState';
 import { useWallet } from '../../hooks/useWallet';
 import { useAuctions } from '../../hooks/useAuctions';
 import { formatAuctionError, placeAuctionBid, submitAuctionItem } from '../../lib/nebulaBids';
 import type { AuctionHistoryEntry, InventoryPart } from '../../types/domain';
+import JourneyCue from '../JourneyCue';
 import AuctionDetail from './AuctionDetail';
 import AuctionGrid from './AuctionGrid';
 import AuctionOpsPanel from './AuctionOpsPanel';
@@ -17,9 +18,10 @@ import { APP3_INSET_STYLE, APP3_PANEL_STYLE, APP3_TEXT_MUTED_STYLE, APP3_TEXT_PR
 interface BidsTabProps {
   preferredPartId?: string | null;
   onPreferredPartHandled?: () => void;
+  onNavigateLab?: () => void;
 }
 
-export default function BidsTab({ preferredPartId, onPreferredPartHandled }: BidsTabProps) {
+export default function BidsTab({ preferredPartId, onPreferredPartHandled, onNavigateLab }: BidsTabProps) {
   const wallet = useWallet();
   const game = useGameState();
   const { activeAuction, history, isLoading, error, refresh } = useAuctions(Boolean(wallet.address));
@@ -219,6 +221,16 @@ export default function BidsTab({ preferredPartId, onPreferredPartHandled }: Bid
 
           <TopContributors history={history} />
         </div>
+
+        {onNavigateLab && game.inventory.some((p) => p.isEquipped) && (
+          <JourneyCue
+            icon={<Rocket size={16} />}
+            message="You have parts equipped! Head to Rocket Lab to build and launch."
+            actionLabel="Rocket Lab"
+            onAction={onNavigateLab}
+            tone="green"
+          />
+        )}
       </section>
 
       <AuctionResultModal

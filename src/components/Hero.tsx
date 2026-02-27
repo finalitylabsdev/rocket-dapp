@@ -5,6 +5,7 @@ import { useGameState } from '../context/GameState';
 import { useEthLock } from '../hooks/useEthLock';
 import { useWallet } from '../hooks/useWallet';
 import PhiSymbol from './brand/PhiSymbol';
+import JourneyCue from './JourneyCue';
 import {
   EFFECTIVE_DAILY_CLAIM_FLUX,
   FAUCET_INTERVAL_MS,
@@ -416,6 +417,17 @@ export default function Hero({ onOpenDex }: HeroProps) {
                   </div>
                 )}
               </div>
+              {ethLock.isLocked && canClaim && game.fluxBalance === 0 && (
+                <div className="mt-4">
+                  <JourneyCue
+                    icon={<Zap size={16} />}
+                    message="ETH locked! Claim your first FLUX to get started."
+                    actionLabel="Claim Now"
+                    onAction={() => void handleClaimFlux()}
+                    tone="green"
+                  />
+                </div>
+              )}
             </div>
           </div>
         </div>

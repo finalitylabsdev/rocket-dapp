@@ -1,5 +1,4 @@
 import { Zap, Github, Twitter, FileText } from 'lucide-react';
-import { toast } from 'sonner';
 import { APP_VERSION } from '../config/app';
 import { useTheme } from '../context/ThemeContext';
 import type { Page } from '../App';
@@ -8,37 +7,35 @@ interface FooterProps {
   onNavigate: (page: Page) => void;
 }
 
-type FooterLink = { label: string; action: () => void };
+type FooterLink = { label: string; action?: () => void; comingSoon?: boolean };
 
 export default function Footer({ onNavigate }: FooterProps) {
   const { ambientFxEnabled, toggleAmbientFx } = useTheme();
 
-  const comingSoon = () => toast.info('Coming soon');
-
   const links: Record<string, FooterLink[]> = {
     Protocol: [
-      { label: 'Whitepaper', action: comingSoon },
-      { label: 'Docs', action: comingSoon },
-      { label: 'GitHub', action: comingSoon },
-      { label: 'Audit Report', action: comingSoon },
+      { label: 'Whitepaper', comingSoon: true },
+      { label: 'Docs', comingSoon: true },
+      { label: 'GitHub', comingSoon: true },
+      { label: 'Audit Report', comingSoon: true },
     ],
     Apps: [
       { label: 'Entropy Gate', action: () => onNavigate('home') },
       { label: 'Entropy Exchange', action: () => onNavigate('dex') },
       { label: 'Star Vault & Nebula Bids', action: () => onNavigate('mystery') },
-      { label: 'Celestial Assembler', action: comingSoon },
+      { label: 'Celestial Assembler', comingSoon: true },
     ],
     Jackpot: [
       { label: 'Quantum Lift-Off', action: () => onNavigate('leaderboard') },
       { label: 'Cosmic Jackpot', action: () => onNavigate('leaderboard') },
-      { label: 'Season 1 Prizes', action: comingSoon },
-      { label: 'Prize Claim', action: comingSoon },
+      { label: 'Season 1 Prizes', comingSoon: true },
+      { label: 'Prize Claim', comingSoon: true },
     ],
     Community: [
-      { label: 'Twitter / X', action: comingSoon },
-      { label: 'Discord', action: comingSoon },
-      { label: 'Telegram', action: comingSoon },
-      { label: 'Blog', action: comingSoon },
+      { label: 'Twitter / X', comingSoon: true },
+      { label: 'Discord', comingSoon: true },
+      { label: 'Telegram', comingSoon: true },
+      { label: 'Blog', comingSoon: true },
     ],
   };
 
@@ -65,14 +62,13 @@ export default function Footer({ onNavigate }: FooterProps) {
                 { icon: <Github size={15} />, label: 'GitHub' },
                 { icon: <FileText size={15} />, label: 'Docs' },
               ].map((social, i) => (
-                <button
+                <span
                   key={i}
-                  onClick={comingSoon}
-                  className="w-9 h-9 bg-bg-inset border border-border-default flex items-center justify-center text-text-muted hover:text-text-primary hover:border-border-strong transition-all duration-200"
-                  aria-label={social.label}
+                  className="w-9 h-9 bg-bg-inset border border-border-default flex items-center justify-center text-text-muted/50 cursor-default"
+                  aria-label={`${social.label} (coming soon)`}
                 >
                   {social.icon}
-                </button>
+                </span>
               ))}
             </div>
           </div>
@@ -83,12 +79,18 @@ export default function Footer({ onNavigate }: FooterProps) {
               <ul className="space-y-2.5">
                 {items.map((item) => (
                   <li key={item.label}>
-                    <button
-                      onClick={item.action}
-                      className="text-text-muted hover:text-text-primary text-sm transition-colors duration-150"
-                    >
-                      {item.label}
-                    </button>
+                    {item.comingSoon ? (
+                      <span className="text-text-muted/50 text-sm cursor-default">
+                        {item.label} <span className="text-[10px] font-mono uppercase tracking-wider">(Soon)</span>
+                      </span>
+                    ) : (
+                      <button
+                        onClick={item.action}
+                        className="text-text-muted hover:text-text-primary text-sm transition-colors duration-150"
+                      >
+                        {item.label}
+                      </button>
+                    )}
                   </li>
                 ))}
               </ul>

@@ -3,7 +3,6 @@ import {
   Menu, X, Trophy, FileText, Zap, LogOut, Sun, Moon, ArrowLeft,
   ArrowLeftRight, Gift, FlaskConical,
 } from 'lucide-react';
-import { toast } from 'sonner';
 import PhiSymbol from './brand/PhiSymbol';
 import { useWallet } from '../hooks/useWallet';
 import { useGameState } from '../context/GameState';
@@ -122,13 +121,13 @@ export default function ShellNav({ page, onNavigate }: ShellNavProps) {
             )}
             {isHome && (
               <>
-                <button
-                  onClick={() => toast.info('Documentation coming soon')}
-                  className="flex items-center gap-1.5 text-text-secondary hover:text-text-primary font-mono font-medium text-sm px-4 py-2 hover:bg-bg-card transition-all duration-200"
+                <span
+                  className="flex items-center gap-1.5 text-text-muted/50 font-mono font-medium text-sm px-4 py-2 cursor-default"
+                  title="Documentation coming soon"
                 >
                   <FileText size={15} />
-                  DOCS
-                </button>
+                  DOCS <span className="text-[10px] tracking-wider">(SOON)</span>
+                </span>
                 <button
                   onClick={() => onNavigate('leaderboard')}
                   className="flex items-center gap-1.5 text-text-secondary hover:text-text-primary font-mono font-medium text-sm px-4 py-2 hover:bg-bg-card transition-all duration-200"
@@ -192,13 +191,12 @@ export default function ShellNav({ page, onNavigate }: ShellNavProps) {
             )}
             {isHome && (
               <>
-                <button
-                  onClick={() => { toast.info('Documentation coming soon'); setMobileOpen(false); }}
-                  className="w-full flex items-center gap-2 text-text-secondary font-mono font-medium text-sm px-4 py-3 hover:bg-bg-card"
+                <span
+                  className="w-full flex items-center gap-2 text-text-muted/50 font-mono font-medium text-sm px-4 py-3 cursor-default"
                 >
                   <FileText size={15} />
-                  DOCS
-                </button>
+                  DOCS <span className="text-[10px] tracking-wider">(SOON)</span>
+                </span>
                 <button
                   onClick={() => { onNavigate('leaderboard'); setMobileOpen(false); }}
                   className="w-full flex items-center gap-2 text-text-secondary font-mono font-medium text-sm px-4 py-3 hover:bg-bg-card"
