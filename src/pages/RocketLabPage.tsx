@@ -1,20 +1,52 @@
 import { useEffect, useState } from 'react';
-import { FlaskConical, Star, Rocket } from 'lucide-react';
+import { FlaskConical, ShieldCheck, Star, Rocket } from 'lucide-react';
 import RocketPreview from '../components/lab/RocketPreview';
-import PartsGrid, {
-  type EquippedPartId,
-  type EquippedParts,
-} from '../components/lab/PartsGrid';
+import PartsGrid from '../components/lab/PartsGrid';
 import StatsPanel from '../components/lab/StatsPanel';
-import { ROCKET_MODELS } from '../components/lab/RocketModels';
 import LaunchSequence from '../components/lab/LaunchSequence';
-type LaunchResult = { score: number; bonus: string; multiplier: string } | null;
+import { useGameState } from '../context/GameState';
+import {
+  buildRocketLabSlots,
+  computeRocketLabMetrics,
+  simulateRocketLabLaunch,
+  type RocketLabSimulationResult,
+} from '../components/lab/rocketLabAdapter';
+
+type LaunchResult = RocketLabSimulationResult | null;
+
 const STORAGE_KEY = 'rocket-lab-state';
 
+interface SimulationHistoryEntry {
+  score: number;
+  simulatedAt?: string;
+  note: string;
+}
+
 interface StoredRocketLabState {
-  equipped?: EquippedParts;
-  levels?: Record<EquippedPartId, number>;
+  history?: SimulationHistoryEntry[];
   scores?: number[];
+}
+
+function normalizeHistoryEntry(value: unknown): SimulationHistoryEntry | null {
+  if (!value || typeof value !== 'object') {
+    return null;
+  }
+
+  const entry = value as {
+    score?: unknown;
+    simulatedAt?: unknown;
+    note?: unknown;
+  };
+
+  if (typeof entry.score !== 'number' || !Number.isFinite(entry.score)) {
+    return null;
+  }
+
+  return {
+    score: entry.score,
+    simulatedAt: typeof entry.simulatedAt === 'string' ? entry.simulatedAt : undefined,
+    note: typeof entry.note === 'string' ? entry.note : 'Local compatibility simulation',
+  };
 }
 
 function loadRocketLabState(): StoredRocketLabState {
@@ -25,101 +57,94 @@ function loadRocketLabState(): StoredRocketLabState {
     }
 
     const parsed = JSON.parse(raw) as StoredRocketLabState;
-    return parsed && typeof parsed === 'object' ? parsed : {};
+    if (!parsed || typeof parsed !== 'object') {
+      return {};
+    }
+
+    if (Array.isArray(parsed.history)) {
+      return {
+        history: parsed.history
+          .map((entry) => normalizeHistoryEntry(entry))
+          .filter((entry): entry is SimulationHistoryEntry => entry !== null),
+      };
+    }
+
+    if (Array.isArray(parsed.scores)) {
+      return {
+        history: parsed.scores
+          .filter((score): score is number => typeof score === 'number' && Number.isFinite(score))
+          .map((score) => ({
+            score,
+            note: 'Legacy local simulation',
+          })),
+      };
+    }
+
+    return {};
   } catch {
     return {};
   }
 }
 
+function formatSimulationTime(value?: string) {
+  if (!value) {
+    return 'Legacy local';
+  }
+
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return 'Local sim';
+  }
+
+  return date.toLocaleString([], {
+    month: 'short',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+}
+
 export default function RocketLabPage() {
-  const [persistedState] = useState(loadRocketLabState);
   const selectedModel = 'standard' as const;
-
-  const [equipped, setEquipped] = useState<EquippedParts>({
-    engine: persistedState.equipped?.engine ?? true,
-    fuel: persistedState.equipped?.fuel ?? true,
-    body: persistedState.equipped?.body ?? true,
-    wings: persistedState.equipped?.wings ?? false,
-    booster: persistedState.equipped?.booster ?? false,
-  });
-
-  const [levels, setLevels] = useState<Record<EquippedPartId, number>>({
-    engine: persistedState.levels?.engine ?? 1,
-    fuel: persistedState.levels?.fuel ?? 1,
-    body: persistedState.levels?.body ?? 1,
-    wings: persistedState.levels?.wings ?? 1,
-    booster: persistedState.levels?.booster ?? 1,
-  });
-
-  const [scores, setScores] = useState<number[]>(() => persistedState.scores ?? []);
+  const { inventory, isInventorySyncing } = useGameState();
+  const [persistedState] = useState(loadRocketLabState);
+  const [history, setHistory] = useState<SimulationHistoryEntry[]>(() => persistedState.history ?? []);
   const [launching, setLaunching] = useState(false);
   const [showSequence, setShowSequence] = useState(false);
   const [launchResult, setLaunchResult] = useState<LaunchResult>(null);
   const [launchPower, setLaunchPower] = useState(0);
 
+  const slots = buildRocketLabSlots(inventory);
+  const metrics = computeRocketLabMetrics(slots, selectedModel);
+
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify({
-      equipped,
-      levels,
-      scores,
+      history,
     }));
-  }, [equipped, levels, scores]);
+  }, [history]);
 
-  const handleToggle = (id: EquippedPartId) => {
-    setEquipped((prev) => ({ ...prev, [id]: !prev[id] }));
-  };
-
-  const handleUpgrade = (id: EquippedPartId) => {
-    if (levels[id] >= 3) {
+  const handleLaunch = () => {
+    if (launching || !metrics.canLaunch) {
       return;
     }
 
-    setLevels((prev) => ({ ...prev, [id]: Math.min(3, prev[id] + 1) }));
-  };
-
-  const handleLaunch = () => {
-    if (launching) return;
     setLaunching(true);
     setLaunchResult(null);
   };
 
   const handleLaunchComplete = () => {
-    const modelDef = ROCKET_MODELS.find((m) => m.id === selectedModel)!;
-    const equippedCount = Object.values(equipped).filter(Boolean).length;
-    const totalParts = Object.keys(equipped).length;
-    const totalLevels = Object.entries(levels).reduce(
-      (acc, [k, v]) => acc + (equipped[k as keyof EquippedParts] ? v : 0),
-      0
-    );
-    const base = equippedCount / totalParts;
-    const levelBonus = totalLevels / (equippedCount * 3 || 1);
-    const multiplier = (1 + base * 1.5 + levelBonus * 0.5 + modelDef.bonuses.winBonus / 100).toFixed(2);
-    const baseScore = 80 + Math.floor(Math.random() * 140);
-    const score = Math.round(baseScore * parseFloat(multiplier));
-    const bonuses = [
-      'Meteor Shower — Wing-Plate damaged',
-      'Solar Flare — Navigation penalty',
-      'Alien Probe — Random buff applied',
-      'Clear Skies — No penalties',
-      'Gravity Slingshot — Bonus multiplier applied',
-    ];
-    const bonus = bonuses[Math.floor(Math.random() * bonuses.length)];
+    const result = simulateRocketLabLaunch(slots, selectedModel);
 
-    const power = Math.min(100, Math.max(0, Math.round(
-      (equipped.engine ? 40 : 0) +
-      (equipped.booster ? 25 : 0) +
-      (equipped.fuel ? 15 : 0) +
-      levelBonus * 12 +
-      modelDef.bonuses.powerBonus
-    )));
-
-    setScores((prev) => [...prev, score]);
-    setLaunchPower(power);
-    setLaunchResult({
-      score,
-      multiplier,
-      bonus,
-    });
+    setHistory((current) => [
+      ...current,
+      {
+        score: result.score,
+        simulatedAt: new Date().toISOString(),
+        note: result.bonus,
+      },
+    ]);
+    setLaunchPower(result.power);
+    setLaunchResult(result);
     setLaunching(false);
     setShowSequence(true);
   };
@@ -129,40 +154,56 @@ export default function RocketLabPage() {
     setLaunchResult(null);
   };
 
-  const equippedCount = Object.values(equipped).filter(Boolean).length;
-  const totalParts = Object.keys(equipped).length;
-  const bestScore = scores.length > 0 ? Math.max(...scores) : 0;
+  const bestScore = history.length > 0 ? Math.max(...history.map((entry) => entry.score)) : 0;
 
   return (
     <div className="relative overflow-hidden">
       <div className="relative z-10 pt-20 md:pt-24 pb-16 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
-
           <div className="text-center mb-10">
             <div className="flex justify-center mb-3">
               <span className="tag">
                 <FlaskConical size={11} />
-                Rocket Lab
+                Compatibility Surface
               </span>
             </div>
             <h1 className="font-mono font-black text-3xl md:text-5xl lg:text-6xl mb-3 leading-[1.08] uppercase tracking-wider text-text-primary">
               Rocket Lab
             </h1>
             <p className="text-lg font-mono text-text-muted">
-              Build. Launch. Dominate the cosmos.
+              Canonical 8-slot inventory adapter with local-only launch simulation.
             </p>
-            {bestScore > 0 && (
-              <div className="flex items-center justify-center gap-4 mt-4">
+
+            <div
+              className="mt-4 inline-flex max-w-3xl items-start gap-2 px-4 py-3 text-left"
+              style={{ background: 'var(--color-bg-card)', border: '1px solid var(--color-border-subtle)' }}
+            >
+              <ShieldCheck size={16} className="mt-0.5 flex-shrink-0 text-text-secondary" />
+              <p className="text-xs font-mono leading-relaxed text-text-secondary">
+                This branch reads `GameState.inventory` as a compatibility view only. Rocket launches here do not write a
+                ledger entry, mint rewards, or claim server authority.
+              </p>
+            </div>
+
+            {(bestScore > 0 || metrics.readySlots > 0 || metrics.lockedSlots > 0) && (
+              <div className="flex flex-wrap items-center justify-center gap-4 mt-4">
                 <div className="flex items-center gap-2 px-4 py-2" style={{ background: 'var(--color-bg-card)', border: '1px solid var(--color-border-subtle)' }}>
                   <Rocket size={14} style={{ color: '#F97316' }} />
-                  <span className="font-mono font-bold text-sm text-text-primary">{scores.length}</span>
-                  <span className="text-xs font-mono text-text-muted">LAUNCHES</span>
+                  <span className="font-mono font-bold text-sm text-text-primary">{metrics.readySlots}/{metrics.totalSlots}</span>
+                  <span className="text-xs font-mono text-text-muted">READY SLOTS</span>
                 </div>
                 <div className="flex items-center gap-2 px-4 py-2" style={{ background: 'var(--color-bg-card)', border: '1px solid var(--color-border-subtle)' }}>
-                  <Star size={14} style={{ color: '#FACC15' }} />
-                  <span className="font-mono font-bold text-sm text-text-primary">{bestScore.toLocaleString()}</span>
-                  <span className="text-xs font-mono text-text-muted">BEST GS</span>
+                  <ShieldCheck size={14} style={{ color: '#F59E0B' }} />
+                  <span className="font-mono font-bold text-sm text-text-primary">{metrics.lockedSlots}</span>
+                  <span className="text-xs font-mono text-text-muted">LOCKED SLOTS</span>
                 </div>
+                {bestScore > 0 && (
+                  <div className="flex items-center gap-2 px-4 py-2" style={{ background: 'var(--color-bg-card)', border: '1px solid var(--color-border-subtle)' }}>
+                    <Star size={14} style={{ color: '#FACC15' }} />
+                    <span className="font-mono font-bold text-sm text-text-primary">{bestScore.toLocaleString()}</span>
+                    <span className="text-xs font-mono text-text-muted">BEST LOCAL GS</span>
+                  </div>
+                )}
               </div>
             )}
           </div>
@@ -175,56 +216,60 @@ export default function RocketLabPage() {
                   <div className="flex items-center gap-1.5">
                     <Star size={11} className="text-text-muted" />
                     <span className="font-mono text-xs text-text-muted">
-                      {equippedCount}/{totalParts}
+                      {metrics.readySlots}/{metrics.totalSlots}
                     </span>
                   </div>
                 </div>
               </div>
               <RocketPreview
-                equipped={equipped}
+                slots={slots}
                 model={selectedModel}
                 launching={launching}
-                onLaunchComplete={() => { handleLaunchComplete(); }}
+                onLaunchComplete={handleLaunchComplete}
               />
             </div>
 
             <div className="p-5" style={{ background: 'var(--color-bg-card)', border: '1px solid var(--color-border-subtle)' }}>
               <PartsGrid
-                equipped={equipped}
-                levels={levels}
-                onToggle={handleToggle}
-                onUpgrade={handleUpgrade}
+                slots={slots}
+                isSyncing={isInventorySyncing}
               />
             </div>
 
             <div className="space-y-4">
               <StatsPanel
-                equipped={equipped}
-                levels={levels}
+                metrics={metrics}
                 model={selectedModel}
                 onLaunch={handleLaunch}
                 launching={launching}
               />
 
               <div className="p-4" style={{ background: 'var(--color-bg-card)', border: '1px solid var(--color-border-subtle)' }}>
-                <p className="font-mono text-xs font-bold mb-3 uppercase tracking-widest text-text-muted">YOUR LAUNCH HISTORY</p>
-                {scores.length === 0 ? (
-                  <p className="text-xs py-2 font-mono text-text-muted">No launches yet. Equip parts and launch!</p>
+                <p className="font-mono text-xs font-bold mb-3 uppercase tracking-widest text-text-muted">LOCAL SIMULATION HISTORY</p>
+                {history.length === 0 ? (
+                  <p className="text-xs py-2 font-mono text-text-muted">
+                    No local simulations yet. Fill all 8 unlocked slots to run one.
+                  </p>
                 ) : (
-                  scores.slice(-5).reverse().map((score, i) => (
+                  history.slice(-5).reverse().map((entry, index) => (
                     <div
-                      key={i}
-                      className="flex items-center justify-between py-2"
+                      key={`${entry.simulatedAt ?? 'legacy'}-${index}-${entry.score}`}
+                      className="flex items-start justify-between gap-3 py-2"
                       style={{ borderBottom: '1px solid var(--color-border-subtle)' }}
                     >
-                      <div className="flex items-center gap-2.5">
-                        <span className="font-mono font-black text-sm w-5 text-center" style={{ color: i === 0 ? '#FACC15' : 'var(--color-text-muted)' }}>
-                          {scores.length - i}
-                        </span>
-                        <span className="font-mono text-xs uppercase text-text-muted">Launch</span>
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2.5">
+                          <span className="font-mono font-black text-sm w-5 text-center" style={{ color: index === 0 ? '#FACC15' : 'var(--color-text-muted)' }}>
+                            {history.length - index}
+                          </span>
+                          <span className="font-mono text-xs uppercase text-text-muted">Local Sim</span>
+                        </div>
+                        <p className="mt-1 pl-7 text-[10px] font-mono text-text-muted truncate">
+                          {formatSimulationTime(entry.simulatedAt)} · {entry.note}
+                        </p>
                       </div>
-                      <div className="flex items-center gap-1">
-                        <span className="font-mono font-bold text-xs text-text-primary">{score.toLocaleString()}</span>
+                      <div className="flex items-center gap-1 pt-0.5">
+                        <span className="font-mono font-bold text-xs text-text-primary">{entry.score.toLocaleString()}</span>
                         <span className="font-mono text-[10px] text-text-muted">GS</span>
                       </div>
                     </div>
@@ -238,7 +283,6 @@ export default function RocketLabPage() {
 
       {showSequence && (
         <LaunchSequence
-          equipped={equipped}
           model={selectedModel}
           result={launchResult}
           power={launchPower}

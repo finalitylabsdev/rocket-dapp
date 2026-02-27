@@ -171,14 +171,15 @@ Required:
 ## 6.5 Assembler and Lift-Off
 
 Current:
-- `src/pages/RocketLabPage.tsx` and `src/components/lab/*` implement 5-part model.
-- Launch unlocks at 3 equipped parts (`src/components/lab/StatsPanel.tsx`).
+- `src/pages/RocketLabPage.tsx` and `src/components/lab/*` consume `GameState.inventory` through a read-only 8-slot adapter keyed by `RocketSection`.
+- Launch requires all 8 canonical slots to be filled with unlocked parts.
+- Launch history/results are explicitly local simulation only in this branch (no launch RPC, ledger write, or economic authority).
 
 Required:
-1. Replace 5-part model with 8-section model.
-2. Require all 8 slots before launch.
-3. Implement canonical Grav Score components and random event penalties.
-4. Preserve cinematic sequence, but align event/copy outputs to spec language.
+1. Preserve the read-only compatibility boundary until a server-authoritative launch path exists.
+2. Replace local simulation history/results with server authority only when that path is implemented.
+3. Keep canonical Grav Score components and random event penalties aligned with the spec.
+4. Preserve cinematic sequence, but keep simulation/compatibility copy explicit until cutover.
 
 ## 6.6 Cosmic Jackpot
 
@@ -366,4 +367,3 @@ The following are intentionally deferred unless explicitly approved:
 1. Approve this freeze baseline.
 2. Implement Phase 0 and Phase 1 first (no feature work before shared model/config freeze).
 3. Open tracked work items per phase with file-level owners.
-

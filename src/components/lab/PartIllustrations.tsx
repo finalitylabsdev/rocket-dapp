@@ -756,33 +756,3 @@ export function SectionIllustration({ section, equipped, rarity, size = 72 }: {
   const Component = SECTION_ILLUSTRATIONS[section];
   return <Component equipped={equipped} rarity={rarity} size={size} />;
 }
-
-/** @deprecated Use `RocketSection` keys and `SECTION_ILLUSTRATIONS` instead. */
-export type PartId =
-  | 'engine' | 'fuel' | 'body' | 'wings' | 'booster'
-  | 'noseCone' | 'heatShield' | 'gyroscope' | 'solarPanels' | 'landingStruts';
-
-/** @deprecated Use `SECTION_ILLUSTRATIONS` and `SectionIllustration` instead. */
-const ILLUSTRATIONS: Record<PartId, React.ComponentType<IllustrationProps>> = {
-  engine:       PulseEngineIllustration,
-  fuel:         NebulaTankIllustration,
-  body:         RadiationMantleIllustration,
-  wings:        SolarWingsIllustration,
-  booster:      IonArrayIllustration,
-  noseCone:     NovaThrusterIllustration,
-  heatShield:   ImpactFieldIllustration,
-  gyroscope:    AstroGyroIllustration,
-  solarPanels:  PhotonSailsIllustration,
-  landingStruts: StarFiberIllustration,
-};
-
-/** @deprecated Use `SectionIllustration` instead. */
-export default function PartIllustration({ id, equipped, rarity, size = 72 }: {
-  id: PartId;
-  equipped: boolean;
-  rarity: RarityTier;
-  size?: number;
-}) {
-  const Component = ILLUSTRATIONS[id];
-  return <Component equipped={equipped} rarity={rarity} size={size} />;
-}

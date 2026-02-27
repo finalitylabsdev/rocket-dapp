@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
 import type { RocketModelId } from './RocketModels';
-import type { EquippedParts } from './PartsGrid';
 import { FlaskConical } from 'lucide-react';
 
 interface LaunchResult {
@@ -10,7 +9,6 @@ interface LaunchResult {
 }
 
 interface LaunchSequenceProps {
-  equipped: EquippedParts;
   model: RocketModelId;
   result: LaunchResult | null;
   power: number;
@@ -861,24 +859,24 @@ export default function LaunchSequence(props: LaunchSequenceProps) {
             </div>
 
             <p className="font-mono text-[11px] font-bold mb-1 tracking-widest" style={{ color: '#4A5468' }}>
-              {isFullPower ? 'MARS LANDING COMPLETE' : 'DEEP SPACE MISSION COMPLETE'}
+              {isFullPower ? 'LOCAL SIMULATION COMPLETE' : 'COMPATIBILITY SIMULATION COMPLETE'}
             </p>
             <p className="font-data font-black text-5xl mb-1" style={{ color: '#E8ECF4' }}>
               +{result.score}
               <span className="text-2xl ml-2" style={{ color: '#4A5468' }}>GS</span>
             </p>
-            <p className="text-sm mb-1" style={{ color: '#4A5468' }}>{result.multiplier}× Grav Score multiplier</p>
+            <p className="text-sm mb-1" style={{ color: '#4A5468' }}>{result.multiplier}× local Grav Score multiplier</p>
 
             <div
               className="inline-flex items-center gap-1.5  px-3 py-1 mb-4 text-xs font-bold"
               style={{ background: `${modelColor}12`, border: `1px solid ${modelColor}30`, color: modelColor }}
             >
               <div className="w-1.5 h-1.5 " style={{ background: modelColor }} />
-              {clampedPower}% thrust reached
+              {clampedPower}% simulated thrust
             </div>
 
             <div className=" p-3 mb-6" style={{ background: '#06080F', border: '1px solid #1E2636' }}>
-              <p className="text-xs mb-1" style={{ color: '#4A5468' }}>Mission Event</p>
+              <p className="text-xs mb-1" style={{ color: '#4A5468' }}>Simulation Event</p>
               <p className="font-mono font-bold text-sm" style={{ color: '#E8ECF4' }}>{result.bonus}</p>
             </div>
 
@@ -892,7 +890,7 @@ export default function LaunchSequence(props: LaunchSequenceProps) {
                 letterSpacing: '0.06em',
               }}
             >
-              Record Score & Continue
+              Close Local Simulation
             </button>
           </div>
         </div>

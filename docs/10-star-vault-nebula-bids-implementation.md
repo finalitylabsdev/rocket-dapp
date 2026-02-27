@@ -1696,7 +1696,7 @@ Right sidebar, shared between both tabs:
 - Lists all owned parts with RarityBadge, 3 attribute bars, Part Value
 - Sort by section/rarity/value, filter by rarity/section
 - Action buttons: View Stats, Send to Auction
-- `Equip to Rocket` stays hidden / disabled until Rocket Lab is migrated to the same 8-slot server-backed inventory model
+- `Equip to Rocket` no longer needs a legacy-model gate now that Rocket Lab reads the same 8-slot inventory, but it should remain hidden until a real assembly write path exists
 
 ### New: `src/components/mystery/InventoryPartCard.tsx`
 
@@ -1736,7 +1736,7 @@ Compact card for each inventory part:
 - On wallet disconnect or wallet change: immediately clear server-backed inventory and any server-backed equipped references before refetching
 - Remove `inventory` and `fluxBalance` from `StoredGameState` localStorage persistence
 - Old localStorage inventory data is ignored (users start fresh with server-backed inventory)
-- Legacy Rocket Lab-only local state can remain temporary, but must not be treated as the source of truth for Star Vault or auction inventory
+- Rocket Lab now keeps only non-authoritative local simulation history; its assembly state reads directly from the shared inventory cache
 
 ***
 
