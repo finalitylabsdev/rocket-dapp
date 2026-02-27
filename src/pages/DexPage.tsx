@@ -6,6 +6,7 @@ import MarketStats from '../components/dex/MarketStats';
 import { DEX_TRADING_ENABLED } from '../config/spec';
 import { APP_VERSION } from '../config/app';
 import { useWallet } from '../hooks/useWallet';
+import { PriceProvider } from '../hooks/usePrices';
 
 interface DexPageProps {
   onBack: () => void;
@@ -30,6 +31,7 @@ export default function DexPage({ onBack }: DexPageProps) {
     ];
 
   return (
+    <PriceProvider>
     <div className="min-h-screen bg-bg-base">
       <nav className="fixed top-0 left-0 right-0 z-50 bg-bg-base/95 backdrop-blur-md border-b border-border-subtle">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -218,5 +220,6 @@ export default function DexPage({ onBack }: DexPageProps) {
         </div>
       </div>
     </div>
+    </PriceProvider>
   );
 }
