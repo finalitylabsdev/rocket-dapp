@@ -101,6 +101,10 @@ That allows newly generated synthetic wallets to move through the rest of the ga
 - `SIM_LOOP_INTERVAL_MS` (default `45000`)
 - `SIM_INITIAL_SPREAD_MS` (default `15000`)
 - `SIM_MAX_BOX_OPENS_PER_CYCLE` (default `1`)
+- `SIM_MAX_BID_ATTEMPTS_PER_CYCLE` (default `3`)
+- `SIM_BID_ATTEMPT_PROBABILITY` (default `0.9`)
+- `SIM_BID_MARKUP_MIN` (default `0.05`)
+- `SIM_BID_MARKUP_MAX` (default `0.35`)
 - `SIM_DRY_RUN` (`true` or `false`)
   - `SIM_DRY_RUN=true` only supports `SIM_WALLET_SOURCE=env` so the worker stays fully offline.
 - `SIM_RUN_ONCE` (`true` or `false`)

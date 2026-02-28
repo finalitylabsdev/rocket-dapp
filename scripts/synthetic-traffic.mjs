@@ -774,6 +774,10 @@ function createConfig() {
     loopIntervalMs: parseInteger(process.env.SIM_LOOP_INTERVAL_MS, DEFAULT_LOOP_INTERVAL_MS),
     initialSpreadMs: parseInteger(process.env.SIM_INITIAL_SPREAD_MS, DEFAULT_INITIAL_SPREAD_MS),
     maxBoxOpensPerCycle: parseInteger(process.env.SIM_MAX_BOX_OPENS_PER_CYCLE, DEFAULT_MAX_BOX_OPENS_PER_CYCLE),
+    maxBidAttemptsPerCycle: Math.max(1, parseInteger(process.env.SIM_MAX_BID_ATTEMPTS_PER_CYCLE, 3)),
+    bidAttemptProbability: Math.min(1, Math.max(0, parseNumber(process.env.SIM_BID_ATTEMPT_PROBABILITY, 0.9))),
+    bidMarkupMin: Math.max(0, parseNumber(process.env.SIM_BID_MARKUP_MIN, 0.05)),
+    bidMarkupMax: Math.max(0, parseNumber(process.env.SIM_BID_MARKUP_MAX, 0.35)),
     runOnce: parseBoolean(process.env.SIM_RUN_ONCE, false),
     bootstrapOnly: parseBoolean(process.env.SIM_BOOTSTRAP_ONLY, false),
     whitelistBonusFlux: parseNumber(process.env.VITE_SPEC_WHITELIST_BONUS_FLUX, 0),
@@ -1469,6 +1473,7 @@ async function claimFaucet(simUser, config) {
 
   const nonce = createUuid();
   const issuedAt = toIsoNow();
+  const idempotencyKey = `sim-faucet:${simUser.walletAddress}:${nonce}`;
   const signedMessage = buildFluxClaimMessage(
     simUser.walletAddress,
     config.dailyClaimFlux,
@@ -1495,6 +1500,7 @@ async function claimFaucet(simUser, config) {
     p_whitelist_bonus_amount: config.whitelistBonusFlux,
     p_client_timestamp: issuedAt,
     p_user_agent: config.userAgent,
+    p_idempotency_key: idempotencyKey,
   });
 
   simUser.nextClaimAt = now + (config.faucetIntervalSeconds * 1000);
@@ -1527,6 +1533,7 @@ async function openBoxes(simUser, config, boxTierIds) {
     }
 
     const boxTierId = pickRandom(boxTierIds) ?? boxTierIds[0];
+    const idempotencyKey = `sim-box:${simUser.walletAddress}:${boxTierId}:${createUuid()}`;
 
     try {
       await callRpc(simUser, config, 'open_mystery_box', {
@@ -1535,6 +1542,7 @@ async function openBoxes(simUser, config, boxTierIds) {
         p_whitelist_bonus_amount: config.whitelistBonusFlux,
         p_client_timestamp: toIsoNow(),
         p_user_agent: config.userAgent,
+        p_idempotency_key: idempotencyKey,
       });
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
@@ -1632,54 +1640,72 @@ async function maybePlaceBid(simUser, config, activeAuction) {
     return;
   }
 
-  if (Math.random() > 0.6) {
-    return;
-  }
-
-  if (getHighestBidWallet(activeAuction) === simUser.walletAddress && Math.random() > 0.2) {
-    return;
-  }
-
   const roundId = Number(activeAuction.round_id);
   if (!Number.isFinite(roundId)) {
     return;
   }
 
-  const currentHighestBid = Number(activeAuction.current_highest_bid ?? 0);
-  const minBid = computeMinNextBid(currentHighestBid);
-  const markup = currentHighestBid > 0 ? Math.random() * 0.1 : 0;
-  const amount = Math.round((minBid * (1 + markup)) * 100) / 100;
-  const idempotencyKey = `sim-bid:${simUser.walletAddress}:${roundId}:${amount.toFixed(2)}`;
+  const bidAttempts = Math.max(1, config.maxBidAttemptsPerCycle);
 
-  try {
-    await callRpc(simUser, config, 'place_auction_bid', {
-      p_wallet_address: simUser.walletAddress,
-      p_round_id: roundId,
-      p_amount: amount,
-      p_whitelist_bonus_amount: config.whitelistBonusFlux,
-      p_client_timestamp: toIsoNow(),
-      p_user_agent: config.userAgent,
-      p_idempotency_key: idempotencyKey,
-    });
-  } catch (error) {
-    const message = error instanceof Error ? error.message : String(error);
-    if (
-      message.includes('insufficient flux balance')
-      || message.includes('cannot bid on your own submitted item')
-      || message.includes('auction round is not currently accepting bids')
-      || message.includes('bid must be at least')
-      || message.includes('new bid must exceed your previous bid')
-    ) {
-      return;
+  for (let attempt = 0; attempt < bidAttempts; attempt += 1) {
+    if (Math.random() > config.bidAttemptProbability) {
+      continue;
     }
-    throw error;
-  }
 
-  log('auction_bid', {
-    wallet: simUser.walletAddress,
-    roundId,
-    amount,
-  });
+    if (getHighestBidWallet(activeAuction) === simUser.walletAddress) {
+      break;
+    }
+
+    const currentHighestBid = Number(activeAuction.current_highest_bid ?? 0);
+    const minBid = computeMinNextBid(currentHighestBid);
+    const effectiveMarkupMax = Math.max(config.bidMarkupMin, config.bidMarkupMax);
+    const markupRange = Math.max(0, effectiveMarkupMax - config.bidMarkupMin);
+    const markup = currentHighestBid > 0
+      ? config.bidMarkupMin + (Math.random() * markupRange)
+      : config.bidMarkupMin;
+    const amount = Math.round((minBid * (1 + markup)) * 100) / 100;
+    const idempotencyKey = `sim-bid:${simUser.walletAddress}:${roundId}:${attempt}:${amount.toFixed(2)}`;
+
+    try {
+      await callRpc(simUser, config, 'place_auction_bid', {
+        p_wallet_address: simUser.walletAddress,
+        p_round_id: roundId,
+        p_amount: amount,
+        p_whitelist_bonus_amount: config.whitelistBonusFlux,
+        p_client_timestamp: toIsoNow(),
+        p_user_agent: config.userAgent,
+        p_idempotency_key: idempotencyKey,
+      });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      if (
+        message.includes('insufficient flux balance')
+        || message.includes('cannot bid on your own submitted item')
+        || message.includes('auction round is not currently accepting bids')
+        || message.includes('bid must be at least')
+        || message.includes('new bid must exceed your previous bid')
+      ) {
+        break;
+      }
+      throw error;
+    }
+
+    activeAuction.current_highest_bid = amount;
+    if (!Array.isArray(activeAuction.bids)) {
+      activeAuction.bids = [];
+    }
+    activeAuction.bids.push({
+      wallet: simUser.walletAddress,
+      amount,
+    });
+
+    log('auction_bid', {
+      wallet: simUser.walletAddress,
+      roundId,
+      amount,
+      attempt: attempt + 1,
+    });
+  }
 }
 
 function isAuthError(error) {
