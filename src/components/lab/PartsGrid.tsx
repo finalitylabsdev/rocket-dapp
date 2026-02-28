@@ -60,14 +60,14 @@ function getAttributeIcon(index: number) {
 
 function getPartLore(part: InventoryPart, section: RocketSection) {
   const signatures: Record<RocketSection, string> = {
-    coreEngine: 'A pulse-tuned burn chamber lined with redundant gravitic vanes and a stubborn ignition core.',
-    wingPlate: 'A fin array cut for vacuum drift, tuned to flex just enough when the starwind turns noisy.',
-    fuelCell: 'A sealed reservoir stack that hums with overpressured coolant and suspiciously calm reserve flow.',
-    navigationModule: 'A guidance shell wrapped around a dream-logic gyro that swears it can feel distant moons.',
-    payloadBay: 'A modular cargo cavity with velvet clamps, hidden tie-downs, and entirely too many warning lights.',
-    thrusterArray: 'A clustered exhaust rack built for sharp corrections, hot departures, and theatrical recoil.',
-    propulsionCables: 'A braided transmission spine that carries charge, telemetry, and at least one undocumented shortcut.',
-    shielding: 'A layered mantle of ablative mesh and mirrored plating tuned to shrug off radiant debris.',
+    coreEngine: 'Dual-cycle combustion chamber with regeneratively cooled nozzle liner and redundant turbopump assembly.',
+    wingPlate: 'Variable-geometry stabiliser fin rated for transonic flutter suppression and low-drag orbital insertion.',
+    fuelCell: 'Pressure-fed bipropellant reservoir with passive thermal regulation and autonomous bleed-off valve.',
+    navigationModule: 'Inertial measurement unit paired with star-tracker optical array for sub-arcsecond attitude determination.',
+    payloadBay: 'Structurally isolated cargo frame with passive vibration damping and configurable mass-trim interface.',
+    thrusterArray: 'Quad-cluster reaction control system with pulse-width modulated valve sequencing for precision vectoring.',
+    propulsionCables: 'Shielded power and telemetry harness with fault-tolerant redundancy across primary and backup channels.',
+    shielding: 'Multi-layer thermal protection system combining ablative composite with radiative heat-rejection coating.',
   };
 
   return `${signatures[section]} Calibrated under the ${part.serialTrait ?? 'standard'} protocol for ${part.name.toLowerCase()}.`;
