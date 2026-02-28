@@ -398,7 +398,7 @@ export default function EntropyGatePanel() {
           }}
         >
           <Lock size={14} className="text-text-primary" />
-          <span className="text-xs font-mono font-semibold text-text-primary">
+          <span className="mr-4 text-xs font-mono font-semibold text-text-primary">
             PREVIEW READ ONLY
           </span>
           <span className="text-xs text-text-muted font-mono">
