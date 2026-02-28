@@ -13,17 +13,72 @@ interface RocketPreviewProps {
 
 function getPreviewAssembly(slots: RocketLabSlots) {
   return {
-    engine: slots.coreEngine.status === 'ready',
-    fuel: slots.fuelCell.status === 'ready',
-    body: slots.shielding.status === 'ready',
-    wings: slots.wingPlate.status === 'ready',
-    booster: slots.thrusterArray.status === 'ready',
-    noseCone: slots.navigationModule.status === 'ready',
-    heatShield: slots.shielding.status === 'ready',
-    gyroscope: slots.navigationModule.status === 'ready',
-    solarPanels: slots.payloadBay.status === 'ready',
-    landingStruts: slots.propulsionCables.status === 'ready',
+    engine: slots.coreEngine.status === 'equipped',
+    fuel: slots.fuelCell.status === 'equipped',
+    body: slots.shielding.status === 'equipped',
+    wings: slots.wingPlate.status === 'equipped',
+    booster: slots.thrusterArray.status === 'equipped',
+    noseCone: slots.navigationModule.status === 'equipped',
+    heatShield: slots.shielding.status === 'equipped',
+    gyroscope: slots.navigationModule.status === 'equipped',
+    solarPanels: slots.payloadBay.status === 'equipped',
+    landingStruts: slots.propulsionCables.status === 'equipped',
   };
+}
+
+const VARIANT_MARKER_LAYOUT: Record<RocketSection, { left: string; top: string }> = {
+  navigationModule: { left: '50%', top: '12%' },
+  shielding: { left: '50%', top: '28%' },
+  fuelCell: { left: '50%', top: '46%' },
+  payloadBay: { left: '23%', top: '42%' },
+  wingPlate: { left: '16%', top: '52%' },
+  coreEngine: { left: '50%', top: '66%' },
+  thrusterArray: { left: '50%', top: '82%' },
+  propulsionCables: { left: '76%', top: '56%' },
+};
+
+function VariantMarkers({ slots }: { slots: RocketLabSlots }) {
+  return (
+    <div className="pointer-events-none absolute inset-0">
+      {ROCKET_SECTIONS.map((section) => {
+        const part = slots[section].equippedPart;
+        const variantId = part?.variantId;
+        if (!variantId) {
+          return null;
+        }
+
+        const pattern = variantId % 4;
+        const color = pattern === 0
+          ? '#F97316'
+          : pattern === 1
+            ? '#4ADE80'
+            : pattern === 2
+              ? '#38BDF8'
+              : '#FACC15';
+        const layout = VARIANT_MARKER_LAYOUT[section];
+
+        return (
+          <div
+            key={`${section}-${variantId}`}
+            className="absolute -translate-x-1/2 -translate-y-1/2"
+            style={{ left: layout.left, top: layout.top }}
+          >
+            <div
+              className="rounded-full"
+              style={{
+                width: pattern === 2 ? 14 : 10,
+                height: pattern === 1 ? 14 : 10,
+                border: `1px solid ${color}`,
+                background: `${color}22`,
+                boxShadow: `0 0 14px ${color}55`,
+                transform: pattern === 3 ? 'rotate(45deg)' : undefined,
+              }}
+            />
+          </div>
+        );
+      })}
+    </div>
+  );
 }
 
 function StandardRocket({ slots, light }: { slots: RocketLabSlots; light: boolean }) {
@@ -523,7 +578,7 @@ export default function RocketPreview({ slots, model, launching, onLaunchComplet
   }, [launching, onLaunchComplete]);
 
   const readyCount = ROCKET_SECTIONS.reduce(
-    (count, section) => count + (slots[section].status === 'ready' ? 1 : 0),
+    (count, section) => count + (slots[section].status === 'equipped' ? 1 : 0),
     0,
   );
   const completeness = readyCount / ROCKET_SECTIONS.length;
@@ -587,6 +642,8 @@ export default function RocketPreview({ slots, model, launching, onLaunchComplet
             : 'rocketFloat 4s ease-in-out infinite',
         }}
       >
+        <VariantMarkers slots={slots} />
+
         {launching && (
           <div
             className="absolute -bottom-6 left-1/2 -translate-x-1/2 w-40 h-40 rounded-full border border-white/20"
@@ -598,7 +655,7 @@ export default function RocketPreview({ slots, model, launching, onLaunchComplet
         {model === 'heavy' && <HeavyRocket slots={slots} light={light} />}
         {model === 'scout' && <ScoutRocket slots={slots} light={light} />}
 
-        {(slots.coreEngine.status === 'ready' || slots.thrusterArray.status === 'ready') && !launching && (
+        {(slots.coreEngine.status === 'equipped' || slots.thrusterArray.status === 'equipped') && !launching && (
           <div className="relative -mt-3 flex flex-col items-center">
             <svg width="60" height="48" viewBox="0 0 60 48" style={{ animation: 'thrustFlame 0.3s ease-in-out infinite', transformOrigin: 'top center' }}>
               <defs>
@@ -644,9 +701,9 @@ export default function RocketPreview({ slots, model, launching, onLaunchComplet
               key={section}
               className="w-1.5 h-1.5 rounded-full transition-all duration-500"
               style={{
-                background: slots[section].status === 'ready'
+                background: slots[section].status === 'equipped'
                   ? '#4ADE80'
-                  : slots[section].status === 'locked'
+                  : slots[section].status === 'available'
                     ? '#F59E0B'
                     : 'var(--color-bg-inset)',
               }}

@@ -55,11 +55,14 @@ interface BoxTierRow {
   illustration_alt?: string | null;
 }
 
-interface InventoryPartPayload {
+export interface InventoryPartPayload {
   id?: string;
+  variant_id?: number | string;
+  variant_index?: number | string;
   name?: string;
   section_key?: string;
   section_name?: string;
+  equipped_section_key?: string;
   rarity?: string;
   rarity_tier_id?: number | string;
   attr1?: number | string;
@@ -69,6 +72,10 @@ interface InventoryPartPayload {
   attr2_name?: string;
   attr3_name?: string;
   part_value?: number | string;
+  condition_pct?: number | string;
+  serial_number?: string;
+  serial_trait?: string;
+  is_shiny?: boolean;
   is_locked?: boolean;
   is_equipped?: boolean;
   source?: 'mystery_box' | 'auction_win' | 'admin';
@@ -211,7 +218,7 @@ function normalizeBoxTierRow(payload: BoxTierRow, rarityLookup: Map<number, Rari
   };
 }
 
-function normalizeInventoryPart(payload: InventoryPartPayload): InventoryPart {
+export function normalizeInventoryPart(payload: InventoryPartPayload): InventoryPart {
   if (
     typeof payload.id !== 'string' ||
     typeof payload.name !== 'string' ||
@@ -232,6 +239,9 @@ function normalizeInventoryPart(payload: InventoryPartPayload): InventoryPart {
     id: payload.id,
     name: payload.name,
     slot: payload.section_key as RocketSection,
+    equippedSectionKey: typeof payload.equipped_section_key === 'string'
+      ? payload.equipped_section_key as RocketSection
+      : undefined,
     rarity: payload.rarity,
     power: Math.round((attr1 + attr2 + attr3) / 3),
     attributes: [attr1, attr2, attr3],
@@ -241,6 +251,12 @@ function normalizeInventoryPart(payload: InventoryPartPayload): InventoryPart {
       payload.attr3_name ?? 'Attribute 3',
     ],
     partValue,
+    conditionPct: payload.condition_pct === undefined ? undefined : toNumber(payload.condition_pct),
+    serialNumber: toOptionalText(payload.serial_number) ?? undefined,
+    serialTrait: toOptionalText(payload.serial_trait) ?? undefined,
+    isShiny: payload.is_shiny === undefined ? undefined : Boolean(payload.is_shiny),
+    variantId: payload.variant_id === undefined ? undefined : toNumber(payload.variant_id),
+    variantIndex: payload.variant_index === undefined ? undefined : toNumber(payload.variant_index),
     sectionName: payload.section_name,
     rarityTierId: toNumber(payload.rarity_tier_id),
     isLocked: Boolean(payload.is_locked),

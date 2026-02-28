@@ -35,11 +35,18 @@ export interface InventoryPart {
   id: string;
   name: string;
   slot: RocketSection;
+  equippedSectionKey?: RocketSection;
   rarity: RarityTier;
   power: number;
   attributes: [number, number, number];
   attributeNames: [string, string, string];
   partValue: number;
+  conditionPct?: number;
+  serialNumber?: string;
+  serialTrait?: string;
+  isShiny?: boolean;
+  variantId?: number;
+  variantIndex?: number;
   sectionName: string;
   rarityTierId: number;
   isLocked?: boolean;

@@ -40,4 +40,6 @@ export const PRIZE_DISTRIBUTABLE_SHARE_BPS = 5_000;
 export const PRIZE_SPLIT_BPS = [5_000, 2_500, 2_500] as const;
 
 export const ROCKET_SLOT_COUNT = 8;
+export const LAUNCH_FEE_RATE = 0.1;
+export const REPAIR_COST_RATE = 0.2;
 export const DEX_DEFAULT_SLIPPAGE = 0.5;
