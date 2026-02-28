@@ -153,6 +153,12 @@ This section is the shared contract reference for all branches before touching f
 - [x] Clicking the balance control opens the wallet page.
 - [x] Wallet page always lists all four currencies.
 
+**Resolved In This Worktree**
+- Dedicated `#gate` and `#wallet` routes are live, with the former home-embedded lock / claim flow moved into a standalone Gate page.
+- Home now acts as a lighter funnel surface, while leaderboard access remains available through normal navigation and footer links.
+- The wallet route includes live `FLUX` from `GameState.fluxBalance`, with `wETH`, `wBTC`, and `UVD` left as explicit scaffold rows rather than fake balances.
+- A follow-up build pass also split `web3Onboard.ts` into its own chunk cleanly; one entry chunk remains slightly above Vite's default warning threshold.
+
 **Dependency Notes**
 - This branch is independent of the backend contract branch.
 
