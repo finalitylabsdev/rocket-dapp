@@ -66,10 +66,7 @@ export default function App() {
   const pageContent = (() => {
     if (page === 'gate') {
       return (
-        <GatePage
-          onOpenDex={() => navigate('dex')}
-          onOpenWallet={() => navigate('wallet')}
-        />
+        <GatePage />
       );
     }
 
@@ -130,7 +127,7 @@ export default function App() {
                   </RouteErrorBoundary>
                 </Suspense>
               </main>
-              {page === 'home' && <Footer onNavigate={navigate} />}
+              <Footer onNavigate={navigate} />
             </div>
           </div>
         </GameStateProvider>

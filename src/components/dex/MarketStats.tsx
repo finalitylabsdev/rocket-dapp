@@ -1,10 +1,11 @@
 import { TrendingUp, BarChart3, Droplets, Activity, ChevronUp, ChevronDown } from 'lucide-react';
 import { useIntersectionObserver } from '../../hooks/useCountUp';
 import { usePrices, getTokenUsdPrice, getTokenChange, formatUsdPrice } from '../../hooks/usePrices';
+import { formatTokenSymbol, PHI_SYMBOL } from '../../lib/tokenDisplay';
 import TokenIcon from './TokenIcon';
 
 const ENTROPY_TOKENS = [
-  { symbol: 'FLUX', name: 'Flux Token', volume: '$128,409', liquidity: '$842,000' },
+  { symbol: 'FLUX', name: PHI_SYMBOL, volume: '$128,409', liquidity: '$842,000' },
   { symbol: 'UVD', name: 'Universe Dollar', volume: '$3.8M', liquidity: '$1.25M' },
 ];
 
@@ -57,7 +58,7 @@ export default function MarketStats() {
                       <div className="flex items-center gap-2.5">
                         <TokenIcon symbol={token.symbol} size="lg" />
                         <div>
-                          <p className="font-mono font-bold text-text-primary text-sm leading-none">{token.symbol}</p>
+                          <p className="font-mono font-bold text-text-primary text-sm leading-none">{formatTokenSymbol(token.symbol)}</p>
                           <p className="text-text-muted text-[10px] mt-0.5">{token.name}</p>
                         </div>
                       </div>

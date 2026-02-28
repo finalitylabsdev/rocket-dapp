@@ -1,27 +1,11 @@
-import { ArrowLeftRight, Lock, Trophy, Wallet } from 'lucide-react';
+import { ArrowLeftRight, Info, Lock, Trophy, Wallet } from 'lucide-react';
 import EntropyGatePanel from '../components/EntropyGatePanel';
-import PreviewReadOnlyBanner from '../components/PreviewReadOnlyBanner';
-import { PREVIEW_READ_ONLY_ENABLED } from '../config/flags';
 
-interface GatePageProps {
-  onOpenDex: () => void;
-  onOpenWallet: () => void;
-}
-
-export default function GatePage({ onOpenDex, onOpenWallet }: GatePageProps) {
+export default function GatePage() {
   return (
     <div className="pt-20 md:pt-24 pb-16">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="max-w-3xl mb-8">
-          <div className="flex flex-wrap gap-2 mb-4">
-            <span className="tag">
-              <Lock size={11} />
-              App 1
-            </span>
-            <span className="tag">
-              Daily Claim Flow
-            </span>
-          </div>
           <h1 className="font-mono font-black text-3xl md:text-4xl lg:text-5xl text-text-primary leading-tight uppercase tracking-tight">
             Entropy Gate
           </h1>
@@ -29,16 +13,10 @@ export default function GatePage({ onOpenDex, onOpenWallet }: GatePageProps) {
             This is the protocol entry point. Lock once, verify on-chain, then return here to claim
             FLUX on cadence before routing capital into the exchange and the rest of the testnet loop.
           </p>
-          {PREVIEW_READ_ONLY_ENABLED && (
-            <PreviewReadOnlyBanner
-              title="Preview Gate"
-              message="Wallet authentication is still live here. ETH lock and FLUX claim are click-denied until launch."
-            />
-          )}
         </div>
 
         <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1.4fr)_320px] gap-6 items-start">
-          <EntropyGatePanel onOpenDex={onOpenDex} onOpenWallet={onOpenWallet} />
+          <EntropyGatePanel />
 
           <aside className="space-y-4">
             <div className="bg-bg-card border border-border-subtle p-5">
@@ -74,6 +52,16 @@ export default function GatePage({ onOpenDex, onOpenWallet }: GatePageProps) {
                   </div>
                 </div>
               </div>
+            </div>
+
+            <div className="bg-[rgba(74,222,128,0.06)] border border-[rgba(74,222,128,0.18)] p-5">
+              <div className="flex items-center gap-2">
+                <Info size={15} className="text-dot-green" />
+                <p className="font-mono font-semibold text-text-primary uppercase tracking-wider">Info</p>
+              </div>
+              <p className="mt-3 text-sm text-text-muted leading-relaxed">
+                The contribution per wallet is fixed and the deposit is a one-time event. More ways to acquire FLUX will open up in the future.
+              </p>
             </div>
 
             <div className="bg-bg-card border border-border-subtle p-5">

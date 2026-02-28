@@ -28,11 +28,11 @@ const cards: ActionCard[] = [
     icon: <Lock size={22} className="text-dot-green" />,
     badge: 'Start Here',
     title: 'Entropy Gate',
-    tagline: 'Lock ETH → Claim Flux',
-    description: `Lock ${formatEthAmount(WHITELIST_ETH)} ETH once to whitelist your wallet. Claim 1 Flux every 24 hours. Funds the ETH prize pool forever.`,
+    tagline: 'Lock ETH → Claim Φ',
+    description: `Lock ${formatEthAmount(WHITELIST_ETH)} ETH once to whitelist your wallet. Claim 1 Φ every 24 hours. Funds the ETH prize pool forever.`,
     buttonLabel: 'Open Entropy Gate',
     stats: [
-      { label: 'Daily Claim', value: '1 Flux' },
+      { label: 'Daily Claim', value: '1 Φ' },
       { label: 'Lock Amount', value: `${formatEthAmount(WHITELIST_ETH)} ETH` },
     ],
   },
@@ -41,7 +41,7 @@ const cards: ActionCard[] = [
     icon: <ArrowLeftRight size={22} className="text-dot-green" />,
     title: 'Entropy Exchange',
     tagline: 'Trade at the speed of entropy',
-    description: 'Swap Flux ↔ wBTC / wETH / UVD on the constant-product AMM. Low fees. Full on-chain transparency.',
+    description: 'Swap Φ ↔ wBTC / wETH / UVD on the constant-product AMM. Low fees. Full on-chain transparency.',
     buttonLabel: 'Start Trading',
     stats: [
       { label: 'Swap Fee', value: '0.30%' },

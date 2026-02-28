@@ -411,8 +411,8 @@ const ONBOARD_STYLE_OVERRIDES = `
     height: 1.75rem !important;
     padding: 0 !important;
     border-radius: 0 !important;
-    border: 1px solid var(--onboard-gray-300, #2A3348) !important;
-    background: rgba(6, 8, 15, 0.92) !important;
+    border: 1px solid var(--w3o-border-color, #2A3348) !important;
+    background: var(--w3o-foreground-color, rgba(6, 8, 15, 0.92)) !important;
     color: var(--w3o-text-color, #E8ECF4) !important;
     box-shadow: none !important;
   }

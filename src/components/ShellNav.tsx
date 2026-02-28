@@ -22,8 +22,8 @@ interface ShellNavProps {
 }
 
 const PAGE_META: Record<Exclude<Page, 'home'>, { title: string; subtitle: string; icon: typeof Zap }> = {
-  gate:        { title: 'Entropy Gate',             subtitle: 'Lock ETH · Claim FLUX',         icon: Zap },
-  wallet:      { title: 'Wallet Overview',          subtitle: 'Live FLUX · Token Scaffold',    icon: Wallet },
+  gate:        { title: 'Entropy Gate',             subtitle: 'Lock ETH · Claim Φ',            icon: Zap },
+  wallet:      { title: 'Wallet Overview',          subtitle: 'Live Φ · Token Scaffold',       icon: Wallet },
   dex:         { title: 'Entropy Exchange',         subtitle: 'Constant-Product AMM · ɸ-net', icon: ArrowLeftRight },
   mystery:     { title: 'Star Vault & Nebula Bids', subtitle: 'App 3 · ɸ-net Testnet',        icon: Gift },
   lab:         { title: 'Rocket Lab',               subtitle: 'Build & Launch',                icon: FlaskConical },
@@ -222,7 +222,7 @@ export default function ShellNav({ page, onNavigate }: ShellNavProps) {
                   <span className="text-text-muted">/</span>
                   <PhiSymbol size={13} color="var(--color-text-primary)" />
                   <span className="font-bold text-text-primary">{game.fluxBalance}</span>
-                  <span className="text-xs text-text-muted font-mono">FLUX</span>
+                  <span className="text-xs text-text-muted font-mono">Φ</span>
                 </>
               )}
             </button>

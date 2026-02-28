@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Clock, ExternalLink, Lock, Wallet, Zap } from 'lucide-react';
+import { Clock, Lock, Zap } from 'lucide-react';
 import { toast } from 'sonner';
 import { useEthLockState } from '../context/EthLockState';
 import { useGameState } from '../context/GameState';
@@ -13,11 +13,6 @@ import {
 } from '../config/spec';
 import { PREVIEW_READ_ONLY_ENABLED } from '../config/flags';
 import { getPreviewActionButtonProps, runPreviewGuardedAction } from '../lib/launchPreview';
-
-interface EntropyGatePanelProps {
-  onOpenDex?: () => void;
-  onOpenWallet?: () => void;
-}
 
 const ETH_LOCK_FLOW_TOAST_ID = 'eth-lock-flow';
 const WALLET_ERROR_TOAST_ID = 'wallet-error';
@@ -62,7 +57,7 @@ function openExternalUrl(url: string): void {
   window.open(url, '_blank', 'noopener,noreferrer');
 }
 
-export default function EntropyGatePanel({ onOpenDex, onOpenWallet }: EntropyGatePanelProps) {
+export default function EntropyGatePanel() {
   const game = useGameState();
   const wallet = useWallet();
   const ethLock = useEthLockState();
@@ -121,8 +116,8 @@ export default function EntropyGatePanel({ onOpenDex, onOpenWallet }: EntropyGat
     const claimResult = await game.claimDailyFlux();
 
     if (claimResult.status === 'claimed') {
-      toast.success('Flux claimed', {
-        description: `Added ${claimResult.creditedAmount} FLUX to your balance.`,
+      toast.success('Φ claimed', {
+        description: `Added ${claimResult.creditedAmount} Φ to your balance.`,
       });
       return;
     }
@@ -131,14 +126,14 @@ export default function EntropyGatePanel({ onOpenDex, onOpenWallet }: EntropyGat
       const retryDelay = cooldownRemaining > 0
         ? ` Try again in ${formatCooldown(cooldownRemaining)}.`
         : '';
-      toast('Flux already claimed', {
+      toast('Φ already claimed', {
         description: `This faucet window was already recorded and your balance did not change.${retryDelay}`,
       });
       return;
     }
 
     if (claimResult.status === 'failed' && canClaim) {
-      toast.error('Flux claim failed', {
+      toast.error('Φ claim failed', {
         description: 'The signed claim could not be recorded.',
       });
     }
@@ -232,7 +227,7 @@ export default function EntropyGatePanel({ onOpenDex, onOpenWallet }: EntropyGat
     ) {
       toast.success('ETH locked', {
         id: ETH_LOCK_FLOW_TOAST_ID,
-        description: 'Flux claims are now enabled.',
+        description: 'Φ claims are now enabled.',
         duration: 12000,
         action: {
           label: 'View on Etherscan',
@@ -259,17 +254,16 @@ export default function EntropyGatePanel({ onOpenDex, onOpenWallet }: EntropyGat
   const claimPreviewAction = getPreviewActionButtonProps('gateClaim', claimCallToActionDisabled);
 
   const primaryAction = PREVIEW_READ_ONLY_ENABLED ? (
-    <>
-      {!wallet.isConnected && (
-        <button
-          onClick={() => void wallet.connect()}
-          disabled={wallet.isConnecting}
-          className="btn-primary w-full sm:w-auto justify-center text-sm sm:text-base px-6 py-3.5 disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          <Zap size={16} />
-          {wallet.isConnecting ? 'Connecting...' : 'Connect Wallet'}
-        </button>
-      )}
+    !wallet.isConnected ? (
+      <button
+        onClick={() => void wallet.connect()}
+        disabled={wallet.isConnecting}
+        className="btn-primary w-full sm:w-auto justify-center text-sm sm:text-base px-6 py-3.5 disabled:opacity-50 disabled:cursor-not-allowed"
+      >
+        <Zap size={16} />
+        {wallet.isConnecting ? 'Connecting...' : 'Connect Wallet'}
+      </button>
+    ) : !ethLock.isLocked ? (
       <button
         onClick={runPreviewGuardedAction('gateLock', () => void handleSubmitLock())}
         disabled={lockPreviewAction.disabled}
@@ -281,6 +275,7 @@ export default function EntropyGatePanel({ onOpenDex, onOpenWallet }: EntropyGat
         <Lock size={16} />
         {`Lock ${ethLock.lockAmountLabel} ETH`}
       </button>
+    ) : (
       <button
         onClick={runPreviewGuardedAction('gateClaim', () => void handleClaimFlux())}
         disabled={claimPreviewAction.disabled}
@@ -290,9 +285,9 @@ export default function EntropyGatePanel({ onOpenDex, onOpenWallet }: EntropyGat
         className="btn-primary w-full sm:w-auto justify-center text-sm sm:text-base px-6 py-3.5"
       >
         <Zap size={16} />
-        {`Claim ${EFFECTIVE_DAILY_CLAIM_FLUX} Flux`}
+        {`Claim ${EFFECTIVE_DAILY_CLAIM_FLUX} Φ`}
       </button>
-    </>
+    )
   ) : !wallet.isConnected ? (
     <button
       onClick={() => void wallet.connect()}
@@ -330,12 +325,12 @@ export default function EntropyGatePanel({ onOpenDex, onOpenWallet }: EntropyGat
       {game.isClaimingFlux ? (
         <>
           <Zap size={16} />
-          Claiming Flux...
+          Claiming Φ...
         </>
       ) : canClaim ? (
         <>
           <Zap size={16} />
-          {`Claim ${EFFECTIVE_DAILY_CLAIM_FLUX} Flux`}
+          {`Claim ${EFFECTIVE_DAILY_CLAIM_FLUX} Φ`}
         </>
       ) : (
         <>
@@ -366,14 +361,14 @@ export default function EntropyGatePanel({ onOpenDex, onOpenWallet }: EntropyGat
         <h2 className="font-mono font-black text-2xl md:text-3xl text-text-primary leading-tight uppercase tracking-tight">
           Unlock the Entropy Gate
         </h2>
-        <p className="text-text-muted leading-relaxed max-w-2xl">
+        <p className="text-sm text-text-muted font-mono leading-relaxed max-w-2xl">
           {PREVIEW_READ_ONLY_ENABLED
-            ? `Wallet authentication is live here, but ETH lock and FLUX claim stay blocked in preview. The controls remain visible so the launch flow is still legible before March 3, 2026 at 23:11 UTC.`
+            ? `Wallet authentication is live here, but ETH lock and Φ claim stay blocked in preview. The controls remain visible so the launch flow is still legible before March 3, 2026 at 23:11 UTC.`
             : (
               <>
                 Lock {ethLock.lockAmountLabel} ETH once to whitelist this wallet. After the lock confirms,
                 you can return every {formatClaimWindow(FAUCET_INTERVAL_SECONDS).toLowerCase()} to claim{' '}
-                {EFFECTIVE_DAILY_CLAIM_FLUX} FLUX and push deeper into the network.
+                {EFFECTIVE_DAILY_CLAIM_FLUX} Φ and push deeper into the network.
               </>
             )}
         </p>
@@ -386,7 +381,7 @@ export default function EntropyGatePanel({ onOpenDex, onOpenWallet }: EntropyGat
         </div>
         <div className="bg-bg-inset p-3 text-center border border-border-subtle">
           <p className="font-mono font-bold text-text-primary text-lg">{EFFECTIVE_DAILY_CLAIM_FLUX}</p>
-          <p className="text-[10px] text-text-muted mt-0.5 font-mono uppercase tracking-wider">Flux / Day</p>
+          <p className="text-[10px] text-text-muted mt-0.5 font-mono uppercase tracking-wider">Φ / Day</p>
         </div>
         <div className="bg-bg-inset p-3 text-center border border-border-subtle">
           <p className="font-mono font-bold text-text-primary text-lg">{formatClaimWindow(FAUCET_INTERVAL_SECONDS)}</p>
@@ -402,8 +397,8 @@ export default function EntropyGatePanel({ onOpenDex, onOpenWallet }: EntropyGat
             borderColor: 'rgba(245,158,11,0.22)',
           }}
         >
-          <Lock size={14} style={{ color: '#FCD34D' }} />
-          <span className="text-sm font-mono font-bold" style={{ color: '#FCD34D' }}>
+          <Lock size={14} className="text-text-primary" />
+          <span className="text-sm font-mono font-bold text-text-primary">
             PREVIEW READ ONLY
           </span>
           <span className="text-xs text-text-muted font-mono sm:ml-auto">
@@ -449,24 +444,6 @@ export default function EntropyGatePanel({ onOpenDex, onOpenWallet }: EntropyGat
 
       <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
         {primaryAction}
-        {onOpenDex && (
-          <button
-            onClick={onOpenDex}
-            className="btn-secondary w-full sm:w-auto justify-center text-sm sm:text-base px-6 py-3.5"
-          >
-            Entropy Exchange
-            <ExternalLink size={15} />
-          </button>
-        )}
-        {onOpenWallet && (
-          <button
-            onClick={onOpenWallet}
-            className="w-full sm:w-auto flex items-center justify-center gap-2 border border-border-default px-5 py-3.5 text-sm font-mono font-semibold uppercase tracking-wider text-text-primary hover:border-border-strong transition-colors"
-          >
-            <Wallet size={15} />
-            Wallet Overview
-          </button>
-        )}
       </div>
 
       {!PREVIEW_READ_ONLY_ENABLED && wallet.isConnected && !ethLock.isLocked && !ethLock.lockRecipient && (
@@ -486,19 +463,19 @@ export default function EntropyGatePanel({ onOpenDex, onOpenWallet }: EntropyGat
               <span className="font-mono font-semibold text-text-primary">{wallet.displayAddress}</span>
             </div>
           ) : (
-            <p className="mt-2 text-sm text-text-muted">Connect to check lock status and claim FLUX.</p>
+            <p className="mt-2 text-sm text-text-muted">Connect to check lock status and claim Φ.</p>
           )}
         </div>
         <div className="bg-bg-inset border border-border-subtle p-4">
           <p className="text-[11px] font-mono font-semibold text-text-muted uppercase tracking-[0.16em]">
-            Flux Balance
+            Φ Balance
           </p>
           <div className="mt-2 flex items-center gap-2">
             <PhiSymbol size={16} color="var(--color-text-primary)" />
             <span className="font-mono font-bold text-text-primary text-lg">
               {wallet.isConnected ? game.fluxBalance : '--'}
             </span>
-            <span className="text-xs text-text-muted font-mono">FLUX</span>
+            <span className="text-xs text-text-muted font-mono">Φ</span>
             {wallet.isConnected && game.isFluxSyncing && (
               <span className="ml-auto text-[10px] font-mono font-semibold uppercase tracking-wider text-text-muted">
                 Syncing
@@ -511,7 +488,7 @@ export default function EntropyGatePanel({ onOpenDex, onOpenWallet }: EntropyGat
       {!PREVIEW_READ_ONLY_ENABLED && ethLock.isLocked && canClaim && game.fluxBalance === 0 && (
         <JourneyCue
           icon={<Zap size={16} />}
-          message="ETH locked. Claim your first FLUX to open the rest of the app economy."
+          message="ETH locked. Claim your first Φ to open the rest of the app economy."
           actionLabel="Claim Now"
           onAction={() => void handleClaimFlux()}
           tone="green"

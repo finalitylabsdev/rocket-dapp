@@ -16,7 +16,7 @@ export default function DexPage() {
       { label: 'Trading Fee', value: '0.3%', sub: 'Per swap' },
       { label: 'Protocol Fee', value: '0.05%', sub: 'To treasury' },
       { label: 'Min Liquidity', value: '$100', sub: 'To add LP' },
-      { label: 'Testnet Flux', value: 'Free', sub: 'Via Entropy Gate' },
+      { label: 'Testnet Φ', value: 'Free', sub: 'Via Entropy Gate' },
     ]
     : [
       { label: 'Swap', value: 'Paused', sub: 'Mainnet prep' },
@@ -40,7 +40,7 @@ export default function DexPage() {
               Entropy Exchange
             </h1>
             <p className="text-text-muted text-lg font-mono">
-              Trade <span className="text-text-primary font-semibold">Flux</span> ↔{' '}
+              Trade <span className="text-text-primary font-semibold">Φ</span> ↔{' '}
               <span className="text-text-primary font-semibold">wBTC / wETH / UVD</span>
             </p>
           </div>

@@ -1,3 +1,5 @@
+import { PHI_SYMBOL } from '../../lib/tokenDisplay';
+
 interface PhiSymbolProps {
   size?: number;
   color?: string;
@@ -21,7 +23,7 @@ export default function PhiSymbol({ size = 24, color = 'currentColor', className
       fill="none"
       className={className}
       style={undefined}
-      aria-label="φ Entropy token"
+      aria-label={`${PHI_SYMBOL} Entropy token`}
     >
       <circle
         cx={cx}

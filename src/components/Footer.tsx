@@ -1,5 +1,5 @@
-import { Zap } from 'lucide-react';
 import { APP_VERSION } from '../config/app';
+import PhiSymbol from './brand/PhiSymbol';
 import type { Page } from '../App';
 
 interface FooterProps {
@@ -15,7 +15,7 @@ export default function Footer({ onNavigate }: FooterProps) {
           <div>
             <div className="flex items-center gap-2.5 mb-2">
               <div className="w-7 h-7 flex items-center justify-center" style={{ background: 'var(--color-text-primary)' }}>
-                <Zap size={14} style={{ color: 'var(--color-bg-base)' }} fill="var(--color-bg-base)" />
+                <PhiSymbol size={16} color="var(--color-bg-base)" />
               </div>
               <div>
                 <span className="font-mono font-bold text-text-primary text-sm leading-none uppercase tracking-wider">Entropy</span>

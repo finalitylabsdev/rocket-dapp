@@ -53,19 +53,19 @@ export default function EntropyGateBanner({
   let statusLabel = 'WALLET REQUIRED';
   let detail = wallet.error && !wallet.isConnected
     ? wallet.error
-    : 'Connect a wallet to check your ETH lock status and unlock daily FLUX claims.';
+    : 'Connect a wallet to check your ETH lock status and unlock daily Φ claims.';
 
   if (PREVIEW_READ_ONLY_ENABLED) {
     tone = 'warning';
     statusLabel = 'PREVIEW';
     detail = wallet.isConnected
-      ? 'Wallet auth is live. ETH lock and FLUX claims are disabled in preview.'
-      : 'Browse freely or connect a wallet. ETH lock and FLUX claims are disabled in preview.';
+      ? 'Wallet auth is live. ETH lock and Φ claims are disabled in preview.'
+      : 'Browse freely or connect a wallet. ETH lock and Φ claims are disabled in preview.';
   } else if (wallet.isConnected) {
     const nextStep = isHome || isGate
       ? ''
       : ethLock.isLocked
-        ? ' Open Entropy Gate to manage your daily FLUX claim.'
+        ? ' Open Entropy Gate to manage your daily Φ claim.'
         : ' Open Entropy Gate to continue.';
     const baseDetail = ethLock.isLoading
       ? 'Checking current ETH lock status...'

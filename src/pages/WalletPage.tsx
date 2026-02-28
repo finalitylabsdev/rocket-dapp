@@ -2,11 +2,8 @@ import { ArrowLeftRight, Wallet } from 'lucide-react';
 import TokenIcon from '../components/dex/TokenIcon';
 import { useGameState } from '../context/GameState';
 import { useWallet } from '../hooks/useWallet';
+import { formatTokenSymbol, PHI_SYMBOL } from '../lib/tokenDisplay';
 import { TOKEN_SYMBOLS, type TokenSymbol } from '../types/domain';
-
-function getDisplaySymbol(symbol: TokenSymbol): string {
-  return symbol === 'Flux' ? 'FLUX' : symbol;
-}
 
 export default function WalletPage() {
   const game = useGameState();
@@ -54,7 +51,7 @@ export default function WalletPage() {
             Wallet Overview
           </h1>
           <p className="mt-4 text-lg text-text-muted leading-relaxed">
-            FLUX is live here when a wallet is connected. The wrapped asset rows are intentionally
+            {PHI_SYMBOL} is live here when a wallet is connected. The wrapped asset rows are intentionally
             scaffolded until their balance sources are wired into the app.
           </p>
         </div>
@@ -106,11 +103,11 @@ export default function WalletPage() {
                         key={row.symbol}
                         className="flex items-center gap-3 p-3 bg-bg-inset border border-border-subtle"
                       >
-                        <TokenIcon symbol={getDisplaySymbol(row.symbol)} size="lg" />
+                        <TokenIcon symbol={row.symbol} size="lg" />
                         <div className="min-w-0 flex-1">
                           <div className="flex items-center gap-2">
                             <p className="font-mono font-bold text-text-primary text-sm leading-none">
-                              {getDisplaySymbol(row.symbol)}
+                              {formatTokenSymbol(row.symbol)}
                             </p>
                             <span
                               className={`text-[10px] font-mono font-bold px-2 py-0.5 uppercase tracking-wider ${
@@ -125,7 +122,7 @@ export default function WalletPage() {
                         <div className="text-right">
                           <p className="font-mono font-bold text-text-primary text-sm leading-none">{row.value}</p>
                           <p className="text-[10px] font-mono text-text-muted uppercase tracking-wider mt-0.5">
-                            {getDisplaySymbol(row.symbol)}
+                            {formatTokenSymbol(row.symbol)}
                           </p>
                         </div>
                       </div>
@@ -147,7 +144,7 @@ export default function WalletPage() {
                 </p>
               </div>
               <p className="text-sm text-text-muted leading-relaxed mb-4">
-                Swap tokens on the constant-product AMM. Trade FLUX against wrapped assets directly on the ɸ-net testnet.
+                Swap tokens on the constant-product AMM. Trade {PHI_SYMBOL} against wrapped assets directly on the ɸ-net testnet.
               </p>
               <div className="flex items-center gap-2 mb-4">
                 <span className="inline-block w-1.5 h-1.5 bg-text-muted" />

@@ -1,7 +1,9 @@
+import { isPhiTokenSymbol } from '../../lib/tokenDisplay';
+import PhiSymbol from '../brand/PhiSymbol';
 import UvdIcon from '../brand/UvdIcon';
 
 const TOKEN_ICONS: Record<string, { bg: string; label: string }> = {
-  FLUX: { bg: 'bg-zinc-200', label: 'F' },
+  FLUX: { bg: 'bg-zinc-200', label: '' },
   wETH: { bg: 'bg-zinc-300', label: '\u039E' },
   wBTC: { bg: 'bg-zinc-400', label: '\u20BF' },
   UVD:  { bg: 'bg-zinc-200', label: '' },
@@ -28,7 +30,9 @@ export default function TokenIcon({ symbol, size = 'sm', className = '' }: Token
     <div
       className={`${s.box} ${tok.bg} flex items-center justify-center text-black font-mono font-black ${s.text} flex-shrink-0 ${className}`}
     >
-      {symbol === 'UVD' ? (
+      {isPhiTokenSymbol(symbol) ? (
+        <PhiSymbol size={s.icon} color="black" />
+      ) : symbol === 'UVD' ? (
         <UvdIcon size={s.icon} color="black" />
       ) : (
         tok.label

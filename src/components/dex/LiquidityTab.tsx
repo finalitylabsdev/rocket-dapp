@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { ChevronDown, Plus, Info } from 'lucide-react';
 import TokenIcon from './TokenIcon';
 import { usePrices, getRate, getTokenUsdPrice } from '../../hooks/usePrices';
+import { formatTokenSymbol } from '../../lib/tokenDisplay';
 
 const TOKENS = ['FLUX', 'wETH', 'wBTC', 'UVD'];
 
@@ -24,7 +25,7 @@ function SmallTokenSelect({ value, onChange, exclude }: { value: string; onChang
         className="flex items-center gap-2 bg-bg-inset hover:bg-bg-card-hover border border-border-default hover:border-border-strong px-3 py-2 transition-all duration-150"
       >
         <TokenIcon symbol={value} size="sm" />
-        <span className="font-mono font-bold text-text-primary text-sm">{value}</span>
+        <span className="font-mono font-bold text-text-primary text-sm">{formatTokenSymbol(value)}</span>
         <ChevronDown size={13} className="text-text-secondary" />
       </button>
       {open && (
@@ -36,7 +37,7 @@ function SmallTokenSelect({ value, onChange, exclude }: { value: string; onChang
               className={`w-full flex items-center gap-3 px-4 py-3 hover:bg-bg-card-hover transition-colors text-left ${value === t ? 'bg-bg-card-hover' : ''}`}
             >
               <TokenIcon symbol={t} size="sm" />
-              <span className="font-mono font-semibold text-text-primary text-sm">{t}</span>
+              <span className="font-mono font-semibold text-text-primary text-sm">{formatTokenSymbol(t)}</span>
             </button>
           ))}
         </div>
@@ -113,7 +114,7 @@ export default function LiquidityTab() {
             />
             <div className="flex items-center gap-2 bg-bg-inset px-2.5 py-1.5">
               <TokenIcon symbol={tokenA} size="xs" />
-              <span className="font-mono font-bold text-text-primary text-sm">{tokenA}</span>
+              <span className="font-mono font-bold text-text-primary text-sm">{formatTokenSymbol(tokenA)}</span>
             </div>
           </div>
           <div className="flex justify-between mt-2">
@@ -139,7 +140,7 @@ export default function LiquidityTab() {
             />
             <div className="flex items-center gap-2 bg-bg-inset px-2.5 py-1.5">
               <TokenIcon symbol={tokenB} size="xs" />
-              <span className="font-mono font-bold text-text-primary text-sm">{tokenB}</span>
+              <span className="font-mono font-bold text-text-primary text-sm">{formatTokenSymbol(tokenB)}</span>
             </div>
           </div>
           <div className="flex justify-between mt-2">
@@ -152,8 +153,8 @@ export default function LiquidityTab() {
       <div className="bg-bg-card/60 border border-border-subtle p-4 space-y-2.5">
         <p className="text-xs font-mono font-semibold text-text-secondary mb-3 uppercase tracking-wider">Pool Information</p>
         {[
-          { label: `${tokenA} per ${tokenB}`, value: rateBtoA.toFixed(rateBtoA >= 1 ? 2 : 6) },
-          { label: `${tokenB} per ${tokenA}`, value: rateAtoB.toFixed(rateAtoB >= 1 ? 2 : 6) },
+          { label: `${formatTokenSymbol(tokenA)} per ${formatTokenSymbol(tokenB)}`, value: rateBtoA.toFixed(rateBtoA >= 1 ? 2 : 6) },
+          { label: `${formatTokenSymbol(tokenB)} per ${formatTokenSymbol(tokenA)}`, value: rateAtoB.toFixed(rateAtoB >= 1 ? 2 : 6) },
           { label: 'Your Pool Share', value: `${poolShare}%` },
           { label: 'Pool Liquidity', value: `$${poolTotal.toLocaleString()}` },
         ].map((row) => (

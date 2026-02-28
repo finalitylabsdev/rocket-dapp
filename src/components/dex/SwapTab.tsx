@@ -2,9 +2,10 @@ import { useState, useCallback } from 'react';
 import { ArrowUpDown, ChevronDown, Info, Settings2 } from 'lucide-react';
 import TokenIcon from './TokenIcon';
 import { usePrices, getRate, getTokenUsdPrice } from '../../hooks/usePrices';
+import { formatTokenSymbol, PHI_SYMBOL } from '../../lib/tokenDisplay';
 
 const TOKENS = [
-  { symbol: 'FLUX', name: 'Flux Token', decimals: 4 },
+  { symbol: 'FLUX', name: PHI_SYMBOL, decimals: 4 },
   { symbol: 'wETH', name: 'Wrapped Ethereum', decimals: 6 },
   { symbol: 'wBTC', name: 'Wrapped Bitcoin', decimals: 8 },
   { symbol: 'UVD', name: 'Universe Dollar', decimals: 2 },
@@ -28,7 +29,7 @@ function TokenSelector({
         className="flex items-center gap-2 bg-bg-inset hover:bg-bg-card-hover border border-border-default hover:border-border-strong px-3 py-2 transition-all duration-150"
       >
         <TokenIcon symbol={value} size="sm" />
-        <span className="font-mono font-bold text-text-primary text-sm">{value}</span>
+        <span className="font-mono font-bold text-text-primary text-sm">{formatTokenSymbol(value)}</span>
         <ChevronDown size={13} className="text-text-secondary" />
       </button>
 
@@ -42,7 +43,7 @@ function TokenSelector({
             >
               <TokenIcon symbol={t.symbol} size="md" />
               <div>
-                <p className="font-mono font-semibold text-text-primary text-sm leading-none">{t.symbol}</p>
+                <p className="font-mono font-semibold text-text-primary text-sm leading-none">{formatTokenSymbol(t.symbol)}</p>
                 <p className="text-text-muted text-[10px] mt-0.5">{t.name}</p>
               </div>
             </button>
@@ -179,7 +180,7 @@ export default function SwapTab() {
               Rate
             </span>
             <span className="text-text-primary font-mono font-medium">
-              1 {fromToken} = {rate.toFixed(6)} {toToken}
+              1 {formatTokenSymbol(fromToken)} = {rate.toFixed(6)} {formatTokenSymbol(toToken)}
             </span>
           </div>
           <div className="flex items-center justify-between text-sm">
@@ -190,7 +191,7 @@ export default function SwapTab() {
           </div>
           <div className="flex items-center justify-between text-sm">
             <span className="text-text-muted font-mono">Fee (0.3%)</span>
-            <span className="text-text-primary font-mono font-medium">{fee} {fromToken}</span>
+            <span className="text-text-primary font-mono font-medium">{fee} {formatTokenSymbol(fromToken)}</span>
           </div>
           <div className="flex items-center justify-between text-sm">
             <span className="text-text-muted font-mono">Slippage</span>
@@ -199,7 +200,7 @@ export default function SwapTab() {
           <div className="pt-1 border-t border-border-subtle flex items-center justify-between text-sm">
             <span className="text-text-muted font-mono">Min. Received</span>
             <span className="text-text-primary font-mono font-semibold">
-              {(parseFloat(toAmount || '0') * (1 - parseFloat(slippage) / 100)).toFixed(6)} {toToken}
+              {(parseFloat(toAmount || '0') * (1 - parseFloat(slippage) / 100)).toFixed(6)} {formatTokenSymbol(toToken)}
             </span>
           </div>
         </div>

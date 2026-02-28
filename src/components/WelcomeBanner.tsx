@@ -12,8 +12,8 @@ const STEPS = [
   },
   {
     icon: <Zap size={18} />,
-    title: 'Earn FLUX',
-    desc: 'Claim FLUX daily — the protocol currency.',
+    title: 'Earn Φ',
+    desc: 'Claim Φ daily — the protocol currency.',
   },
   {
     icon: <Gift size={18} />,
