@@ -243,10 +243,20 @@ export default function Hero({ onOpenGate, onOpenMystery, onOpenBids, onOpenLab,
                   borderColor: 'rgba(192,132,252,0.15)',
                 }}
               >
-                <Gavel size={20} className="text-[#C084FC]/70 group-hover:text-[#C084FC] transition-colors duration-300" />
-                <span className="font-mono font-bold text-base uppercase tracking-wider text-[#C084FC]/70 group-hover:text-[#C084FC] transition-colors duration-300">
-                  Parts Auction
-                </span>
+                <div
+                  className="w-10 h-10 flex items-center justify-center shrink-0"
+                  style={{ background: '#C084FC' }}
+                >
+                  <Gavel size={18} strokeWidth={2.5} style={{ color: '#06080F' }} />
+                </div>
+                <div className="flex flex-col items-start">
+                  <span className="font-mono font-bold text-base uppercase tracking-wider text-[#C084FC]/70 group-hover:text-[#C084FC] transition-colors duration-300">
+                    Parts Auction
+                  </span>
+                  <span className="font-mono text-xs uppercase tracking-wider text-text-muted mt-0.5">
+                    Coming Soon
+                  </span>
+                </div>
               </button>
 
               <button
@@ -257,10 +267,20 @@ export default function Hero({ onOpenGate, onOpenMystery, onOpenBids, onOpenLab,
                   borderColor: 'rgba(251,146,60,0.15)',
                 }}
               >
-                <Trophy size={20} className="text-[#FB923C]/70 group-hover:text-[#FB923C] transition-colors duration-300" />
-                <span className="font-mono font-bold text-base uppercase tracking-wider text-[#FB923C]/70 group-hover:text-[#FB923C] transition-colors duration-300">
-                  Cosmic Jackpot
-                </span>
+                <div
+                  className="w-10 h-10 flex items-center justify-center shrink-0"
+                  style={{ background: '#FB923C' }}
+                >
+                  <Trophy size={18} strokeWidth={2.5} style={{ color: '#06080F' }} />
+                </div>
+                <div className="flex flex-col items-start">
+                  <span className="font-mono font-bold text-base uppercase tracking-wider text-[#FB923C]/70 group-hover:text-[#FB923C] transition-colors duration-300">
+                    Cosmic Jackpot
+                  </span>
+                  <span className="font-mono text-xs uppercase tracking-wider text-text-muted mt-0.5">
+                    Coming Soon
+                  </span>
+                </div>
               </button>
             </div>
 

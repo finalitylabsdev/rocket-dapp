@@ -174,8 +174,10 @@ function PartRow({
       <div className="p-3">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
-            <div className="flex flex-wrap items-center gap-2">
-              <p className="min-w-0 flex-1 font-mono font-bold text-sm leading-tight text-text-primary break-words">{part.name}</p>
+            <p className="font-mono font-bold text-sm leading-tight text-text-primary">
+              {part.name}
+            </p>
+            <div className="mt-1 flex flex-wrap items-center gap-2">
               {part.isEquipped && (
                 <span
                   className="px-2 py-0.5 text-[9px] font-mono font-bold uppercase tracking-[0.16em]"
@@ -195,7 +197,7 @@ function PartRow({
                 </span>
               )}
             </div>
-            <p className="mt-1 text-[10px] font-mono uppercase tracking-[0.16em] leading-relaxed text-text-muted break-words">
+            <p className="mt-1 text-[10px] font-mono uppercase tracking-[0.16em] leading-relaxed text-text-muted">
               Serial {part.serialNumber ?? 'Pending'} · {part.serialTrait ?? 'Standard'}
             </p>
           </div>
