@@ -209,7 +209,7 @@ export default function RocketLabPage() {
   return (
     <div className="relative overflow-hidden">
       <div className="relative z-10 pt-20 md:pt-24 pb-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-[92rem] mx-auto px-4 sm:px-6 lg:px-8">
           <div className="mb-10">
             <h1 className="font-mono font-black text-3xl md:text-5xl lg:text-6xl mb-3 leading-[1.08] uppercase tracking-wider text-text-primary">
               Rocket Lab
@@ -247,7 +247,7 @@ export default function RocketLabPage() {
             )}
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-[260px_1fr_320px] gap-5 items-start">
+          <div className="grid grid-cols-1 lg:grid-cols-[220px_minmax(0,1fr)_280px] xl:grid-cols-[240px_minmax(0,1fr)_300px] gap-5 items-start">
             <div className="overflow-hidden" style={{ background: 'var(--color-bg-card)', border: '1px solid var(--color-border-subtle)' }}>
               <div className="px-5 pt-5 pb-2" style={{ borderBottom: '1px solid var(--color-border-subtle)' }}>
                 <div className="flex items-center justify-between">
@@ -268,7 +268,7 @@ export default function RocketLabPage() {
               />
             </div>
 
-            <div className="p-5" style={{ background: 'var(--color-bg-card)', border: '1px solid var(--color-border-subtle)' }}>
+            <div className="min-w-0 p-5" style={{ background: 'var(--color-bg-card)', border: '1px solid var(--color-border-subtle)' }}>
               <PartsGrid
                 slots={slots}
                 isSyncing={isInventorySyncing}
@@ -281,7 +281,7 @@ export default function RocketLabPage() {
               />
             </div>
 
-            <div className="space-y-4">
+            <div className="min-w-0 space-y-4">
               <StatsPanel
                 metrics={metrics}
                 model={selectedModel}

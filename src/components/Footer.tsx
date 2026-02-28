@@ -35,12 +35,12 @@ export default function Footer({ onNavigate }: FooterProps) {
               <h4 className="font-mono font-bold text-text-secondary text-xs mb-2 uppercase tracking-wider">Join Us</h4>
               <ul className="space-y-1">
                 <li>
-                  <a href="https://x.com/entropy" target="_blank" rel="noopener noreferrer" className="text-text-muted hover:text-text-primary text-xs transition-colors duration-150">
+                  <a href="https://x.com/o_entropy" target="_blank" rel="noopener noreferrer" className="text-text-muted hover:text-text-primary text-xs transition-colors duration-150">
                     X
                   </a>
                 </li>
                 <li>
-                  <a href="https://t.me/entropy" target="_blank" rel="noopener noreferrer" className="text-text-muted hover:text-text-primary text-xs transition-colors duration-150">
+                  <a href="https://t.me/o_entropy" target="_blank" rel="noopener noreferrer" className="text-text-muted hover:text-text-primary text-xs transition-colors duration-150">
                     Telegram
                   </a>
                 </li>

@@ -1,3 +1,4 @@
+import { X } from 'lucide-react';
 import RarityBadge, { getRarityConfig } from '../brand/RarityBadge';
 import PhiSymbol from '../brand/PhiSymbol';
 import { SectionIllustration } from './PartIllustrations';
@@ -60,7 +61,6 @@ function PartActions({
   disabled,
   actionKey,
   onEquip,
-  onUnequip,
   onRepair,
 }: {
   part: InventoryPart;
@@ -69,7 +69,6 @@ function PartActions({
   disabled: boolean;
   actionKey: string | null;
   onEquip: (partId: string, section: RocketSection) => void;
-  onUnequip: (section: RocketSection) => void;
   onRepair: (partId: string) => void;
 }) {
   const conditionPct = getPartConditionPct(part);
@@ -80,14 +79,6 @@ function PartActions({
     : {
         disabled: part.isLocked || conditionPct <= 0 || isBusy(`equip:${part.id}`),
         'aria-disabled': part.isLocked || conditionPct <= 0 || isBusy(`equip:${part.id}`),
-        title: undefined,
-        'data-click-denied': undefined as 'true' | undefined,
-      };
-  const unequipAction = readOnly
-    ? getPreviewActionButtonProps('rocketUnequip')
-    : {
-        disabled: isBusy(`unequip:${section}`),
-        'aria-disabled': isBusy(`unequip:${section}`),
         title: undefined,
         'data-click-denied': undefined as 'true' | undefined,
       };
@@ -102,19 +93,7 @@ function PartActions({
 
   return (
     <div className="mt-3 flex flex-wrap gap-2">
-      {part.isEquipped ? (
-        <button
-          onClick={runPreviewGuardedAction('rocketUnequip', () => onUnequip(section))}
-          disabled={unequipAction.disabled}
-          aria-disabled={unequipAction['aria-disabled']}
-          title={unequipAction.title}
-          data-click-denied={unequipAction['data-click-denied']}
-          className="px-2.5 py-1.5 text-[10px] font-mono font-bold uppercase tracking-[0.16em] disabled:opacity-50"
-          style={{ background: 'var(--color-bg-card)', border: '1px solid var(--color-border-subtle)' }}
-        >
-          {actionKey === `unequip:${section}` ? 'Unequipping…' : 'Unequip'}
-        </button>
-      ) : (
+      {!part.isEquipped && (
         <button
           onClick={runPreviewGuardedAction('rocketEquip', () => onEquip(part.id, section))}
           disabled={equipAction.disabled}
@@ -172,27 +151,35 @@ function PartRow({
   onUnequip: (section: RocketSection) => void;
   onRepair: (partId: string) => void;
 }) {
-  const rarityConfig = getRarityConfig(part.rarity);
   const conditionPct = getPartConditionPct(part);
   const effectivePower = getEffectivePartPower(part);
+  const isBusy = disabled || actionKey === `unequip:${section}`;
+  const unequipAction = readOnly
+    ? getPreviewActionButtonProps('rocketUnequip')
+    : {
+        disabled: isBusy,
+        'aria-disabled': isBusy,
+        title: undefined as string | undefined,
+        'data-click-denied': undefined as 'true' | undefined,
+      };
 
   return (
     <div
       className="overflow-hidden"
       style={{
         background: part.isEquipped ? 'var(--color-bg-inset)' : 'var(--color-bg-card)',
-        border: `1px solid ${part.isEquipped ? rarityConfig.color : 'var(--color-border-subtle)'}`,
+        border: '1px solid var(--color-border-subtle)',
       }}
     >
       <div className="p-3">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-2">
-              <p className="truncate font-mono font-bold text-sm text-text-primary">{part.name}</p>
+              <p className="min-w-0 flex-1 font-mono font-bold text-sm leading-tight text-text-primary break-words">{part.name}</p>
               {part.isEquipped && (
                 <span
                   className="px-2 py-0.5 text-[9px] font-mono font-bold uppercase tracking-[0.16em]"
-                  style={{ background: `${rarityConfig.color}18`, color: rarityConfig.color }}
+                  style={{ background: 'rgba(74,222,128,0.12)', color: '#4ADE80' }}
                 >
                   Equipped
                 </span>
@@ -208,16 +195,31 @@ function PartRow({
                 </span>
               )}
             </div>
-            <p className="mt-1 text-[10px] font-mono uppercase tracking-[0.16em] text-text-muted">
+            <p className="mt-1 text-[10px] font-mono uppercase tracking-[0.16em] leading-relaxed text-text-muted break-words">
               Serial {part.serialNumber ?? 'Pending'} · {part.serialTrait ?? 'Standard'}
             </p>
           </div>
-          <RarityBadge tier={part.rarity} size="xs" showIcon={part.isEquipped} />
+          <div className="flex items-center gap-2 shrink-0">
+            <RarityBadge tier={part.rarity} size="xs" showIcon={part.isEquipped} />
+            {part.isEquipped && (
+              <button
+                onClick={runPreviewGuardedAction('rocketUnequip', () => onUnequip(section))}
+                disabled={unequipAction.disabled}
+                aria-disabled={unequipAction['aria-disabled']}
+                title={unequipAction.title ?? 'Unequip'}
+                data-click-denied={unequipAction['data-click-denied']}
+                className="flex items-center justify-center w-6 h-6 disabled:opacity-50"
+                style={{ background: 'rgba(239,68,68,0.12)', border: '1px solid rgba(239,68,68,0.3)' }}
+              >
+                <X size={12} style={{ color: '#EF4444' }} />
+              </button>
+            )}
+          </div>
         </div>
 
-        <div className="mt-3 grid grid-cols-[72px_1fr] gap-3">
+        <div className="mt-3 grid grid-cols-[56px_1fr] gap-3">
           <div
-            className="flex items-center justify-center"
+            className="flex items-center justify-center overflow-hidden"
             style={{ background: 'var(--color-bg-base)', border: '1px solid var(--color-border-subtle)' }}
           >
             <SectionIllustration
@@ -225,7 +227,7 @@ function PartRow({
               equipped={Boolean(part.isEquipped)}
               rarity={part.rarity}
               variantId={part.variantId}
-              size={72}
+              size={56}
             />
           </div>
 
@@ -289,7 +291,6 @@ function PartRow({
           disabled={disabled}
           actionKey={actionKey}
           onEquip={onEquip}
-          onUnequip={onUnequip}
           onRepair={onRepair}
         />
       </div>
@@ -318,7 +319,7 @@ function SlotCard({
 
   return (
     <div
-      className="relative overflow-hidden"
+      className="relative self-start overflow-hidden"
       style={{
         background: 'var(--color-bg-base)',
         border: `1px solid ${summary.border}`,
@@ -414,7 +415,7 @@ export default function PartsGrid({
         <span className="tag text-[10px]">{readOnly ? 'Sample Loadout' : 'Server Loadout'}</span>
       </div>
 
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 xl:grid-cols-2 items-start gap-4">
         {ROCKET_SECTIONS.map((section) => (
           <SlotCard
             key={section}
