@@ -67,9 +67,11 @@ export default function BoxCard({ tier }: { tier: BoxTierConfig }) {
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const cfg = getRarityConfig(tier.rarity);
+  const revealCfg = reward ? getRarityConfig(reward.rarity) : cfg;
+  const canOpenAnother = Boolean(wallet.address) && game.fluxBalance >= tier.price && !wallet.isConnecting && !isSubmitting;
 
   const handleOpen = async () => {
-    if (isSubmitting) {
+    if (isSubmitting || wallet.isConnecting) {
       return;
     }
 
@@ -80,6 +82,7 @@ export default function BoxCard({ tier }: { tier: BoxTierConfig }) {
       return;
     }
 
+    setReward(null);
     setIsSubmitting(true);
     setState('shaking');
 
@@ -127,25 +130,31 @@ export default function BoxCard({ tier }: { tier: BoxTierConfig }) {
       className="relative flex flex-col overflow-hidden"
       style={{
         ...APP3_PANEL_STYLE,
-        border: `1px solid ${state === 'revealed' ? `${cfg.color}66` : cfg.border}`,
+        border: `1px solid ${state === 'revealed' ? `${revealCfg.color}66` : cfg.border}`,
       }}
     >
       <div
         className="absolute top-0 left-0 right-0 h-px"
-        style={{ background: `linear-gradient(90deg, transparent, ${cfg.color}80, transparent)` }}
+        style={{ background: `linear-gradient(90deg, transparent, ${(state === 'revealed' ? revealCfg : cfg).color}80, transparent)` }}
       />
 
       <div className="p-5 flex-1 flex flex-col">
         <div className="flex items-start justify-between mb-4 gap-3">
           <div>
             <RarityBadge tier={tier.rarity} />
-            <h3 className="mt-2 font-mono font-black text-lg leading-none uppercase tracking-wider text-text-primary">
+            <h3
+              className="mt-2 font-mono font-black text-lg leading-none uppercase tracking-wider"
+              style={{ color: state === 'revealed' ? revealCfg.color : 'var(--color-text-primary)' }}
+            >
               {tier.name}
             </h3>
             <p className="text-[11px] mt-1 font-mono text-text-muted">
               {tier.tagline}
             </p>
-            <p className="text-[9px] mt-2 font-mono uppercase tracking-[0.18em]" style={APP3_TEXT_SECONDARY_STYLE}>
+            <p
+              className="text-[9px] mt-2 font-mono uppercase tracking-[0.18em]"
+              style={state === 'revealed' ? { color: revealCfg.color } : APP3_TEXT_SECONDARY_STYLE}
+            >
               Catalog Key {formatMetadataKey(tier.illustration?.key ?? tier.id)}
             </p>
           </div>
@@ -201,15 +210,37 @@ export default function BoxCard({ tier }: { tier: BoxTierConfig }) {
                   >
                     {formatMetadataKey(reward.illustration?.key ?? reward.slot)}
                   </span>
+                  <span
+                    className="inline-flex items-center rounded-full px-2 py-0.5 text-[9px] font-mono font-semibold uppercase tracking-[0.16em]"
+                    style={{ background: 'rgba(15,23,42,0.58)', color: '#E2E8F0', border: '1px solid rgba(148,163,184,0.18)' }}
+                  >
+                    #{reward.serialNumber.toString().padStart(6, '0')}
+                  </span>
+                  {reward.isShiny && (
+                    <span
+                      className="inline-flex items-center rounded-full px-2 py-0.5 text-[9px] font-mono font-semibold uppercase tracking-[0.16em]"
+                      style={{ background: 'rgba(245,158,11,0.12)', color: '#FCD34D', border: '1px solid rgba(245,158,11,0.28)' }}
+                    >
+                      Shiny
+                    </span>
+                  )}
                 </div>
               </div>
             </div>
             <AttributeBars part={reward} />
-            <div className="mt-3 flex items-center justify-between text-xs font-mono">
-              <span style={APP3_TEXT_SECONDARY_STYLE}>Part Value</span>
-              <span style={APP3_TEXT_PRIMARY_STYLE}>
-                <PhiSymbol size={10} color="currentColor" /> {formatFluxValue(reward.partValue)}
-              </span>
+            <div className="mt-3 grid grid-cols-2 gap-2 text-xs font-mono">
+              <div className="rounded-xl px-3 py-2" style={APP3_INSET_STYLE}>
+                <span style={APP3_TEXT_SECONDARY_STYLE}>Total Power</span>
+                <p className="mt-1 font-mono font-black text-sm" style={APP3_TEXT_PRIMARY_STYLE}>
+                  {reward.totalPower}
+                </p>
+              </div>
+              <div className="rounded-xl px-3 py-2" style={APP3_INSET_STYLE}>
+                <span style={APP3_TEXT_SECONDARY_STYLE}>Serial Trait</span>
+                <p className="mt-1 font-mono font-black text-sm" style={APP3_TEXT_PRIMARY_STYLE}>
+                  {reward.serialTrait}
+                </p>
+              </div>
             </div>
           </div>
         ) : (
@@ -258,12 +289,18 @@ export default function BoxCard({ tier }: { tier: BoxTierConfig }) {
 
         {reward ? (
           <button
-            onClick={handleReset}
+            onClick={canOpenAnother ? () => void handleOpen() : handleReset}
             className="w-full py-3 font-mono font-bold text-sm flex items-center justify-center gap-2 uppercase tracking-wider"
-            style={APP3_SECONDARY_BUTTON_STYLE}
+            style={canOpenAnother
+              ? {
+                background: `${cfg.color}14`,
+                color: cfg.color,
+                border: `1px solid ${cfg.border}`,
+              }
+              : APP3_SECONDARY_BUTTON_STYLE}
           >
             <RotateCcw size={13} />
-            Open Another
+            {canOpenAnother ? 'Open Another' : 'Back to Box'}
           </button>
         ) : (
           <button

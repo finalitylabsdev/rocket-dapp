@@ -28,6 +28,7 @@ The chain is already used for wallet-linked identity proof and ETH lock verifica
 | `20260228120000_add_nebula_bids_auction.sql` | `auction_rounds`, `auction_submissions`, `auction_bids`, bidding/submission/lifecycle RPCs, realtime publication |
 | `20260228130000_add_auction_ops_diagnostics.sql` | `auction_round_diagnostics`, `flux_ledger_reconciliation`, `auction_scheduler_health` |
 | `20260228140000_add_chain_cutover_linkage_fields.sql` | Additive chain-cutover metadata on `inventory_parts` and `auction_bids` |
+| `20260228180000_enrich_star_vault_inventory_contract.sql` | Serial-backed inventory enrichment, rarity-tuned attributes, and the enriched Star Vault payload contract |
 
 This work sits on top of the earlier auth, ETH lock, and FLUX ledger migrations from `20260226224637` through `20260227153000`.
 
@@ -79,7 +80,7 @@ These replace the old hardcoded catalog and drop-table definitions for the launc
 - `flux_ledger_entries`
   - Append-only balance ledger for faucet claims, box opens, bid escrow, refunds, and seller payouts
 - `inventory_parts`
-  - Canonical part ownership, stats, rarity, and lock/equip state
+  - Canonical part ownership, stats, rarity, serial metadata, and lock/equip state
 - `auction_rounds`
   - Round timing and winner summary
 - `auction_submissions`
@@ -106,7 +107,7 @@ These are service-role-only operational views, not public gameplay tables.
 3. Ensure the wallet balance row exists and apply any first-time whitelist bonus.
 4. Debit FLUX by writing `flux_ledger_entries` and updating `wallet_flux_balances`.
 5. Pick rarity and part variant server-side.
-6. Insert the canonical `inventory_parts` row.
+6. Generate rarity-biased attributes, assign the next global serial, and insert the canonical `inventory_parts` row.
 7. Return the created part plus the updated balance snapshot.
 
 ### Nebula Bids player flow
