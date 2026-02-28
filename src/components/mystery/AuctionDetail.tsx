@@ -149,7 +149,7 @@ export default function AuctionDetail({
                   {bid.wallet.slice(0, 6)}...{bid.wallet.slice(-4)}
                 </span>
                 <span className="font-mono font-semibold text-xs" style={APP3_TEXT_PRIMARY_STYLE}>
-                  {formatFluxValue(bid.amount)} FLUX
+                  {formatFluxValue(bid.amount)} Φ
                 </span>
               </div>
             ))

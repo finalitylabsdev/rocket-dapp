@@ -175,7 +175,7 @@ export default function VaultTab({
         <div className="mt-6">
           <JourneyCue
             icon={<Gavel size={16} />}
-            message="You have an auction-eligible part! Submit it to Nebula Bids for FLUX."
+            message="You have an auction-eligible part! Submit it to Nebula Bids for Φ."
             actionLabel="Go to Bids"
             onAction={onNavigateBids}
             tone="purple"

@@ -116,7 +116,7 @@ export default function EntropyGatePanel() {
     const claimResult = await game.claimDailyFlux();
 
     if (claimResult.status === 'claimed') {
-      toast.success('Φ claimed', {
+      toast.success('Claim successful', {
         description: `Added ${claimResult.creditedAmount} Φ to your balance.`,
       });
       return;
@@ -126,14 +126,14 @@ export default function EntropyGatePanel() {
       const retryDelay = cooldownRemaining > 0
         ? ` Try again in ${formatCooldown(cooldownRemaining)}.`
         : '';
-      toast('Φ already claimed', {
+      toast('Already claimed', {
         description: `This faucet window was already recorded and your balance did not change.${retryDelay}`,
       });
       return;
     }
 
     if (claimResult.status === 'failed' && canClaim) {
-      toast.error('Φ claim failed', {
+      toast.error('Claim failed', {
         description: 'The signed claim could not be recorded.',
       });
     }
@@ -227,7 +227,7 @@ export default function EntropyGatePanel() {
     ) {
       toast.success('ETH locked', {
         id: ETH_LOCK_FLOW_TOAST_ID,
-        description: 'Φ claims are now enabled.',
+        description: 'Daily Φ claims are now enabled.',
         duration: 12000,
         action: {
           label: 'View on Etherscan',
@@ -398,10 +398,10 @@ export default function EntropyGatePanel() {
           }}
         >
           <Lock size={14} className="text-text-primary" />
-          <span className="text-sm font-mono font-bold text-text-primary">
+          <span className="text-xs font-mono font-semibold text-text-primary">
             PREVIEW READ ONLY
           </span>
-          <span className="text-xs text-text-muted font-mono sm:ml-auto">
+          <span className="text-xs text-text-muted font-mono">
             {wallet.isConnected
               ? 'Authenticated wallets can browse, but lock and claim stay disabled here.'
               : 'Browse freely or connect a wallet. Lock and claim stay disabled until launch.'}
@@ -468,7 +468,7 @@ export default function EntropyGatePanel() {
         </div>
         <div className="bg-bg-inset border border-border-subtle p-4">
           <p className="text-[11px] font-mono font-semibold text-text-muted uppercase tracking-[0.16em]">
-            Φ Balance
+            Available Φ
           </p>
           <div className="mt-2 flex items-center gap-2">
             <PhiSymbol size={16} color="var(--color-text-primary)" />

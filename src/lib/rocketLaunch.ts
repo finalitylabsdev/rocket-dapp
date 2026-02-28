@@ -58,7 +58,7 @@ function toFriendlyLaunchError(message: string | undefined, fallback: string): s
   }
 
   if (message.includes('insufficient flux balance')) {
-    return 'Insufficient FLUX balance.';
+    return 'Not enough Φ.';
   }
 
   if (message.includes('missing part for slot')) {

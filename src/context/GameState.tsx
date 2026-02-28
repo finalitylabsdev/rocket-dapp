@@ -133,7 +133,7 @@ export function GameStateProvider({ children }: { children: ReactNode }) {
       const balance = await syncFluxBalance(wallet.address, WHITELIST_BONUS_FLUX);
       applyRemoteFluxBalance(balance);
     } catch (error) {
-      console.error('Failed to refresh FLUX balance:', formatFluxError(error, 'Failed to refresh FLUX balance.'));
+      console.error('Failed to refresh native token balance:', formatFluxError(error, 'Failed to refresh native token balance.'));
     } finally {
       setIsFluxSyncing(false);
     }
@@ -249,7 +249,7 @@ export function GameStateProvider({ children }: { children: ReactNode }) {
         balance,
       } as const;
     } catch (error) {
-      console.error('Failed to claim FLUX:', formatFluxError(error, 'Failed to claim FLUX.'));
+      console.error('Failed to record daily claim:', formatFluxError(error, 'Failed to record daily claim.'));
       return { status: 'failed' } as const;
     } finally {
       setIsClaimingFlux(false);
@@ -284,7 +284,7 @@ export function GameStateProvider({ children }: { children: ReactNode }) {
       applyRemoteFluxBalance(balance);
       return true;
     } catch (error) {
-      console.error('Failed to update FLUX balance:', formatFluxError(error, 'Failed to update FLUX balance.'));
+      console.error('Failed to update native token balance:', formatFluxError(error, 'Failed to update native token balance.'));
       return false;
     }
   }, [applyRemoteFluxBalance, state.fluxBalance, wallet.address]);

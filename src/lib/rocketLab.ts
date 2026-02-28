@@ -212,7 +212,7 @@ function toFriendlyRocketLabError(message: string | undefined, fallback: string)
   }
 
   if (message.includes('insufficient flux balance')) {
-    return 'Insufficient FLUX balance.';
+    return 'Not enough Φ.';
   }
 
   if (message.includes('launch requires exactly 8 equipped parts') || message.includes('missing equipped part for slot')) {

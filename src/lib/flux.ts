@@ -50,11 +50,11 @@ function toFriendlyFluxError(message: string | undefined, fallback: string): str
   }
 
   if (message.includes('flux faucet claim is still on cooldown')) {
-    return 'Flux faucet claim is still on cooldown.';
+    return 'Daily Φ claim is still on cooldown.';
   }
 
   if (message.includes('insufficient flux balance')) {
-    return 'Insufficient Flux balance.';
+    return 'Not enough Φ.';
   }
 
   return message;
@@ -79,7 +79,7 @@ function buildFluxClaimMessage(
   issuedAt: string,
 ): string {
   return [
-    'Entropy Network Flux Faucet',
+    'Entropy Network Φ Faucet',
     `Wallet: ${walletAddress}`,
     'Action: claim_flux',
     `Amount: ${claimAmount}`,
@@ -105,7 +105,7 @@ export async function syncFluxBalance(
   });
 
   if (error) {
-    throw new Error(toFriendlyFluxError(error.message, 'Failed to sync Flux balance.'));
+    throw new Error(toFriendlyFluxError(error.message, 'Failed to sync Φ balance.'));
   }
 
   return normalizeFluxBalance(data);
@@ -199,7 +199,7 @@ export async function submitFluxFaucetClaim(
   });
 
   if (error) {
-    throw new Error(toFriendlyFluxError(error.message, 'Failed to claim Flux.'));
+    throw new Error(toFriendlyFluxError(error.message, 'Failed to claim Φ.'));
   }
 
   return normalizeFluxBalance(data);
@@ -227,7 +227,7 @@ export async function adjustFluxBalance(
   });
 
   if (error) {
-    throw new Error(toFriendlyFluxError(error.message, 'Failed to update Flux balance.'));
+    throw new Error(toFriendlyFluxError(error.message, 'Failed to update Φ balance.'));
   }
 
   return normalizeFluxBalance(data);

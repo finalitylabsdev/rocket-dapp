@@ -60,7 +60,7 @@ function getStatusDetail(
   }
 
   if (status === 'confirmed') {
-    return 'ETH lock confirmed. Flux claims are enabled.';
+    return 'ETH lock confirmed. Φ claims are enabled.';
   }
 
   if (status === 'error') {
@@ -79,7 +79,7 @@ function getStatusDetail(
     return 'Transaction sent. Waiting for confirmation.';
   }
 
-  return 'Lock ETH to unlock Flux claims.';
+  return 'Lock ETH to unlock Φ claims.';
 }
 
 export function useEthLock(walletAddress: string | null): UseEthLockResult {

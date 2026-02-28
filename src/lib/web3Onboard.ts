@@ -229,7 +229,7 @@ export const web3Onboard = init({
   appMetadata: {
     name: 'Entropy Network',
     icon: getEntropyAppIcon(),
-    description: 'Lock ETH, claim FLUX, and move through the Entropy Network.',
+    description: 'Lock ETH, claim Φ, and move through the Entropy Network.',
     recommendedInjectedWallets: [
       { name: 'MetaMask', url: 'https://metamask.io/download/' },
       { name: 'Trust Wallet', url: 'https://link.trustwallet.com/' },

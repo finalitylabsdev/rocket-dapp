@@ -3,7 +3,7 @@ import TokenIcon from '../components/dex/TokenIcon';
 import { useGameState } from '../context/GameState';
 import { useWallet } from '../hooks/useWallet';
 import { formatTokenSymbol, PHI_SYMBOL } from '../lib/tokenDisplay';
-import { TOKEN_SYMBOLS, type TokenSymbol } from '../types/domain';
+import { TOKEN_SYMBOLS } from '../types/domain';
 
 export default function WalletPage() {
   const game = useGameState();

@@ -342,7 +342,7 @@ export default function RocketLabPage() {
                           className="px-2 py-1 text-[10px] font-mono font-bold uppercase tracking-[0.16em]"
                           style={{ background: 'rgba(249,115,22,0.10)', border: '1px solid rgba(249,115,22,0.2)', color: '#F97316' }}
                         >
-                          {entry.fuelCostFlux.toFixed(2)} FLUX
+                          {entry.fuelCostFlux.toFixed(2)} Φ
                         </span>
                       </div>
 

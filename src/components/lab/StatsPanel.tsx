@@ -55,7 +55,7 @@ export default function StatsPanel({
       : !metrics.canLaunch
         ? 'Equip All 8 Parts'
         : !canAfford
-          ? 'Insufficient FLUX'
+          ? 'Not enough Φ'
           : 'Launch Rocket';
 
   return (
@@ -89,11 +89,11 @@ export default function StatsPanel({
             },
             {
               label: 'Fuel Cost',
-              value: `${formatFlux(metrics.fuelCost)} FLUX`,
+              value: `${formatFlux(metrics.fuelCost)} Φ`,
             },
             {
               label: 'Balance',
-              value: `${formatFlux(fluxBalance)} FLUX`,
+              value: `${formatFlux(fluxBalance)} Φ`,
             },
             {
               label: 'Damaged',

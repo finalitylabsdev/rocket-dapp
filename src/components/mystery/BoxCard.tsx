@@ -194,7 +194,7 @@ export default function BoxCard({
                 {formatFluxValue(tier.price)}
               </span>
             </div>
-            <p className="text-[10px] mt-0.5 font-mono uppercase text-text-muted">FLUX</p>
+            <p className="text-[10px] mt-0.5 font-mono uppercase text-text-muted">Φ</p>
           </div>
         </div>
 

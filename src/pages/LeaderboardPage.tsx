@@ -428,7 +428,7 @@ export default function LeaderboardPage() {
               { icon: <Trophy size={14} className="text-amber-400" />, label: 'Daily ETH Prize', value: cardValues.prize, sub: '50% of locked pool' },
               { icon: <Users size={14} className="text-blue-400" />, label: 'Players', value: cardValues.players, sub: summary?.playerSubtext ?? 'Waiting for sync' },
               { icon: <Zap size={14} className="text-dot-green" />, label: metricCardLabel, value: cardValues.metric, sub: metricCardSubtext },
-              { icon: <Flame size={14} className="text-orange-400" />, label: 'Flux Burned', value: cardValues.flux, sub: 'Fuel consumed' },
+              { icon: <Flame size={14} className="text-orange-400" />, label: 'Burned Φ', value: cardValues.flux, sub: 'Fuel consumed' },
             ].map((stat) => (
               <div key={stat.label} className="bg-bg-card border border-border-subtle p-4">
                 <div className="flex items-center gap-2 mb-2">
@@ -484,7 +484,7 @@ export default function LeaderboardPage() {
                       { label: 'Move', w: 'w-16' },
                       { label: 'Wallet Address', w: '' },
                       { label: metricColumnLabel, w: 'text-right' },
-                      { label: 'Flux Burned', w: 'text-right' },
+                      { label: 'Burned Φ', w: 'text-right' },
                       { label: ethColumnLabel, w: 'text-right' },
                     ].map((col) => (
                       <th
@@ -565,7 +565,7 @@ export default function LeaderboardPage() {
                               <span className="font-mono font-bold text-text-primary text-sm">
                                 {entry.fluxBurned.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
                               </span>
-                              <span className="text-[11px] text-text-muted font-mono">FLUX</span>
+                              <span className="text-[11px] text-text-muted font-mono">Φ</span>
                             </div>
                           </td>
                           <td className="px-4 py-3.5 text-right">

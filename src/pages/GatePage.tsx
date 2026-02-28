@@ -11,7 +11,7 @@ export default function GatePage() {
           </h1>
           <p className="mt-4 text-lg text-text-muted leading-relaxed max-w-2xl">
             This is the protocol entry point. Lock once, verify on-chain, then return here to claim
-            FLUX on cadence before routing capital into the exchange and the rest of the testnet loop.
+            Φ on cadence before routing capital into the exchange and the rest of the testnet loop.
           </p>
         </div>
 
@@ -39,7 +39,7 @@ export default function GatePage() {
                   </div>
                   <div>
                     <p className="font-mono font-semibold text-text-primary uppercase tracking-wider">2. Track</p>
-                    <p className="text-sm text-text-muted mt-1">Use the wallet page for live FLUX and token scaffolding.</p>
+                    <p className="text-sm text-text-muted mt-1">Use the wallet page for live Φ and token scaffolding.</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-3">
@@ -48,7 +48,7 @@ export default function GatePage() {
                   </div>
                   <div>
                     <p className="font-mono font-semibold text-text-primary uppercase tracking-wider">3. Deploy</p>
-                    <p className="text-sm text-text-muted mt-1">Route claimed FLUX into swaps, liquidity, and the wider app loop.</p>
+                    <p className="text-sm text-text-muted mt-1">Route claimed Φ into swaps, liquidity, and the wider app loop.</p>
                   </div>
                 </div>
               </div>
@@ -60,7 +60,7 @@ export default function GatePage() {
                 <p className="font-mono font-semibold text-text-primary uppercase tracking-wider">Info</p>
               </div>
               <p className="mt-3 text-sm text-text-muted leading-relaxed">
-                The contribution per wallet is fixed and the deposit is a one-time event. More ways to acquire FLUX will open up in the future.
+                The contribution per wallet is fixed and the deposit is a one-time event. More ways to acquire Φ will open up in the future.
               </p>
             </div>
 

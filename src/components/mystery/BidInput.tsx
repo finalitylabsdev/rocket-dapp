@@ -55,7 +55,7 @@ export default function BidInput({
     }
 
     if (raw > AUCTION_MAX_BID_FLUX) {
-      setError(`Bid cannot exceed ${formatFluxValue(AUCTION_MAX_BID_FLUX)} FLUX.`);
+      setError(`Bid cannot exceed ${formatFluxValue(AUCTION_MAX_BID_FLUX)} Φ.`);
       return;
     }
 
@@ -69,7 +69,7 @@ export default function BidInput({
     }
 
     if (parsed < minBid) {
-      setError(`Bid must be at least ${formatFluxValue(minBid)} FLUX.`);
+      setError(`Bid must be at least ${formatFluxValue(minBid)} Φ.`);
       return;
     }
 
@@ -81,7 +81,7 @@ export default function BidInput({
     <div className="mt-4">
       <div className="flex items-center justify-between text-[10px] font-mono uppercase tracking-wider mb-2">
         <span style={APP3_TEXT_SECONDARY_STYLE}>Minimum Valid Bid</span>
-        <span style={APP3_TEXT_PRIMARY_STYLE}>{formatFluxValue(minBid)} FLUX</span>
+        <span style={APP3_TEXT_PRIMARY_STYLE}>{formatFluxValue(minBid)} Φ</span>
       </div>
 
       <div className="grid grid-cols-[1fr_auto] gap-2">

@@ -46,7 +46,7 @@ export default function TopContributors({ history }: TopContributorsProps) {
                 </p>
               </div>
               <span className="text-xs font-mono" style={{ color: '#C084FC' }}>
-                {formatFluxValue(total)} FLUX
+                {formatFluxValue(total)} Φ
               </span>
             </div>
           ))

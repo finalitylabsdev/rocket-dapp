@@ -134,7 +134,7 @@ export default function BidsTab({
       await placeAuctionBid(wallet.address, activeAuction.roundId, amount);
       await refresh();
       toast.success('Bid placed', {
-        description: `${amount.toFixed(2).replace(/\.00$/, '')} FLUX bid submitted.`,
+        description: `${amount.toFixed(2).replace(/\.00$/, '')} Φ bid submitted.`,
       });
     } catch (nextError) {
       toast.error('Bid failed', {
@@ -332,7 +332,7 @@ export default function BidsTab({
                       )}
                     </div>
                     <span className="text-xs font-mono" style={{ color: '#C084FC' }}>
-                      {formatFluxValue(entry.finalPrice)} FLUX
+                      {formatFluxValue(entry.finalPrice)} Φ
                     </span>
                   </div>
                 ))

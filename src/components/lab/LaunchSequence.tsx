@@ -918,7 +918,7 @@ export default function LaunchSequence(props: LaunchSequenceProps) {
               </div>
               <div className="mt-3 flex items-center justify-between text-[11px] font-mono" style={{ color: '#9BA7BE' }}>
                 <span>Fuel</span>
-                <span>{result.fuelCostFlux.toFixed(2)} FLUX</span>
+                <span>{result.fuelCostFlux.toFixed(2)} Φ</span>
               </div>
               <div className="mt-1 flex items-center justify-between text-[11px] font-mono" style={{ color: '#9BA7BE' }}>
                 <span>Meteorite Wear</span>

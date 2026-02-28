@@ -66,7 +66,7 @@ export default function AuctionResultModal({ result, onClose }: AuctionResultMod
             </div>
           )}
           <p className="mt-3 text-xs font-mono" style={{ color: '#C084FC' }}>
-            Final price: {formatFluxValue(result.finalPrice)} FLUX
+            Final price: {formatFluxValue(result.finalPrice)} Φ
           </p>
         </div>
 

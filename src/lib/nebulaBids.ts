@@ -90,7 +90,7 @@ function toFriendlyAuctionError(message: string | undefined, fallback: string): 
   }
 
   if (message.includes('insufficient flux balance')) {
-    return 'Insufficient FLUX balance.';
+    return 'Not enough Φ.';
   }
 
   if (message.includes('bid must use at most 2 decimal places')) {
@@ -124,7 +124,7 @@ export function normalizeAuctionBidAmount(amount: number): number {
   }
 
   if (normalizedAmount > AUCTION_MAX_BID_FLUX) {
-    throw new Error(`Bid must be ${formatBidAmount(AUCTION_MAX_BID_FLUX)} FLUX or less.`);
+    throw new Error(`Bid must be ${formatBidAmount(AUCTION_MAX_BID_FLUX)} Φ or less.`);
   }
 
   return normalizedAmount;

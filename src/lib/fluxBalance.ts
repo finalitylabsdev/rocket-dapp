@@ -15,12 +15,12 @@ export interface FluxBalancePayload {
 
 export function normalizeFluxBalance(payload: unknown): FluxBalance {
   if (!payload || typeof payload !== 'object') {
-    throw new Error('Flux balance response was malformed.');
+    throw new Error('Balance response was malformed.');
   }
 
   const row = payload as FluxBalancePayload;
   if (typeof row.wallet_address !== 'string' || typeof row.auth_user_id !== 'string') {
-    throw new Error('Flux balance response was incomplete.');
+    throw new Error('Balance response was incomplete.');
   }
 
   return {

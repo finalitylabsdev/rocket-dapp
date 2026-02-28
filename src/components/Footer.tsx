@@ -107,10 +107,16 @@ export default function Footer({ onNavigate }: FooterProps) {
           </div>
         </div>
 
-        <div className="pt-4 border-t border-border-subtle">
+        <div className="pt-4 border-t border-border-subtle flex items-center justify-between gap-4">
           <p className="text-text-muted text-xs font-mono">
             © 2026 Entropy Network. Experimental infrastructure.
           </p>
+          <div className="flex items-center gap-1.5">
+            <div className="glow-dot" />
+            <span className="text-xs font-semibold text-text-secondary uppercase tracking-[0.04em]" style={{ fontFamily: "'IBM Plex Mono', 'JetBrains Mono', monospace" }}>
+              Testnet Closed Alpha
+            </span>
+          </div>
         </div>
       </div>
     </footer>

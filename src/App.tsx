@@ -114,9 +114,9 @@ export default function App() {
           <AppToaster />
           <div className="min-h-screen font-inter" style={{ background: 'var(--color-bg-base)' }}>
             {page === 'home' && <StarField />}
-            <div className="relative z-10">
+            <div className="relative z-10 flex flex-col min-h-screen">
               <ShellNav page={page} onNavigate={navigate} />
-              <main>
+              <main className="flex-1">
                 <Suspense fallback={<PageFallback />}>
                   <RouteErrorBoundary
                     onNavigateHome={page === 'home' ? undefined : () => navigate('home')}

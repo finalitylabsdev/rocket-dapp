@@ -92,7 +92,7 @@ function AuctionRoundCard({
           <p className="font-mono font-bold text-xs" style={APP3_TEXT_PRIMARY_STYLE}>
             {formatFluxValue(round.currentHighestBid)}
           </p>
-          <p className="text-[9px] font-mono uppercase" style={APP3_TEXT_MUTED_STYLE}>Top FLUX</p>
+          <p className="text-[9px] font-mono uppercase" style={APP3_TEXT_MUTED_STYLE}>Top Bid</p>
         </div>
       </div>
 

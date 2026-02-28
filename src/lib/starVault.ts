@@ -133,7 +133,7 @@ function toFriendlyStarVaultError(message: string | undefined, fallback: string)
   }
 
   if (message.includes('insufficient flux balance')) {
-    return 'Insufficient FLUX balance.';
+    return 'Not enough Φ.';
   }
 
   return message;
