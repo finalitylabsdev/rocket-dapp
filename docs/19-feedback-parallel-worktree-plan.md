@@ -42,14 +42,14 @@ This section is the shared contract reference for all branches before touching f
 - [x] Extend `InventoryPart` in the client with `variantId`, `totalPower`, `serialNumber`, `serialTrait`, `isShiny`, and `conditionPct`.
 - [x] Keep `partValue` in payloads for one compatibility release only.
 - [x] Extend `RarityTierConfig` with `attrFloor`, `attrCap`, `attrBias`, and `dropCurveExponent`.
-- [ ] Add authenticated RPCs: `equip_inventory_part`, `unequip_inventory_part`, `launch_rocket`, `repair_inventory_part`.
-- [ ] Add persistent `rocket_launches` storage.
+- [x] Add authenticated RPCs: `equip_inventory_part`, `unequip_inventory_part`, `launch_rocket`, `repair_inventory_part`.
+- [x] Add persistent `rocket_launches` storage.
 
 Note: this branch implemented `serial_trait` as named display-grade labels (`Twin Pulse`, `Mirror Drift`, etc.), so the original placeholder enum listed above has been superseded.
 
 ### Shared Acceptance Checklist
 - [x] Existing inventory rows are backfilled for the new columns.
-- [x] Client builds against the enriched inventory contract without fallback hacks.
+- [ ] Client builds against the enriched inventory contract without fallback hacks (`serialNumber` still diverges between inventory and auction client types).
 - [x] No new UI depends on `partValue` as the primary user-facing metric.
 
 ## Worktree Plan
@@ -102,26 +102,26 @@ Note: this branch implemented `serial_trait` as named display-grade labels (`Twi
 - Shared mystery UI helpers as needed
 
 **Implementation Checklist**
-- [x] Make reveal-state box title and accent use the pulled item rarity, not only the box tier rarity.
+- [ ] Make reveal-state box title and accent use the pulled item rarity, not only the box tier rarity.
 - [x] Convert item art rendering to a real image path with explicit error fallback.
 - [x] Fall back to the section visual recipe when the art URL is missing or broken.
 - [x] Remove duplicate category pills when `illustration.key` matches the slot key.
-- [x] Replace visible `Part Value` labels with `Total Power`.
+- [ ] Replace visible `Part Value` labels with `Total Power`.
 - [x] Change compact inventory sorting default from value-centric to power-centric.
 - [x] Show `Ready`, `Locked`, and `Equipped` as distinct user-facing statuses.
 - [x] Hide `Source` in the small right-hand inventory card.
 - [x] Keep `Source` only in expanded intel or detail views.
 - [x] Display `Total Power` in the card summary area.
-- [x] Replace text-only attribute labels in the compact card with fixed attribute icons.
+- [ ] Replace text-only attribute labels in the compact card with fixed attribute icons.
 - [x] Make `Open Another` visually enabled as the primary action when the next open is possible.
 - [ ] Show a clearly disabled `Open Another` state only when wallet or FLUX conditions block another open.
 
 **Validation Checklist**
-- [x] Reveal chrome visibly follows the pulled rarity.
+- [ ] Reveal chrome visibly follows the pulled rarity.
 - [x] Broken item art no longer produces a blank tile.
 - [x] No duplicate pill renders for section-fallback items.
 - [x] Compact inventory cards no longer show `Source`.
-- [x] `Total Power` appears anywhere the user previously saw `Part Value`.
+- [ ] `Total Power` appears anywhere the user previously saw `Part Value`.
 
 **Dependency Notes**
 - Rebase onto `wt-backend-inventory-contract` before merge.
@@ -211,31 +211,32 @@ Note: this branch implemented `serial_trait` as named display-grade labels (`Twi
 - Shared state wiring for launch and repair responses
 
 **Implementation Checklist**
-- [ ] Add authoritative equip and unequip RPCs.
+- [x] Add authoritative equip and unequip RPCs.
 - [ ] Use `is_equipped` and `equipped_section_id` as the canonical loadout state.
 - [ ] Validate that only one part occupies each section at a time.
 - [ ] Block equipping auction-locked or fully broken parts.
-- [ ] Add `launch_rocket()` RPC.
+- [x] Add `launch_rocket()` RPC.
 - [ ] Require exactly 8 equipped parts, one per canonical section.
-- [ ] Debit FLUX for fuel during launch via the existing ledger-backed flow.
+- [x] Debit FLUX for fuel during launch via the existing ledger-backed flow.
 - [ ] Compute and persist `base_score`, `luck_score`, `randomness_score`, and `total_score` server-side.
 - [ ] Implement serial-based luck rules.
 - [ ] Implement meteorite damage chance and persisted part damage.
-- [ ] Add `rocket_launches` persistence.
-- [ ] Add `repair_inventory_part()` RPC.
-- [ ] Charge FLUX based on missing condition percentage.
-- [ ] Restore repaired parts to `100` condition.
+- [x] Add `rocket_launches` persistence.
+- [x] Add `repair_inventory_part()` RPC.
+- [x] Charge FLUX based on missing condition percentage.
+- [x] Restore repaired parts to `100` condition.
 
 **Validation Checklist**
 - [ ] Launch is rejected when fewer than 8 valid equipped parts exist.
-- [ ] FLUX is debited on successful launch.
+- [x] FLUX is debited on successful launch.
 - [ ] Launch rows persist and are queryable.
 - [ ] Damage persists after refresh.
-- [ ] Repairs debit FLUX and restore condition.
+- [x] Repairs debit FLUX and restore condition.
 - [ ] Score breakdown is returned from the backend in a stable response shape.
 
 **Dependency Notes**
 - Rebase onto `wt-backend-inventory-contract` before merge.
+Current blocker: `20260228190000_add_rocket_lab_loadout_rpc.sql` overrides `launch_rocket()` with a legacy response shape, so the active backend contract still needs reconciliation before this worktree is complete.
 
 ### 6. `wt-rocket-lab-ui-authority`
 **Purpose:** replace the compatibility UI with an authoritative loadout and launch client.
@@ -250,20 +251,20 @@ Note: this branch implemented `serial_trait` as named display-grade labels (`Twi
 - [ ] Remove `compatibility` and `local-only` copy from Rocket Lab.
 - [ ] Stop auto-selecting the best unlocked part per section.
 - [ ] Render explicitly equipped state from the authoritative backend.
-- [ ] Add explicit equip and unequip actions per eligible part.
-- [ ] Show `serialNumber`, `serialTrait`, `isShiny`, and `conditionPct` in the UI.
-- [ ] Show repair actions for damaged parts.
-- [ ] Replace local simulation launch with backend `launch_rocket()` calls.
+- [x] Add explicit equip and unequip actions per eligible part.
+- [x] Show `serialNumber`, `serialTrait`, `isShiny`, and `conditionPct` in the UI.
+- [x] Show repair actions for damaged parts.
+- [x] Replace local simulation launch with backend `launch_rocket()` calls.
 - [ ] Display backend-returned `Base`, `Luck`, `Randomness`, and `Total` scores.
 - [ ] Display current fuel cost and damage risk in the launch surface.
 - [ ] Use `variantId` to map each part to a stable, deterministic visual gimmick.
 - [ ] Make rarity affect sheen, glow, and accent only, not client-side stats.
 - [ ] Render the inverted and shiny treatment for repeated-digit serial parts only.
-- [ ] Update history UI to reflect persisted launches rather than local storage-only simulations.
+- [x] Update history UI to reflect persisted launches rather than local storage-only simulations.
 - [ ] Remove or migrate existing local-storage compatibility history.
 
 **Validation Checklist**
-- [ ] Rocket Lab no longer launches locally.
+- [x] Rocket Lab no longer launches locally.
 - [ ] Equipped-state UI matches backend state after refresh.
 - [ ] Launch result shown in UI exactly matches backend response values.
 - [ ] Damaged parts visually reflect their condition state.
@@ -272,6 +273,7 @@ Note: this branch implemented `serial_trait` as named display-grade labels (`Twi
 **Dependency Notes**
 - Rebase onto both `wt-backend-inventory-contract` and `wt-rocket-lab-server-authority` before merge.
 - Merge last.
+Current blocker: the UI expects the richer server-authoritative launch payload, but the active `launch_rocket()` SQL is currently overridden by a later legacy-shaped migration.
 
 ## Merge Order Checklist
 - [ ] Merge `wt-backend-inventory-contract`.
@@ -291,18 +293,18 @@ Note: this branch implemented `serial_trait` as named display-grade labels (`Twi
 - [ ] Add SQL and RPC smoke-check instructions for local Supabase validation.
 
 ### Feature Verification Checklist
-- [x] Box reveal recolors to the pulled rarity.
+- [ ] Box reveal recolors to the pulled rarity.
 - [x] Broken item art falls back safely.
 - [x] Duplicate badge is removed.
-- [x] `Total Power` is the primary user-visible metric.
+- [ ] `Total Power` is the primary user-visible metric.
 - [x] Home and Gate are separated.
 - [x] Wallet page route works.
 - [x] Hourly auction cadence works.
 - [x] Auction selection uses `total_power`.
 - [ ] Eight equipped parts are required for launch.
-- [ ] Launch burns FLUX.
+- [x] Launch burns FLUX.
 - [ ] Meteorite damage persists.
-- [ ] Repair restores part condition.
+- [x] Repair restores part condition.
 - [ ] Rocket Lab UI reflects server-authoritative results.
 
 ### Manual End-To-End Checklist
@@ -326,15 +328,16 @@ Note: this branch implemented `serial_trait` as named display-grade labels (`Twi
 - [x] Added and applied the hourly Nebula auction migration plus a safe reconciliation for untouched legacy-format active rounds.
 - [x] Updated auction UI surfaces to show `Total Power`, serial number, and shiny / inverted state for active and historical items.
 - [x] Drop-curve rarity-roll changes landed via `wt_core_inv_contract`.
-- [ ] Full client adoption of `variantId`, `serialTrait`, and `conditionPct` remains outstanding.
+- [x] Client adoption of `variantId`, `serialTrait`, and `conditionPct` is in place across the shared inventory clients.
+- [ ] `serialNumber` remains inconsistent between inventory and auction client contracts, so `tsc --noEmit -p tsconfig.app.json` still fails until those types are unified.
 
 ### Overall Progress
-- [x] Backend contract complete
-- [x] Star Vault UI polish complete
+- [ ] Backend contract complete (`serialNumber` client-type alignment and typecheck cleanup still pending)
+- [ ] Star Vault UI polish complete (remaining reveal-state and `Total Power` cleanup still open)
 - [x] Home / navigation / wallet complete
-- [ ] Drop curve and hourly auction complete
-- [ ] Rocket Lab backend authority complete
-- [ ] Rocket Lab UI authority complete
+- [ ] Drop curve and hourly auction complete (implementation landed, but validation evidence is still incomplete)
+- [ ] Rocket Lab backend authority complete (core RPCs landed, but the active `launch_rocket()` contract is regressed by a later override)
+- [ ] Rocket Lab UI authority complete (backend contract mismatch still blocks fully authoritative results)
 - [ ] Cross-feature QA complete
 - [ ] Ready to merge all workstreams
 
