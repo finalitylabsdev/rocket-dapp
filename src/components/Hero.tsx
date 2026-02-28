@@ -77,7 +77,7 @@ export default function Hero({ onOpenGate, onOpenMystery, onOpenBids, onOpenLab,
 
             <div className="space-y-4">
               <h1 className="font-display font-normal text-3xl sm:text-4xl text-text-primary leading-[1] tracking-tight" style={{ letterSpacing: '-0.025em' }}>
-                Build on{' '}
+                Explore{' '}
                 <span className="text-text-primary">Entropy Network</span>
               </h1>
               <p className="font-mono font-normal text-[11px] text-text-muted tracking-[0.14em] uppercase">

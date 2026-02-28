@@ -1,4 +1,5 @@
 import { Zap } from 'lucide-react';
+import { APP_VERSION } from '../config/app';
 import type { Page } from '../App';
 
 interface FooterProps {
@@ -18,7 +19,7 @@ export default function Footer({ onNavigate }: FooterProps) {
               </div>
               <div>
                 <span className="font-mono font-bold text-text-primary text-sm leading-none uppercase tracking-wider">Entropy</span>
-                <div className="text-[9px] font-mono font-medium text-text-muted mt-0.5 uppercase tracking-wider">ɸ-net Testnet</div>
+                <div className="text-[9px] font-mono font-medium text-text-muted mt-0.5 uppercase tracking-wider">{`TESTNET v${APP_VERSION}`}</div>
               </div>
             </div>
             <p className="text-text-muted text-xs leading-relaxed max-w-xs">
