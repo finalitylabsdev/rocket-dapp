@@ -104,8 +104,8 @@ const LAUNCH_DEFAULT_RARITY_CONFIG: Record<RarityTier, RarityConfig> = {
   Quantum: {
     tier: 'Quantum',
     color: '#E8ECF4',
-    bg: 'rgba(232,236,244,0.12)',
-    border: 'rgba(232,236,244,0.3)',
+    bg: 'rgba(15,23,42,0.65)',
+    border: 'rgba(232,236,244,0.4)',
     glow: 'rgba(232,236,244,0.45)',
     label: 'Quantum',
     multiplier: 5,

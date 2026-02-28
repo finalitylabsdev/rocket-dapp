@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { RotateCcw } from 'lucide-react';
+import { RotateCcw, Sparkles } from 'lucide-react';
 import RarityBadge, { getRarityConfig } from '../brand/RarityBadge';
 import PhiSymbol from '../brand/PhiSymbol';
 import { useGameState } from '../../context/GameState';
@@ -13,6 +13,7 @@ import {
   APP3_INSET_STYLE,
   APP3_PANEL_STYLE,
   APP3_SECONDARY_BUTTON_STYLE,
+  APP3_SHINY_BADGE_STYLE,
   APP3_TEXT_PRIMARY_STYLE,
   APP3_TEXT_SECONDARY_STYLE,
   APP3_TRACK_STYLE,
@@ -251,9 +252,10 @@ export default function BoxCard({
                   </span>
                   {reward.isShiny && (
                     <span
-                      className="inline-flex items-center rounded-full px-2 py-0.5 text-[9px] font-mono font-semibold uppercase tracking-[0.16em]"
-                      style={{ background: 'rgba(245,158,11,0.12)', color: '#FCD34D', border: '1px solid rgba(245,158,11,0.28)' }}
+                      className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[9px] font-mono font-semibold uppercase tracking-[0.16em]"
+                      style={APP3_SHINY_BADGE_STYLE}
                     >
+                      <Sparkles size={10} className="animate-pulse" />
                       Shiny
                     </span>
                   )}

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Flame, Gauge, Shield } from 'lucide-react';
+import { Flame, Gauge, Shield, Sparkles } from 'lucide-react';
 import RarityBadge, { getRarityConfig } from '../brand/RarityBadge';
 import PhiSymbol from '../brand/PhiSymbol';
 import { AUCTION_MIN_RARITY_TIER } from '../../config/spec';
@@ -10,6 +10,7 @@ import {
   APP3_INSET_STYLE,
   APP3_PANEL_STYLE,
   APP3_SECONDARY_BUTTON_STYLE,
+  APP3_SHINY_BADGE_STYLE,
   APP3_TEXT_MUTED_STYLE,
   APP3_TEXT_PRIMARY_STYLE,
   APP3_TEXT_SECONDARY_STYLE,
@@ -159,9 +160,10 @@ export default function InventoryPartCard({
             )}
             {part.isShiny && (
               <span
-                className="inline-flex items-center rounded-full px-2 py-0.5 text-[9px] font-mono font-semibold uppercase tracking-[0.16em]"
-                style={{ background: 'rgba(245,158,11,0.1)', color: '#FCD34D', border: '1px solid rgba(245,158,11,0.28)' }}
+                className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[9px] font-mono font-semibold uppercase tracking-[0.16em]"
+                style={APP3_SHINY_BADGE_STYLE}
               >
+                <Sparkles size={10} className="animate-pulse" />
                 Shiny
               </span>
             )}
@@ -169,19 +171,33 @@ export default function InventoryPartCard({
         </div>
       </div>
 
-      <div className="mt-4 grid grid-cols-3 gap-2">
+      <div className="mt-4 space-y-2.5">
         {part.attributes.map((value, index) => {
           const Icon = ATTRIBUTE_ICONS[index] ?? Gauge;
 
           return (
-            <div key={part.attributeNames[index]} className="p-2" style={{ ...APP3_INSET_STYLE, borderTop: `1px solid ${rarityCfg.border}` }}>
-              <div className="flex items-center gap-1.5">
-                <Icon size={11} style={{ color: rarityCfg.color }} />
-                <p className="text-[9px] font-mono uppercase tracking-[0.16em]" style={APP3_TEXT_SECONDARY_STYLE}>
-                  {part.attributeNames[index]}
+            <div
+              key={part.attributeNames[index]}
+              className="rounded-xl px-3 py-2.5"
+              style={{ ...APP3_INSET_STYLE, borderTop: `1px solid ${rarityCfg.border}` }}
+            >
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex min-w-0 items-center gap-2">
+                  <div
+                    className="flex h-5 w-5 shrink-0 items-center justify-center rounded-md"
+                    style={{ background: `${rarityCfg.color}14`, border: `1px solid ${rarityCfg.border}` }}
+                  >
+                    <Icon size={10} style={{ color: rarityCfg.color }} />
+                  </div>
+                  <p className="truncate text-[9px] font-mono uppercase tracking-[0.16em]" style={APP3_TEXT_SECONDARY_STYLE}>
+                    {part.attributeNames[index]}
+                  </p>
+                </div>
+                <p className="shrink-0 font-mono font-bold text-sm" style={APP3_TEXT_PRIMARY_STYLE}>
+                  {value}
                 </p>
               </div>
-              <div className="mt-2 h-1 overflow-hidden rounded-full" style={{ background: 'rgba(15,23,42,0.55)' }}>
+              <div className="mt-2 h-1.5 w-[40%] min-w-[5.75rem] max-w-[7rem] overflow-hidden rounded-full" style={{ background: 'rgba(15,23,42,0.55)' }}>
                 <div
                   className="h-full"
                   style={{
@@ -190,29 +206,26 @@ export default function InventoryPartCard({
                   }}
                 />
               </div>
-              <p className="mt-2 font-mono font-bold text-sm" style={APP3_TEXT_PRIMARY_STYLE}>
-                {value}
-              </p>
             </div>
           );
         })}
       </div>
 
-      <div className="mt-3 grid grid-cols-3 gap-2">
-        <div className="p-2 flex flex-col" style={APP3_INSET_STYLE}>
+      <div className="mt-3 grid grid-cols-2 gap-2">
+        <div className="p-3 flex min-h-[4.5rem] flex-col justify-between" style={APP3_INSET_STYLE}>
           <p className="text-[9px] font-mono uppercase tracking-[0.16em]" style={APP3_TEXT_SECONDARY_STYLE}>Total Power</p>
-          <p className="mt-auto pt-2 font-mono font-bold text-sm" style={APP3_TEXT_PRIMARY_STYLE}>
+          <p className="mt-2 font-mono font-bold text-sm" style={APP3_TEXT_PRIMARY_STYLE}>
             {part.totalPower}
           </p>
         </div>
-        <div className="p-2 flex flex-col" style={APP3_INSET_STYLE}>
+        <div className="p-3 flex min-h-[4.5rem] flex-col justify-between" style={APP3_INSET_STYLE}>
           <p className="text-[9px] font-mono uppercase tracking-[0.16em]" style={APP3_TEXT_SECONDARY_STYLE}>Value</p>
-          <p className="mt-auto pt-2 flex items-center gap-1 font-mono font-bold text-sm" style={APP3_TEXT_PRIMARY_STYLE}>
+          <p className="mt-2 flex items-center gap-1 font-mono font-bold text-sm" style={APP3_TEXT_PRIMARY_STYLE}>
             <PhiSymbol size={10} color="currentColor" />
             {formatFluxValue(part.partValue)}
           </p>
         </div>
-        <div className="p-2 flex flex-col" style={APP3_INSET_STYLE}>
+        <div className="p-3 flex min-h-[4.5rem] flex-col justify-between" style={APP3_INSET_STYLE}>
           <p className="text-[9px] font-mono uppercase tracking-[0.16em]" style={APP3_TEXT_SECONDARY_STYLE}>Status</p>
           <p
             className="mt-auto inline-flex max-w-full self-start rounded-full font-mono font-bold uppercase"
@@ -225,6 +238,12 @@ export default function InventoryPartCard({
             }}
           >
             {partStatus}
+          </p>
+        </div>
+        <div className="p-3 flex min-h-[4.5rem] flex-col justify-between" style={APP3_INSET_STYLE}>
+          <p className="text-[9px] font-mono uppercase tracking-[0.16em]" style={APP3_TEXT_SECONDARY_STYLE}>Serial</p>
+          <p className="mt-2 font-mono font-bold text-sm" style={APP3_TEXT_PRIMARY_STYLE}>
+            #{(part.serialNumber ?? 0).toString().padStart(6, '0')}
           </p>
         </div>
       </div>

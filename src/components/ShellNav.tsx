@@ -1,8 +1,10 @@
+import type { ComponentType } from 'react';
 import { useState, useEffect } from 'react';
 import { APP_VERSION } from '../config/app';
 import {
+  type LucideProps,
   Menu, X, Trophy, Zap, LogOut, ArrowLeft, Wallet,
-  ArrowLeftRight, Gift, FlaskConical, Compass,
+  ArrowLeftRight, FlaskConical, Compass,
 } from 'lucide-react';
 import PhiSymbol from './brand/PhiSymbol';
 import { useWallet } from '../hooks/useWallet';
@@ -21,11 +23,35 @@ interface ShellNavProps {
   onNavigate: (page: Page) => void;
 }
 
-const PAGE_META: Record<Exclude<Page, 'home'>, { title: string; subtitle: string; icon: typeof Zap }> = {
+function StarVaultCubeIcon({ size = 16, className, style, ...props }: LucideProps) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.75"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+      style={style}
+      aria-hidden="true"
+      {...props}
+    >
+      <path d="M12 3 19 7 12 11 5 7 12 3Z" />
+      <path d="M5 7v8l7 4v-8" />
+      <path d="M19 7v8l-7 4" />
+      <path d="M12 11 19 7" />
+    </svg>
+  );
+}
+
+const PAGE_META: Record<Exclude<Page, 'home'>, { title: string; subtitle: string; icon: ComponentType<LucideProps> }> = {
   gate:        { title: 'Entropy Gate',             subtitle: 'Lock ETH · Claim Φ',            icon: Zap },
   wallet:      { title: 'Wallet Overview',          subtitle: 'Live Φ · Token Scaffold',       icon: Wallet },
   dex:         { title: 'Entropy Exchange',         subtitle: 'Constant-Product AMM · ɸ-net', icon: ArrowLeftRight },
-  mystery:     { title: 'Star Vault',               subtitle: 'Unbox · Bid · Collect',         icon: Gift },
+  mystery:     { title: 'Star Vault',               subtitle: 'Unbox · Bid · Collect',         icon: StarVaultCubeIcon },
   lab:         { title: 'Rocket Lab',               subtitle: 'Build & Launch',                icon: FlaskConical },
   leaderboard: { title: 'Cosmic Jackpot',           subtitle: 'Season 1 · Rankings',           icon: Trophy },
 };
@@ -104,19 +130,10 @@ export default function ShellNav({ page, onNavigate }: ShellNavProps) {
                 return (
                   <div className="flex items-center gap-3">
                     <div
-                      className={page === 'lab' ? 'w-8 h-8 flex items-center justify-center' : 'w-8 h-8 bg-dot-green flex items-center justify-center'}
-                      style={
-                        page === 'lab'
-                          ? { background: 'rgba(148,163,184,0.15)', border: '1px solid rgba(148,163,184,0.35)' }
-                          : undefined
-                      }
+                      className="w-8 h-8 flex items-center justify-center"
+                      style={{ background: 'rgba(148,163,184,0.08)', border: '1px solid rgba(148,163,184,0.35)' }}
                     >
-                      {page === 'lab'
-                        ? <meta.icon size={16} style={{ color: '#94A3B8' }} />
-                        : page === 'leaderboard'
-                          ? <meta.icon size={15} className="text-black" />
-                          : <meta.icon size={16} className="text-black" fill="black" />
-                      }
+                      <meta.icon size={16} style={{ color: '#94A3B8' }} />
                     </div>
                     <div>
                       <span className="font-mono font-bold text-text-primary text-base leading-none uppercase tracking-wider">{meta.title}</span>

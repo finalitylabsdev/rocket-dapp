@@ -78,10 +78,17 @@ export default function InventoryPanel({
               </p>
             </div>
             <div
-              className="h-9 w-9 flex items-center justify-center"
-              style={{ ...APP3_INSET_STYLE, color: '#F6C547' }}
+              className="relative overflow-hidden rounded-xl p-px"
+              style={{
+                background: 'linear-gradient(135deg, rgba(34,197,94,0.9), rgba(56,189,248,0.92), rgba(168,85,247,0.9), rgba(245,158,11,0.9))',
+              }}
             >
-              <Package2 size={15} />
+              <div
+                className="h-9 w-9 flex items-center justify-center rounded-[calc(0.75rem-1px)]"
+                style={{ ...APP3_INSET_STYLE, color: '#475569' }}
+              >
+                <Package2 size={15} />
+              </div>
             </div>
           </div>
         </div>

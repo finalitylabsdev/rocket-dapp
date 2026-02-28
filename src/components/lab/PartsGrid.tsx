@@ -111,7 +111,7 @@ function PartActions({
       };
 
   return (
-    <div className="mt-3 flex flex-wrap gap-2">
+    <div className="mt-3 flex flex-wrap justify-end gap-2">
       {!part.isEquipped && (
         <button
           onClick={runPreviewGuardedAction('rocketEquip', () => onEquip(part.id, section))}
@@ -192,9 +192,9 @@ function PartRow({
       }}
     >
       <div className="p-3">
-        <div className="grid grid-cols-[72px_1fr] gap-3 items-start">
+        <div className="flex items-start gap-3">
           <div
-            className="flex aspect-square w-[72px] shrink-0 items-center justify-center overflow-hidden"
+            className="flex aspect-square w-[56px] shrink-0 items-center justify-center overflow-hidden"
             style={{ background: 'var(--color-bg-base)', border: '1px solid var(--color-border-subtle)' }}
           >
             <SectionIllustration
@@ -202,165 +202,159 @@ function PartRow({
               equipped={Boolean(part.isEquipped)}
               rarity={part.rarity}
               variantId={part.variantId}
-              size={60}
+              size={48}
             />
           </div>
 
-          <div className="space-y-3">
-            <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0 flex-1">
+            <div className="flex items-start justify-between gap-2">
               <div className="min-w-0">
                 <p className="font-mono font-bold text-sm leading-tight text-text-primary">
                   {part.name}
                 </p>
-                <div className="mt-1 flex flex-wrap items-center gap-2">
+                <div className="mt-1 flex flex-wrap items-center gap-1.5">
+                  <RarityBadge tier={part.rarity} size="xs" showIcon={part.isEquipped} />
                   {part.isEquipped && (
                     <span
-                      className="px-2 py-0.5 text-[9px] font-mono font-bold uppercase tracking-[0.16em]"
+                      className="px-1.5 py-0.5 text-[9px] font-mono font-bold uppercase tracking-[0.16em]"
                       style={{ background: 'rgba(74,222,128,0.12)', color: '#4ADE80' }}
                     >
                       Equipped
                     </span>
                   )}
                   {part.isLocked && (
-                    <span className="px-2 py-0.5 text-[9px] font-mono font-bold uppercase tracking-[0.16em] text-amber-400">
+                    <span className="px-1.5 py-0.5 text-[9px] font-mono font-bold uppercase tracking-[0.16em] text-amber-400">
                       Locked
                     </span>
                   )}
                   {part.isShiny && (
-                    <span className="px-2 py-0.5 text-[9px] font-mono font-bold uppercase tracking-[0.16em] text-yellow-300">
+                    <span className="px-1.5 py-0.5 text-[9px] font-mono font-bold uppercase tracking-[0.16em] text-yellow-300">
                       Shiny
                     </span>
                   )}
                 </div>
-                <p className="mt-1 text-[10px] font-mono uppercase tracking-[0.16em] leading-relaxed text-text-muted">
-                  Serial {part.serialNumber ?? 'Pending'} · {part.serialTrait ?? 'Standard'}
-                </p>
               </div>
-              <div className="flex items-center gap-2 shrink-0">
-                <RarityBadge tier={part.rarity} size="xs" showIcon={part.isEquipped} />
-                {part.isEquipped && (
-                  <button
-                    onClick={runPreviewGuardedAction('rocketUnequip', () => onUnequip(section))}
-                    disabled={unequipAction.disabled}
-                    aria-disabled={unequipAction['aria-disabled']}
-                    title={unequipAction.title ?? 'Unequip'}
-                    data-click-denied={unequipAction['data-click-denied']}
-                    className="flex items-center justify-center w-6 h-6 disabled:opacity-50"
-                    style={{ background: 'rgba(239,68,68,0.12)', border: '1px solid rgba(239,68,68,0.3)' }}
-                  >
-                    <X size={12} style={{ color: '#EF4444' }} />
-                  </button>
-                )}
-              </div>
+              {part.isEquipped && (
+                <button
+                  onClick={runPreviewGuardedAction('rocketUnequip', () => onUnequip(section))}
+                  disabled={unequipAction.disabled}
+                  aria-disabled={unequipAction['aria-disabled']}
+                  title={unequipAction.title ?? 'Unequip'}
+                  data-click-denied={unequipAction['data-click-denied']}
+                  className="flex items-center justify-center w-6 h-6 shrink-0 disabled:opacity-50"
+                  style={{ background: 'rgba(239,68,68,0.12)', border: '1px solid rgba(239,68,68,0.3)' }}
+                >
+                  <X size={12} style={{ color: '#EF4444' }} />
+                </button>
+              )}
             </div>
 
-            <div className="grid grid-cols-2 gap-2">
+            <p className="mt-1 text-[10px] font-mono uppercase tracking-[0.16em] text-text-muted">
+              Serial {part.serialNumber ?? 'Pending'} · {part.serialTrait ?? 'Standard'}
+            </p>
+          </div>
+        </div>
+
+        <div className="mt-2.5 grid grid-cols-3 gap-2">
+          <div
+            className="px-2 py-1.5"
+            style={{ background: 'var(--color-bg-base)', border: '1px solid var(--color-border-subtle)' }}
+          >
+            <p className="font-mono text-[9px] uppercase tracking-[0.16em] text-text-muted">Power</p>
+            <p className="mt-0.5 font-mono font-bold text-xs text-text-primary">
+              {effectivePower}
+              {conditionPct < 100 && (
+                <span className="ml-0.5 text-[9px] text-text-muted">/ {part.power}</span>
+              )}
+            </p>
+          </div>
+          <div
+            className="px-2 py-1.5"
+            style={{ background: 'var(--color-bg-base)', border: '1px solid var(--color-border-subtle)' }}
+          >
+            <p className="font-mono text-[9px] uppercase tracking-[0.16em] text-text-muted">Value</p>
+            <p className="mt-0.5 flex items-center gap-0.5 font-mono font-bold text-xs text-text-primary">
+              <PhiSymbol size={9} color="currentColor" />
+              {part.partValue}
+            </p>
+          </div>
+          <div
+            className="px-2 py-1.5"
+            style={{ background: 'var(--color-bg-base)', border: '1px solid var(--color-border-subtle)' }}
+          >
+            <div className="flex items-center justify-between">
+              <p className="font-mono text-[9px] uppercase tracking-[0.16em] text-text-muted">Condition</p>
+              <span className={`font-mono text-[9px] font-bold ${conditionPct > 0 ? 'text-text-primary' : 'text-red-400'}`}>
+                {conditionPct.toFixed(0)}%
+              </span>
+            </div>
+            <div className="mt-1.5 h-1 overflow-hidden" style={{ background: 'var(--color-border-subtle)' }}>
               <div
-                className="px-2.5 py-2"
-                style={{ background: 'var(--color-bg-base)', border: '1px solid var(--color-border-subtle)' }}
-              >
-                <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-text-muted">Power</p>
-                <p className="mt-1 font-mono font-bold text-sm text-text-primary">
-                  {effectivePower}
-                  {conditionPct < 100 && (
-                    <span className="ml-1 text-[10px] text-text-muted">/ {part.power}</span>
-                  )}
-                </p>
-              </div>
-              <div
-                className="px-2.5 py-2"
-                style={{ background: 'var(--color-bg-base)', border: '1px solid var(--color-border-subtle)' }}
-              >
-                <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-text-muted">Value</p>
-                <p className="mt-1 flex items-center gap-1 font-mono font-bold text-sm text-text-primary">
-                  <PhiSymbol size={10} color="currentColor" />
-                  {part.partValue}
-                </p>
-              </div>
-            </div>
-
-            <div
-              className="px-2.5 py-2"
-              style={{ background: 'var(--color-bg-base)', border: '1px solid var(--color-border-subtle)' }}
-            >
-              <div className="mb-1 flex items-center justify-between text-[10px] font-mono uppercase tracking-[0.16em]">
-                <span className="text-text-muted">Condition</span>
-                <span className={conditionPct > 0 ? 'text-text-primary' : 'text-red-400'}>
-                  {conditionPct.toFixed(0)}%
-                </span>
-              </div>
-              <div className="h-1 overflow-hidden w-1/2 min-w-[96px]" style={{ background: 'var(--color-border-subtle)' }}>
-                <div
-                  className="h-full"
-                  style={{
-                    width: `${conditionPct}%`,
-                    background: conditionPct > 50
-                      ? 'linear-gradient(90deg, rgba(34,197,94,0.45), #22C55E)'
-                      : conditionPct > 0
-                        ? 'linear-gradient(90deg, rgba(245,158,11,0.4), #F59E0B)'
-                        : 'linear-gradient(90deg, rgba(239,68,68,0.4), #EF4444)',
-                  }}
-                />
-              </div>
-            </div>
-
-            <div
-              className="px-3 py-2.5"
-              style={{
-                background: `linear-gradient(135deg, ${rarityConfig.bg}, rgba(15,23,42,0.18))`,
-                border: `1px solid ${rarityConfig.border}`,
-              }}
-            >
-              <div className="flex items-center gap-2">
-                <BadgeInfo size={12} style={{ color: rarityConfig.color }} />
-                <p className="font-mono text-[10px] font-bold uppercase tracking-[0.16em]" style={{ color: rarityConfig.color }}>
-                  Field Notes
-                </p>
-              </div>
-              <p className="mt-1.5 text-[11px] leading-relaxed text-text-secondary">
-                {getPartLore(part, section)}
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 gap-2">
-              {part.attributeNames.map((label, index) => {
-                const AttributeIcon = getAttributeIcon(index);
-                const value = part.attributes[index];
-
-                return (
-                  <div
-                    key={label}
-                    className="flex items-center justify-between gap-3 px-2.5 py-2"
-                    style={{ background: 'var(--color-bg-base)', border: '1px solid var(--color-border-subtle)' }}
-                  >
-                    <div className="flex min-w-0 items-center gap-2">
-                      <div
-                        className="flex h-6 w-6 shrink-0 items-center justify-center"
-                        style={{ background: `${rarityConfig.color}14`, border: `1px solid ${rarityConfig.border}` }}
-                      >
-                        <AttributeIcon size={12} style={{ color: rarityConfig.color }} />
-                      </div>
-                      <div className="min-w-0">
-                        <p className="truncate font-mono text-[10px] uppercase tracking-[0.16em] text-text-muted">{label}</p>
-                        <p className="font-mono text-xs font-bold text-text-primary">{value}</p>
-                      </div>
-                    </div>
-                    <div className="flex shrink-0 items-center gap-2">
-                      <div className="h-1 overflow-hidden w-14" style={{ background: 'var(--color-border-subtle)' }}>
-                        <div
-                          className="h-full"
-                          style={{
-                            width: `${Math.max(4, Math.min(100, value))}%`,
-                            background: `linear-gradient(90deg, ${rarityConfig.color}55, ${rarityConfig.color})`,
-                          }}
-                        />
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
+                className="h-full"
+                style={{
+                  width: `${conditionPct}%`,
+                  background: conditionPct > 50
+                    ? 'linear-gradient(90deg, rgba(34,197,94,0.45), #22C55E)'
+                    : conditionPct > 0
+                      ? 'linear-gradient(90deg, rgba(245,158,11,0.4), #F59E0B)'
+                      : 'linear-gradient(90deg, rgba(239,68,68,0.4), #EF4444)',
+                }}
+              />
             </div>
           </div>
+        </div>
+
+        <div
+          className="mt-2.5 px-2.5 py-2"
+          style={{
+            background: `linear-gradient(135deg, ${rarityConfig.bg}, rgba(15,23,42,0.18))`,
+            border: `1px solid ${rarityConfig.border}`,
+          }}
+        >
+          <div className="flex items-center gap-1.5">
+            <BadgeInfo size={10} style={{ color: rarityConfig.color }} />
+            <p className="font-mono text-[9px] font-bold uppercase tracking-[0.16em]" style={{ color: rarityConfig.color }}>
+              Field Notes
+            </p>
+          </div>
+          <p className="mt-1 text-[10px] leading-relaxed text-text-secondary">
+            {getPartLore(part, section)}
+          </p>
+        </div>
+
+        <div className="mt-2.5 grid grid-cols-3 gap-2">
+          {part.attributeNames.map((label, index) => {
+            const AttributeIcon = getAttributeIcon(index);
+            const value = part.attributes[index];
+
+            return (
+              <div
+                key={label}
+                className="px-2 py-1.5"
+                style={{ background: 'var(--color-bg-base)', border: '1px solid var(--color-border-subtle)' }}
+              >
+                <div className="flex items-center gap-1.5">
+                  <div
+                    className="flex h-4 w-4 shrink-0 items-center justify-center"
+                    style={{ background: `${rarityConfig.color}14`, border: `1px solid ${rarityConfig.border}` }}
+                  >
+                    <AttributeIcon size={9} style={{ color: rarityConfig.color }} />
+                  </div>
+                  <p className="truncate font-mono text-[9px] uppercase tracking-[0.12em] text-text-muted">{label}</p>
+                </div>
+                <p className="mt-1 font-mono text-xs font-bold text-text-primary">{value}</p>
+                <div className="mt-1 h-1 overflow-hidden" style={{ background: 'var(--color-border-subtle)' }}>
+                  <div
+                    className="h-full"
+                    style={{
+                      width: `${Math.max(4, Math.min(100, value))}%`,
+                      background: `linear-gradient(90deg, ${rarityConfig.color}55, ${rarityConfig.color})`,
+                    }}
+                  />
+                </div>
+              </div>
+            );
+          })}
         </div>
 
         <PartActions

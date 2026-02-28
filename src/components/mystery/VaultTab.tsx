@@ -13,6 +13,7 @@ import { SectionGlyph } from './metadataVisuals';
 import {
   APP3_INSET_STYLE,
   APP3_PANEL_STYLE,
+  APP3_SHINY_BADGE_STYLE,
   APP3_TEXT_PRIMARY_STYLE,
   APP3_TEXT_SECONDARY_STYLE,
   APP3_TRACK_STYLE,
@@ -88,10 +89,10 @@ function AttributeBars({ part }: { part: InventoryPart }) {
   const icons = [Flame, Gauge, Shield] as const;
 
   return (
-    <div className="space-y-2 mt-4">
+    <div className="mt-5 space-y-3">
       {part.attributes.map((value, index) => (
-        <div key={part.attributeNames[index]} className="rounded-xl px-3 py-2" style={APP3_INSET_STYLE}>
-          <div className="flex items-center justify-between gap-3 text-[10px] font-mono uppercase tracking-wider mb-1">
+        <div key={part.attributeNames[index]} className="rounded-xl px-3 py-2.5" style={APP3_INSET_STYLE}>
+          <div className="mb-1.5 flex items-center justify-between gap-3 text-[10px] font-mono uppercase tracking-wider">
             <div className="flex min-w-0 items-center gap-2">
               <div
                 className="flex h-5 w-5 shrink-0 items-center justify-center rounded-md"
@@ -106,7 +107,7 @@ function AttributeBars({ part }: { part: InventoryPart }) {
             </div>
             <span className="shrink-0" style={APP3_TEXT_PRIMARY_STYLE}>{value}</span>
           </div>
-          <div className="h-1.5 w-1/2 min-w-[7.5rem] overflow-hidden rounded-full" style={APP3_TRACK_STYLE}>
+          <div className="h-1.5 w-[42%] min-w-[6rem] max-w-[8rem] overflow-hidden rounded-full" style={APP3_TRACK_STYLE}>
             <div
               className="h-full"
               style={{
@@ -122,7 +123,7 @@ function AttributeBars({ part }: { part: InventoryPart }) {
 }
 
 function getPartLore(part: InventoryPart) {
-  return `Archive Briefing: ${part.name} was tuned inside a low-gravity calibration rack until its ${part.attributeNames[0].toLowerCase()} harmonics settled. The ${part.serialTrait ?? 'standard'} signature now keeps ${part.sectionName.toLowerCase()} output unnervingly smooth during drift corrections. Field crews still note a soft relay chatter during warm starts, but the lattice remains stable once the auxiliary spool catches its second cycle.`;
+  return `${part.name} was tuned inside a low-gravity calibration rack until its ${part.attributeNames[0].toLowerCase()} harmonics settled. The ${part.serialTrait ?? 'standard'} signature now keeps ${part.sectionName.toLowerCase()} output unnervingly smooth during drift corrections. Field crews still note a soft relay chatter during warm starts, but the lattice remains stable once the auxiliary spool catches its second cycle.`;
 }
 
 function LastDrawWindow({ part }: { part: InventoryPart }) {
@@ -141,7 +142,7 @@ function LastDrawWindow({ part }: { part: InventoryPart }) {
         <div
           className="pointer-events-none absolute inset-[-70%]"
           style={{
-            background: '#374151',
+            background: 'linear-gradient(135deg, rgba(34,197,94,0.9), rgba(56,189,248,0.92), rgba(168,85,247,0.9), rgba(245,158,11,0.9))',
           }}
         />
 
@@ -181,9 +182,10 @@ function LastDrawWindow({ part }: { part: InventoryPart }) {
                   </span>
                   {part.isShiny && (
                     <span
-                      className="inline-flex items-center rounded-full px-2 py-0.5 text-[9px] font-mono font-semibold uppercase tracking-[0.16em]"
-                      style={{ background: 'rgba(245,158,11,0.12)', color: '#FCD34D', border: '1px solid rgba(245,158,11,0.28)' }}
+                      className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[9px] font-mono font-semibold uppercase tracking-[0.16em]"
+                      style={APP3_SHINY_BADGE_STYLE}
                     >
+                      <Sparkles size={10} className="animate-pulse" />
                       Shiny
                     </span>
                   )}
