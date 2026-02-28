@@ -38,35 +38,35 @@ export interface RocketLabMetrics {
 const SLOT_META: Record<RocketSection, RocketLabSlotMeta> = {
   coreEngine: {
     displayName: 'Core Engine',
-    description: 'Primary thrust source.',
+    description: 'Primary burn chamber and main lift.',
   },
   wingPlate: {
     displayName: 'Wing Plate',
-    description: 'Stability and atmospheric control.',
+    description: 'Keeps the frame stable through ascent.',
   },
   fuelCell: {
     displayName: 'Fuel Cell',
-    description: 'Feed system for sustained burn.',
+    description: 'Stores propellant for sustained thrust.',
   },
   navigationModule: {
     displayName: 'Navigation Module',
-    description: 'Flight path and guidance logic.',
+    description: 'Steers the climb and correction path.',
   },
   payloadBay: {
     displayName: 'Payload Bay',
-    description: 'Mission capacity and balance.',
+    description: 'Carries mission mass and flight trim.',
   },
   thrusterArray: {
     displayName: 'Thruster Array',
-    description: 'Secondary maneuvering thrust.',
+    description: 'Handles vectoring and orbital adjustments.',
   },
   propulsionCables: {
     displayName: 'Propulsion Cables',
-    description: 'Power routing and signal integrity.',
+    description: 'Routes power and control signals aft.',
   },
   shielding: {
     displayName: 'Shielding',
-    description: 'Structural protection under load.',
+    description: 'Absorbs heat, debris, and frame stress.',
   },
 };
 

@@ -31,7 +31,7 @@ function getSlotSummary(slot: RocketLabSlotView) {
       label: 'Equipped',
       border: slot.equippedPart ? getRarityConfig(slot.equippedPart.rarity).color : '#4ADE80',
       accent: slot.equippedPart ? getRarityConfig(slot.equippedPart.rarity).bg : 'rgba(74,222,128,0.08)',
-      copy: 'The server loadout for this slot is active and will be used for launches.',
+      copy: slot.description,
     };
   }
 
@@ -40,9 +40,7 @@ function getSlotSummary(slot: RocketLabSlotView) {
       label: 'Unassigned',
       border: '#F59E0B',
       accent: 'rgba(245,158,11,0.08)',
-      copy: slot.equipableCount > 0
-        ? 'Select one owned part to equip this slot.'
-        : 'Only locked or broken parts are available here right now.',
+      copy: slot.description,
     };
   }
 
@@ -229,7 +227,7 @@ function PartRow({
               equipped={Boolean(part.isEquipped)}
               rarity={part.rarity}
               variantId={part.variantId}
-              size={64}
+              size={60}
             />
           </div>
 
