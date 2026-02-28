@@ -8,6 +8,7 @@ import { getPreviewActionButtonProps, runPreviewGuardedAction } from '../../lib/
 import { formatStarVaultError, openMysteryBox } from '../../lib/starVault';
 import type { BoxTierConfig, InventoryPart } from '../../types/domain';
 import BoxIllustration, { type BoxAnimationState } from './BoxIllustration';
+import { SectionGlyph } from './metadataVisuals';
 import {
   APP3_INSET_STYLE,
   APP3_PANEL_STYLE,
@@ -63,12 +64,14 @@ interface BoxCardProps {
   tier: BoxTierConfig;
   readOnly?: boolean;
   previewReward?: InventoryPart | null;
+  featured?: boolean;
 }
 
 export default function BoxCard({
   tier,
   readOnly = false,
   previewReward = null,
+  featured = false,
 }: BoxCardProps) {
   const wallet = useWallet();
   const game = useGameState();
@@ -77,7 +80,8 @@ export default function BoxCard({
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const cfg = getRarityConfig(tier.rarity);
-  const revealCfg = reward ? getRarityConfig(reward.rarity) : cfg;
+  const rewardCfg = reward ? getRarityConfig(reward.rarity) : null;
+  const revealCfg = rewardCfg ?? cfg;
   const canOpenAnother = Boolean(wallet.address) && game.fluxBalance >= tier.price && !wallet.isConnecting && !isSubmitting;
   const openAction = readOnly
     ? getPreviewActionButtonProps('boxOpen')
@@ -155,7 +159,7 @@ export default function BoxCard({
 
   return (
     <div
-      className="relative flex flex-col overflow-hidden"
+      className="relative flex h-full flex-col overflow-hidden"
       style={{
         ...APP3_PANEL_STYLE,
         border: `1px solid ${state === 'revealed' ? `${revealCfg.color}66` : cfg.border}`,
@@ -163,11 +167,11 @@ export default function BoxCard({
     >
       <div
         className="absolute top-0 left-0 right-0 h-px"
-        style={{ background: `linear-gradient(90deg, transparent, ${(state === 'revealed' ? revealCfg : cfg).color}80, transparent)` }}
+        style={{ background: `linear-gradient(90deg, transparent, ${revealCfg.color}80, transparent)` }}
       />
 
-      <div className="p-5 flex-1 flex flex-col">
-        <div className="flex items-start justify-between mb-4 gap-3 min-h-[7.5rem]">
+      <div className={`p-5 flex-1 flex flex-col ${featured ? 'md:p-6' : ''}`}>
+        <div className={`flex items-start justify-between mb-4 gap-3 ${featured ? 'min-h-[8.5rem]' : 'min-h-[7.5rem]'}`}>
           <div className="min-w-0 flex-1">
             <RarityBadge tier={tier.rarity} />
             <h3
@@ -198,56 +202,63 @@ export default function BoxCard({
           </div>
         </div>
 
-        <div className="flex items-center justify-center py-3 mb-4">
-          <BoxIllustration
-            rarity={tier.rarity}
-            state={state}
-            asset={tier.illustration}
-            fallbackKey={tier.id}
-            label={tier.name}
-          />
+        <div className={`flex items-center justify-center mb-4 ${featured ? 'py-6 md:py-8' : 'py-3'}`}>
+          <div className={featured ? 'origin-center scale-[1.2] md:scale-[1.35]' : ''}>
+            <BoxIllustration
+              rarity={tier.rarity}
+              state={state}
+              asset={tier.illustration}
+              fallbackKey={tier.id}
+              label={tier.name}
+            />
+          </div>
         </div>
 
         {reward ? (
           <div
-            className="mb-4 p-4"
+            className={`mb-4 p-4 ${featured ? 'md:p-5' : ''}`}
             style={{
-              background: getRarityConfig(reward.rarity).bg,
-              border: `1px solid ${getRarityConfig(reward.rarity).border}`,
+              background: rewardCfg?.bg,
+              border: `1px solid ${rewardCfg?.border}`,
             }}
           >
-            <p className="text-[10px] font-mono font-semibold uppercase tracking-wider text-text-muted">
-              {readOnly ? 'Preview Reveal' : 'You Received'}
-            </p>
-            <p
-              className="mt-3 truncate whitespace-nowrap font-mono font-black text-lg uppercase"
-              style={{ color: getRarityConfig(reward.rarity).color }}
-              title={reward.name}
-            >
-              {reward.name}
-            </p>
-            <div className="mt-2 flex flex-wrap items-center gap-2">
-              <RarityBadge tier={reward.rarity} size="xs" />
-              <span
-                className="inline-flex items-center rounded-full px-2 py-0.5 text-[9px] font-mono font-semibold uppercase tracking-[0.16em]"
-                style={{ background: 'rgba(15,23,42,0.65)', color: '#E2E8F0', border: '1px solid rgba(148,163,184,0.2)' }}
-              >
-                {reward.sectionName}
-              </span>
-              <span
-                className="inline-flex items-center rounded-full px-2 py-0.5 text-[9px] font-mono font-semibold uppercase tracking-[0.16em]"
-                style={{ background: 'rgba(15,23,42,0.58)', color: '#E2E8F0', border: '1px solid rgba(148,163,184,0.18)' }}
-              >
-                #{(reward.serialNumber ?? 0).toString().padStart(6, '0')}
-              </span>
-              {reward.isShiny && (
-                <span
-                  className="inline-flex items-center rounded-full px-2 py-0.5 text-[9px] font-mono font-semibold uppercase tracking-[0.16em]"
-                  style={{ background: 'rgba(245,158,11,0.12)', color: '#FCD34D', border: '1px solid rgba(245,158,11,0.28)' }}
+            <div className="flex items-start gap-3">
+              <SectionGlyph asset={reward.illustration} fallbackKey={reward.slot} size={featured ? 'md' : 'sm'} />
+              <div className="min-w-0 flex-1">
+                <p className="text-[10px] font-mono font-semibold uppercase tracking-wider text-text-muted">
+                  {readOnly ? 'Preview Reveal' : 'You Received'}
+                </p>
+                <p
+                  className="mt-3 truncate whitespace-nowrap font-mono font-black text-lg uppercase"
+                  style={{ color: rewardCfg?.color }}
+                  title={reward.name}
                 >
-                  Shiny
-                </span>
-              )}
+                  {reward.name}
+                </p>
+                <div className="mt-2 flex flex-wrap items-center gap-2">
+                  <RarityBadge tier={reward.rarity} size="xs" />
+                  <span
+                    className="inline-flex items-center rounded-full px-2 py-0.5 text-[9px] font-mono font-semibold uppercase tracking-[0.16em]"
+                    style={{ background: 'rgba(15,23,42,0.65)', color: '#E2E8F0', border: '1px solid rgba(148,163,184,0.2)' }}
+                  >
+                    {reward.sectionName}
+                  </span>
+                  <span
+                    className="inline-flex items-center rounded-full px-2 py-0.5 text-[9px] font-mono font-semibold uppercase tracking-[0.16em]"
+                    style={{ background: 'rgba(15,23,42,0.58)', color: '#E2E8F0', border: '1px solid rgba(148,163,184,0.18)' }}
+                  >
+                    #{(reward.serialNumber ?? 0).toString().padStart(6, '0')}
+                  </span>
+                  {reward.isShiny && (
+                    <span
+                      className="inline-flex items-center rounded-full px-2 py-0.5 text-[9px] font-mono font-semibold uppercase tracking-[0.16em]"
+                      style={{ background: 'rgba(245,158,11,0.12)', color: '#FCD34D', border: '1px solid rgba(245,158,11,0.28)' }}
+                    >
+                      Shiny
+                    </span>
+                  )}
+                </div>
+              </div>
             </div>
             <AttributeBars part={reward} />
             <div className="mt-3 grid grid-cols-2 gap-2 text-xs font-mono">

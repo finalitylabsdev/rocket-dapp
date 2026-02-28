@@ -9,6 +9,10 @@ interface RocketPreviewProps {
   model: RocketModelId;
   launching: boolean;
   onLaunchComplete: () => void;
+  compact?: boolean;
+  showStatusDots?: boolean;
+  highlightSection?: RocketSection | null;
+  highlightColor?: string;
 }
 
 function getPreviewAssembly(slots: RocketLabSlots) {
@@ -77,6 +81,57 @@ function VariantMarkers({ slots }: { slots: RocketLabSlots }) {
           </div>
         );
       })}
+    </div>
+  );
+}
+
+function HighlightMarker({
+  section,
+  color,
+}: {
+  section: RocketSection;
+  color: string;
+}) {
+  const layout = VARIANT_MARKER_LAYOUT[section];
+
+  return (
+    <div
+      className="pointer-events-none absolute -translate-x-1/2 -translate-y-1/2"
+      style={{ left: layout.left, top: layout.top }}
+    >
+      <div
+        className="absolute left-1/2 top-1/2 rounded-full"
+        style={{
+          width: 56,
+          height: 56,
+          transform: 'translate(-50%, -50%)',
+          background: `radial-gradient(circle, ${color}28 0%, transparent 68%)`,
+          border: `1px solid ${color}44`,
+          animation: 'partHighlightPulse 1.8s ease-in-out infinite',
+        }}
+      />
+      <div
+        className="absolute left-1/2 top-1/2 rounded-full"
+        style={{
+          width: 22,
+          height: 22,
+          transform: 'translate(-50%, -50%)',
+          border: `2px solid ${color}`,
+          background: `${color}18`,
+          boxShadow: `0 0 18px ${color}55`,
+          animation: 'partHighlightPulse 1.8s ease-in-out -0.35s infinite',
+        }}
+      />
+      <div
+        className="absolute left-1/2 top-1/2 rounded-full"
+        style={{
+          width: 8,
+          height: 8,
+          transform: 'translate(-50%, -50%)',
+          background: color,
+          boxShadow: `0 0 14px ${color}`,
+        }}
+      />
     </div>
   );
 }
@@ -566,7 +621,16 @@ function ScoutRocket({ slots, light }: { slots: RocketLabSlots; light: boolean }
   );
 }
 
-export default function RocketPreview({ slots, model, launching, onLaunchComplete }: RocketPreviewProps) {
+export default function RocketPreview({
+  slots,
+  model,
+  launching,
+  onLaunchComplete,
+  compact = false,
+  showStatusDots = true,
+  highlightSection = null,
+  highlightColor = '#F6C547',
+}: RocketPreviewProps) {
   const { theme } = useTheme();
   const light = theme === 'light';
 
@@ -583,11 +647,15 @@ export default function RocketPreview({ slots, model, launching, onLaunchComplet
   );
   const completeness = readyCount / ROCKET_SECTIONS.length;
   const glowIntensity = 0.03 + completeness * 0.15;
+  const innerRingSize = compact ? 'w-36 h-36' : 'w-48 h-48';
+  const outerRingSize = compact ? 'w-56 h-56' : 'w-72 h-72';
+  const orbitRingSize = compact ? 'w-44 h-44' : 'w-56 h-56';
+  const containerMinHeight = compact ? 'min-h-[280px]' : 'min-h-[360px]';
 
   const modelColor = model === 'heavy' ? 'rgba(245,158,11,' : model === 'scout' ? 'rgba(6,214,160,' : 'rgba(255,255,255,';
 
   return (
-    <div className="relative flex items-center justify-center w-full h-full min-h-[360px]">
+    <div className={`relative flex items-center justify-center w-full h-full ${containerMinHeight}`}>
       <style>{`
         @keyframes rocketFloat {
           0%, 100% { transform: translateY(0px) rotate(0deg); }
@@ -620,14 +688,18 @@ export default function RocketPreview({ slots, model, launching, onLaunchComplet
           0%   { transform: rotate(0deg); }
           100% { transform: rotate(360deg); }
         }
+        @keyframes partHighlightPulse {
+          0%, 100% { transform: translate(-50%, -50%) scale(0.92); opacity: 0.7; }
+          50% { transform: translate(-50%, -50%) scale(1.08); opacity: 1; }
+        }
       `}</style>
 
       <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-        <div className={`absolute w-48 h-48 rounded-full border ${light ? 'border-black/[0.06]' : 'border-white/[0.04]'}`}
+        <div className={`absolute ${innerRingSize} rounded-full border ${light ? 'border-black/[0.06]' : 'border-white/[0.04]'}`}
           style={{ boxShadow: `0 0 60px ${modelColor}${glowIntensity})`, transition: 'box-shadow 0.8s ease' }} />
-        <div className={`absolute w-72 h-72 rounded-full border ${light ? 'border-black/[0.04]' : 'border-white/[0.025]'}`} />
+        <div className={`absolute ${outerRingSize} rounded-full border ${light ? 'border-black/[0.04]' : 'border-white/[0.025]'}`} />
         <div
-          className={`absolute w-56 h-56 rounded-full border ${light ? 'border-black/[0.07]' : 'border-white/[0.05]'}`}
+          className={`absolute ${orbitRingSize} rounded-full border ${light ? 'border-black/[0.07]' : 'border-white/[0.05]'}`}
           style={{ animation: 'orbitRing 20s linear infinite' }}
         >
           <div className={`absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 w-2 h-2 rounded-full ${light ? 'bg-black/15' : 'bg-white/20'}`} />
@@ -643,6 +715,7 @@ export default function RocketPreview({ slots, model, launching, onLaunchComplet
         }}
       >
         <VariantMarkers slots={slots} />
+        {highlightSection && <HighlightMarker section={highlightSection} color={highlightColor} />}
 
         {launching && (
           <div
@@ -655,7 +728,7 @@ export default function RocketPreview({ slots, model, launching, onLaunchComplet
         {model === 'heavy' && <HeavyRocket slots={slots} light={light} />}
         {model === 'scout' && <ScoutRocket slots={slots} light={light} />}
 
-        {(slots.coreEngine.status === 'equipped' || slots.thrusterArray.status === 'equipped') && !launching && (
+        {(slots.coreEngine.status === 'equipped' || slots.thrusterArray.status === 'equipped') && !launching && !compact && (
           <div className="relative -mt-3 flex flex-col items-center">
             <svg width="60" height="48" viewBox="0 0 60 48" style={{ animation: 'thrustFlame 0.3s ease-in-out infinite', transformOrigin: 'top center' }}>
               <defs>
@@ -694,23 +767,25 @@ export default function RocketPreview({ slots, model, launching, onLaunchComplet
         )}
       </div>
 
-      <div className="absolute bottom-4 left-0 right-0 flex justify-center">
-        <div className="flex items-center gap-1.5">
-          {ROCKET_SECTIONS.map((section) => (
-            <div
-              key={section}
-              className="w-1.5 h-1.5 rounded-full transition-all duration-500"
-              style={{
-                background: slots[section].status === 'equipped'
-                  ? '#4ADE80'
-                  : slots[section].status === 'available'
-                    ? '#F59E0B'
-                    : 'var(--color-bg-inset)',
-              }}
-            />
-          ))}
+      {showStatusDots && (
+        <div className="absolute bottom-4 left-0 right-0 flex justify-center">
+          <div className="flex items-center gap-1.5">
+            {ROCKET_SECTIONS.map((section) => (
+              <div
+                key={section}
+                className="w-1.5 h-1.5 rounded-full transition-all duration-500"
+                style={{
+                  background: slots[section].status === 'equipped'
+                    ? '#4ADE80'
+                    : slots[section].status === 'available'
+                      ? '#F59E0B'
+                      : 'var(--color-bg-inset)',
+                }}
+              />
+            ))}
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }

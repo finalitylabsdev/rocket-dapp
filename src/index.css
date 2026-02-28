@@ -335,6 +335,11 @@
   50% { transform: translateX(15%) skewX(5deg) scaleY(1.2); opacity: 0.9; }
 }
 
+@keyframes lastDrawBorderOrbit {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
 @keyframes boxShake {
   0%, 100% { transform: rotate(0deg) scale(1); }
   15% { transform: rotate(-5deg) scale(1.04); }

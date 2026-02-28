@@ -1,16 +1,38 @@
 import { Gavel } from 'lucide-react';
 import BoxCard from './BoxCard';
 import JourneyCue from '../JourneyCue';
+import RarityBadge, { getRarityConfig } from '../brand/RarityBadge';
+import RocketPreview from '../lab/RocketPreview';
+import { buildRocketLabSlots } from '../lab/rocketLabAdapter';
 import { useBoxTiers } from '../../hooks/useBoxTiers';
 import { useRarityConfig } from '../../hooks/useRarityConfig';
 import { AUCTION_MIN_RARITY_TIER } from '../../config/spec';
 import { PREVIEW_BOX_REVEALS } from '../../lib/launchPreview';
-import type { InventoryPart } from '../../types/domain';
-import { APP3_INSET_STYLE, APP3_PANEL_STYLE } from './ui';
+import type { BoxTierConfig, InventoryPart } from '../../types/domain';
+import { SectionGlyph } from './metadataVisuals';
+import {
+  APP3_INSET_STYLE,
+  APP3_PANEL_STYLE,
+  APP3_TEXT_PRIMARY_STYLE,
+  APP3_TEXT_SECONDARY_STYLE,
+  APP3_TRACK_STYLE,
+} from './ui';
 
-function LoadingCard() {
+interface PreviewVaultCard {
+  tier: BoxTierConfig;
+}
+
+interface PreviewVaultShowcase {
+  boxes: PreviewVaultCard[];
+  lastDraw: InventoryPart | null;
+}
+
+function LoadingCard({ featured = false }: { featured?: boolean }) {
   return (
-    <div className="p-5 animate-pulse" style={APP3_PANEL_STYLE}>
+    <div
+      className={`p-5 animate-pulse h-full ${featured ? 'min-h-[32rem]' : ''}`}
+      style={APP3_PANEL_STYLE}
+    >
       <div className="h-4 w-20 mb-3" style={{ background: 'var(--color-bg-card-hover)' }} />
       <div className="h-6 w-36 mb-2" style={{ background: 'var(--color-bg-card-hover)' }} />
       <div className="h-3 w-28 mb-6" style={{ background: 'var(--color-bg-card-hover)' }} />
@@ -22,6 +44,205 @@ function LoadingCard() {
       </div>
     </div>
   );
+}
+
+function LoadingLastDrawWindow() {
+  return (
+    <div
+      className="relative overflow-hidden p-5 animate-pulse"
+      style={{
+        ...APP3_PANEL_STYLE,
+        border: '1px solid rgba(246,197,71,0.22)',
+        boxShadow: 'inset 0 0 0 1px rgba(246,197,71,0.05)',
+      }}
+    >
+      <div
+        className="absolute top-0 left-0 right-0 h-px"
+        style={{ background: 'linear-gradient(90deg, transparent, rgba(246,197,71,0.4), transparent)' }}
+      />
+      <div className="absolute top-4 right-4 h-5 w-20" style={APP3_INSET_STYLE} />
+      <div className="pt-6 pr-24">
+        <div className="flex items-start gap-3">
+          <div className="h-[54px] w-[54px] rounded-xl" style={APP3_INSET_STYLE} />
+          <div className="min-w-0 flex-1 space-y-3">
+            <div className="h-5 w-40" style={{ background: 'var(--color-bg-card-hover)' }} />
+            <div className="h-4 w-28" style={{ background: 'var(--color-bg-card-hover)' }} />
+          </div>
+        </div>
+        <div className="mt-4 space-y-2">
+          <div className="h-3" style={{ background: 'var(--color-bg-card-hover)' }} />
+          <div className="h-3" style={{ background: 'var(--color-bg-card-hover)' }} />
+          <div className="h-3" style={{ background: 'var(--color-bg-card-hover)' }} />
+        </div>
+        <div className="mt-4 grid grid-cols-2 gap-2">
+          <div className="h-14" style={APP3_INSET_STYLE} />
+          <div className="h-14" style={APP3_INSET_STYLE} />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function AttributeBars({ part }: { part: InventoryPart }) {
+  return (
+    <div className="space-y-2 mt-4">
+      {part.attributes.map((value, index) => (
+        <div key={part.attributeNames[index]}>
+          <div className="flex items-center justify-between text-[10px] font-mono uppercase tracking-wider mb-1">
+            <span style={APP3_TEXT_SECONDARY_STYLE}>{part.attributeNames[index]}</span>
+            <span style={APP3_TEXT_PRIMARY_STYLE}>{value}</span>
+          </div>
+          <div className="h-1.5 overflow-hidden" style={APP3_TRACK_STYLE}>
+            <div
+              className="h-full"
+              style={{
+                width: `${value}%`,
+                background: 'linear-gradient(90deg, #F6C547, #F59E0B)',
+              }}
+            />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function LastDrawWindow({ part }: { part: InventoryPart }) {
+  const cfg = getRarityConfig(part.rarity);
+  const previewSlots = buildRocketLabSlots([
+    {
+      ...part,
+      isEquipped: true,
+      equippedSectionKey: part.slot,
+    },
+  ]);
+
+  return (
+    <div className="relative overflow-hidden p-px">
+      <div
+        className="pointer-events-none absolute inset-[-70%]"
+        style={{
+          background: 'conic-gradient(from 0deg, #F59E0B, #22C55E, #06B6D4, #3B82F6, #8B5CF6, #EF4444, #F59E0B)',
+          animation: 'lastDrawBorderOrbit 5s linear infinite',
+        }}
+      />
+      <div
+        className="relative overflow-hidden p-5"
+        style={{
+          ...APP3_PANEL_STYLE,
+          border: 'none',
+          boxShadow: `inset 0 0 0 1px ${cfg.color}14`,
+        }}
+      >
+        <span
+          className="absolute top-4 right-4 inline-flex items-center rounded-full px-2.5 py-1 text-[9px] font-mono font-semibold uppercase tracking-[0.22em]"
+          style={{
+            color: 'var(--color-text-secondary)',
+            background: 'var(--color-bg-card)',
+            border: `1px solid ${cfg.border}`,
+          }}
+        >
+          LAST DRAW
+        </span>
+
+        <div className="grid grid-cols-1 gap-5 pt-6 lg:grid-cols-[minmax(0,1fr)_18rem] lg:items-center">
+          <div className="pr-24 lg:pr-0">
+            <div className="flex items-start gap-3">
+              <SectionGlyph asset={part.illustration} fallbackKey={part.slot} size="md" />
+              <div className="min-w-0 flex-1">
+                <p
+                  className="font-mono font-black text-lg sm:text-xl uppercase"
+                  style={{ color: cfg.color }}
+                  title={part.name}
+                >
+                  {part.name}
+                </p>
+                <div className="mt-3 flex flex-wrap items-center gap-2">
+                  <RarityBadge tier={part.rarity} size="xs" />
+                  <span
+                    className="inline-flex items-center rounded-full px-2 py-0.5 text-[9px] font-mono font-semibold uppercase tracking-[0.16em]"
+                    style={{ background: 'rgba(15,23,42,0.65)', color: '#E2E8F0', border: '1px solid rgba(148,163,184,0.2)' }}
+                  >
+                    {part.sectionName}
+                  </span>
+                  <span
+                    className="inline-flex items-center rounded-full px-2 py-0.5 text-[9px] font-mono font-semibold uppercase tracking-[0.16em]"
+                    style={{ background: 'rgba(15,23,42,0.58)', color: '#E2E8F0', border: '1px solid rgba(148,163,184,0.18)' }}
+                  >
+                    #{(part.serialNumber ?? 0).toString().padStart(6, '0')}
+                  </span>
+                  {part.isShiny && (
+                    <span
+                      className="inline-flex items-center rounded-full px-2 py-0.5 text-[9px] font-mono font-semibold uppercase tracking-[0.16em]"
+                      style={{ background: 'rgba(245,158,11,0.12)', color: '#FCD34D', border: '1px solid rgba(245,158,11,0.28)' }}
+                    >
+                      Shiny
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            <AttributeBars part={part} />
+
+            <div className="mt-4 grid grid-cols-2 gap-2 text-xs font-mono">
+              <div className="rounded-xl px-3 py-2 min-w-0" style={APP3_INSET_STYLE}>
+                <span style={APP3_TEXT_SECONDARY_STYLE}>Total Power</span>
+                <p className="mt-1 font-mono font-black text-sm" style={APP3_TEXT_PRIMARY_STYLE}>
+                  {part.totalPower}
+                </p>
+              </div>
+              <div className="rounded-xl px-3 py-2 min-w-0" style={APP3_INSET_STYLE}>
+                <span style={APP3_TEXT_SECONDARY_STYLE}>Serial Trait</span>
+                <p className="mt-1 font-mono font-black text-sm truncate" style={APP3_TEXT_PRIMARY_STYLE}>
+                  {part.serialTrait}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div
+            className="rounded-2xl px-3 py-2 sm:px-4 sm:py-3"
+            style={{
+              ...APP3_INSET_STYLE,
+              border: `1px solid ${cfg.border}`,
+            }}
+          >
+            <RocketPreview
+              slots={previewSlots}
+              model="standard"
+              launching={false}
+              onLaunchComplete={() => {}}
+              compact
+              showStatusDots={false}
+              highlightSection={part.slot}
+              highlightColor={cfg.color}
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function getPreviewVaultShowcase(boxTiers: BoxTierConfig[]): PreviewVaultShowcase {
+  const previewTiers = boxTiers.slice(0, 3);
+
+  if (previewTiers.length === 0) {
+    return {
+      boxes: [],
+      lastDraw: null,
+    };
+  }
+
+  const featuredReward = PREVIEW_BOX_REVEALS.find((part) => part.illustration?.url || part.illustration?.key) ?? PREVIEW_BOX_REVEALS[0] ?? null;
+
+  return {
+    boxes: previewTiers.map((tier) => ({
+      tier,
+    })),
+    lastDraw: featuredReward,
+  };
 }
 
 function StatusBanner({
@@ -80,6 +301,8 @@ export default function VaultTab({
   const isCatalogStale = readState === 'stale';
   const isRarityFallback = rarityConfig.readState === 'fallback';
   const isRarityStale = rarityConfig.readState === 'stale';
+  const previewShowcase = readOnly ? getPreviewVaultShowcase(boxTiers) : null;
+  const isPreviewShowcase = readOnly && !isCatalogDegraded;
 
   return (
     <section>
@@ -157,18 +380,47 @@ export default function VaultTab({
           </div>
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {isLoading && boxTiers.length === 0
-            ? Array.from({ length: 4 }, (_, index) => <LoadingCard key={index} />)
-            : boxTiers.map((tier, index) => (
-              <BoxCard
-                key={tier.id}
-                tier={tier}
-                readOnly={readOnly}
-                previewReward={readOnly ? PREVIEW_BOX_REVEALS[index] ?? null : null}
-              />
-            ))}
-        </div>
+        isPreviewShowcase ? (
+          <div className="space-y-4">
+            {isLoading && boxTiers.length === 0 ? (
+              <>
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+                  {Array.from({ length: 3 }, (_, index) => (
+                    <LoadingCard key={index} />
+                  ))}
+                </div>
+                <LoadingLastDrawWindow />
+              </>
+            ) : (
+              <>
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+                  {previewShowcase?.boxes.map((card) => (
+                    <BoxCard
+                      key={card.tier.id}
+                      tier={card.tier}
+                      readOnly={readOnly}
+                    />
+                  ))}
+                </div>
+                {previewShowcase?.lastDraw && (
+                  <LastDrawWindow part={previewShowcase.lastDraw} />
+                )}
+              </>
+            )}
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {isLoading && boxTiers.length === 0
+              ? Array.from({ length: 4 }, (_, index) => <LoadingCard key={index} />)
+              : boxTiers.map((tier) => (
+                <BoxCard
+                  key={tier.id}
+                  tier={tier}
+                  readOnly={readOnly}
+                />
+              ))}
+          </div>
+        )
       )}
 
       {hasAuctionEligiblePart && onNavigateBids && (
