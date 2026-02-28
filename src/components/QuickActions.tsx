@@ -3,6 +3,13 @@ import { ArrowLeftRight, Gift, Rocket, Trophy, Lock, ChevronRight } from 'lucide
 import { useIntersectionObserver } from '../hooks/useCountUp';
 import { WHITELIST_ETH } from '../config/spec';
 import { formatEthAmount } from '../lib/ethLock';
+import {
+  FAUCET_ENABLED,
+  DEX_ENABLED,
+  STAR_VAULT_ENABLED,
+  NEBULA_BIDS_ENABLED,
+  ROCKET_LAB_ENABLED,
+} from '../config/flags';
 
 interface ActionCard {
   id: string;
@@ -23,7 +30,7 @@ const cards: ActionCard[] = [
     title: 'Entropy Gate',
     tagline: 'Lock ETH → Claim Flux',
     description: `Lock ${formatEthAmount(WHITELIST_ETH)} ETH once to whitelist your wallet. Claim 1 Flux every 24 hours. Funds the ETH prize pool forever.`,
-    buttonLabel: 'Claim Your Flux',
+    buttonLabel: 'Open Entropy Gate',
     stats: [
       { label: 'Daily Claim', value: '1 Flux' },
       { label: 'Lock Amount', value: `${formatEthAmount(WHITELIST_ETH)} ETH` },
@@ -81,20 +88,35 @@ const cards: ActionCard[] = [
   },
 ];
 
+const cardEnabled: Record<string, boolean> = {
+  faucet: FAUCET_ENABLED,
+  dex: DEX_ENABLED,
+  mystery: STAR_VAULT_ENABLED || NEBULA_BIDS_ENABLED,
+  lab: ROCKET_LAB_ENABLED,
+  leaderboard: true,
+};
+
 interface QuickActionsProps {
+  onOpenGate: () => void;
   onOpenDex: () => void;
   onOpenMystery: () => void;
   onOpenLab: () => void;
   onOpenLeaderboard: () => void;
 }
 
-export default function QuickActions({ onOpenDex, onOpenMystery, onOpenLab, onOpenLeaderboard }: QuickActionsProps) {
+export default function QuickActions({
+  onOpenGate,
+  onOpenDex,
+  onOpenMystery,
+  onOpenLab,
+  onOpenLeaderboard,
+}: QuickActionsProps) {
   const { ref, isVisible } = useIntersectionObserver(0.1);
   const [hovered, setHovered] = useState<string | null>(null);
 
   return (
-    <section className="py-20 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-7xl mx-auto">
+    <section id="status" className="py-20">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div
           ref={ref}
           className={`text-center mb-12 transition-all duration-700 ${
@@ -102,62 +124,87 @@ export default function QuickActions({ onOpenDex, onOpenMystery, onOpenLab, onOp
           }`}
         >
           <h2 className="section-title mb-3">Your Dashboard</h2>
-          <p className="text-zinc-500 max-w-xl mx-auto">
+          <p className="text-text-muted max-w-xl mx-auto">
             One end-to-end journey — from locking ETH to winning it back. Every app feeds the next.
           </p>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
-          {cards.map((card, i) => (
+          {cards.map((card, i) => {
+            const enabled = cardEnabled[card.id] ?? true;
+            const badge = enabled ? card.badge : 'Coming Soon';
+            return (
             <div
               key={card.id}
-              className={`relative bg-bg-card border overflow-hidden cursor-pointer transition-all duration-300 ${
-                hovered === card.id
+              className={`relative bg-bg-card border overflow-hidden transition-all duration-300 ${
+                enabled ? 'cursor-pointer' : 'cursor-default'
+              } ${
+                !enabled ? 'opacity-50 grayscale' : ''
+              } ${
+                enabled && hovered === card.id
                   ? 'border-border-strong bg-bg-card-hover'
                   : 'border-border-subtle'
               } ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
-              style={{ transitionDelay: `${i * 70}ms` }}
-              onMouseEnter={() => setHovered(card.id)}
+              style={{
+                transitionDelay: `${i * 70}ms`,
+                ...(!enabled ? { opacity: 0.45, filter: 'grayscale(0.6)' } : {}),
+              }}
+              onMouseEnter={() => enabled && setHovered(card.id)}
               onMouseLeave={() => setHovered(null)}
             >
-              {card.badge && (
+              {badge && (
                 <div className="absolute top-3 right-3 z-10">
-                  <span className="bg-dot-green text-black text-[10px] font-mono font-bold px-2 py-0.5 uppercase tracking-wider">
-                    {card.badge}
+                  <span className={`text-[10px] font-mono font-bold px-2 py-0.5 uppercase tracking-wider ${
+                    enabled ? 'bg-dot-green text-black' : 'bg-text-muted text-bg-base'
+                  }`}>
+                    {badge}
                   </span>
                 </div>
               )}
 
               <div className="p-5 flex flex-col h-full">
-                <div className="w-11 h-11 bg-zinc-800 border border-border-default flex items-center justify-center mb-4">
+                <div className="w-11 h-11 bg-bg-inset border border-border-default flex items-center justify-center mb-4">
                   {card.icon}
                 </div>
 
-                <h3 className="font-mono font-bold text-white text-base leading-tight mb-1 uppercase tracking-wider">
+                <h3 className="font-mono font-bold text-text-primary text-base leading-tight mb-1 uppercase tracking-wider">
                   {card.title}
                 </h3>
-                <p className="text-xs font-mono font-semibold text-zinc-400 mb-2">{card.tagline}</p>
-                <p className="text-sm text-zinc-500 leading-relaxed flex-1 mb-4">{card.description}</p>
+                <p className="text-xs font-mono font-semibold text-text-secondary mb-2">{card.tagline}</p>
+                <p className="text-sm text-text-muted leading-relaxed flex-1 mb-4">{card.description}</p>
 
                 <div className="grid grid-cols-2 gap-2 mb-4">
                   {card.stats.map((stat, j) => (
-                    <div key={j} className="bg-zinc-900 p-2 text-center border border-border-subtle">
-                      <p className="font-mono font-bold text-white text-sm leading-none">{stat.value}</p>
-                      <p className="text-[10px] text-zinc-500 mt-0.5 leading-none font-mono uppercase">{stat.label}</p>
+                    <div key={j} className="bg-bg-inset p-2 text-center border border-border-subtle">
+                      <p className="font-mono font-bold text-text-primary text-sm leading-none">{stat.value}</p>
+                      <p className="text-[10px] text-text-muted mt-0.5 leading-none font-mono uppercase">{stat.label}</p>
                     </div>
                   ))}
                 </div>
 
                 <button
-                  onClick={card.id === 'dex' ? onOpenDex : card.id === 'mystery' ? onOpenMystery : card.id === 'lab' ? onOpenLab : card.id === 'leaderboard' ? onOpenLeaderboard : undefined}
-                  className="w-full border border-dot-green text-dot-green hover:bg-dot-green/10 font-mono font-semibold text-sm py-2.5 transition-all duration-200 flex items-center justify-center gap-1.5 active:scale-95 uppercase tracking-wider"
+                  onClick={enabled ? (
+                    card.id === 'dex' ? onOpenDex
+                    : card.id === 'mystery' ? onOpenMystery
+                    : card.id === 'lab' ? onOpenLab
+                    : card.id === 'leaderboard' ? onOpenLeaderboard
+                    : card.id === 'faucet' ? onOpenGate
+                    : undefined
+                  ) : undefined}
+                  disabled={!enabled}
+                  className={`w-full border font-mono font-semibold text-sm py-2.5 transition-all duration-200 flex items-center justify-center gap-1.5 uppercase tracking-wider ${
+                    enabled
+                      ? 'border-dot-green text-dot-green hover:bg-dot-green/10 active:scale-95'
+                      : 'border-border-subtle text-text-muted cursor-not-allowed'
+                  }`}
                 >
-                  {card.buttonLabel}
-                  <ChevronRight size={13} />
+                  {enabled ? card.buttonLabel : 'Coming Soon'}
+                  {enabled && <ChevronRight size={13} />}
                 </button>
               </div>
             </div>
-          ))}
+            );
+          })}
         </div>
       </div>
     </section>

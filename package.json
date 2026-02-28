@@ -8,10 +8,15 @@
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "typecheck": "tsc --noEmit -p tsconfig.app.json"
+    "typecheck": "tsc --noEmit -p tsconfig.app.json",
+    "simulate:traffic": "node scripts/synthetic-traffic.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.57.4",
+    "@web3-onboard/core": "^2.24.1",
+    "@web3-onboard/injected-wallets": "^2.11.3",
+    "@web3-onboard/react": "^2.11.0",
+    "ethers": "^6.16.0",
     "lucide-react": "^0.344.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",

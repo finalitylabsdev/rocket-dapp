@@ -138,12 +138,16 @@ Required:
 ## 6.2 Entropy Gate
 
 Current:
-- Hero has lock and daily claim interactions (`src/components/Hero.tsx`) but uses simulated rewards and no streak/XP logic.
+- `src/context/EthLockState.tsx` runs one shared `useEthLock(wallet.address)` source for visible gate state across the shell and hero.
+- `src/components/EntropyGateBanner.tsx` keeps ETH lock status, next-step guidance, loading, verification, and config errors visible outside the home-only hero flow.
+- `src/hooks/useWallet.ts` uses Web3-Onboard as the single wallet connect surface and clears stale Supabase wallet sessions when the provider disconnects, switches accounts, or fails reconciliation after chain changes.
+- Daily claim still has no streak/XP logic.
 
 Required:
-1. Enforce canonical whitelist and faucet values.
-2. Add streak/XP model and milestones (7/14/30 days).
-3. Add wallet/network status and prize trigger CTA conditions.
+1. Keep the shared shell banner + hero flow as the single client-side authority path for visible ETH lock state.
+2. Keep Web3-Onboard as the only wallet connect modal; do not reintroduce a custom injected-wallet selector path.
+3. Add streak/XP model and milestones (7/14/30 days).
+4. Expand prize-trigger CTA conditions/copy beyond the current connect, lock, verify, and reconnect states.
 
 ## 6.3 Entropy Exchange
 
@@ -171,14 +175,15 @@ Required:
 ## 6.5 Assembler and Lift-Off
 
 Current:
-- `src/pages/RocketLabPage.tsx` and `src/components/lab/*` implement 5-part model.
-- Launch unlocks at 3 equipped parts (`src/components/lab/StatsPanel.tsx`).
+- `src/pages/RocketLabPage.tsx` and `src/components/lab/*` consume `GameState.inventory` through a read-only 8-slot adapter keyed by `RocketSection`.
+- Launch requires all 8 canonical slots to be filled with unlocked parts.
+- Launch history/results are explicitly local simulation only in this branch (no launch RPC, ledger write, or economic authority).
 
 Required:
-1. Replace 5-part model with 8-section model.
-2. Require all 8 slots before launch.
-3. Implement canonical Grav Score components and random event penalties.
-4. Preserve cinematic sequence, but align event/copy outputs to spec language.
+1. Preserve the read-only compatibility boundary until a server-authoritative launch path exists.
+2. Replace local simulation history/results with server authority only when that path is implemented.
+3. Keep canonical Grav Score components and random event penalties aligned with the spec.
+4. Preserve cinematic sequence, but keep simulation/compatibility copy explicit until cutover.
 
 ## 6.6 Cosmic Jackpot
 
@@ -366,4 +371,3 @@ The following are intentionally deferred unless explicitly approved:
 1. Approve this freeze baseline.
 2. Implement Phase 0 and Phase 1 first (no feature work before shared model/config freeze).
 3. Open tracked work items per phase with file-level owners.
-

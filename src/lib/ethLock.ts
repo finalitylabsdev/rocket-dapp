@@ -203,6 +203,8 @@ function toFriendlyVerifierError(message: string | undefined): string {
   return message || 'Failed to verify ETH lock transaction.';
 }
 
+const AUTH_TOKEN_REFRESH_WINDOW_SECONDS = 60;
+
 async function getVerifierAuthToken(): Promise<string> {
   if (!supabase) {
     throw new Error('Supabase is not configured in this environment.');
@@ -213,12 +215,37 @@ async function getVerifierAuthToken(): Promise<string> {
     throw new Error(`Failed to load auth session: ${error.message}`);
   }
 
-  const accessToken = data.session?.access_token;
-  if (accessToken) {
-    return accessToken;
+  let session = data.session;
+  if (!session) {
+    throw new Error('A signed-in wallet session is required to verify an ETH lock.');
   }
 
-  throw new Error('A signed-in wallet session is required to verify an ETH lock.');
+  const expiresAt = typeof session.expires_at === 'number' ? session.expires_at : null;
+  const nowInSeconds = Math.floor(Date.now() / 1000);
+  const shouldRefresh =
+    !session.access_token ||
+    expiresAt === null ||
+    expiresAt <= nowInSeconds + AUTH_TOKEN_REFRESH_WINDOW_SECONDS;
+
+  if (shouldRefresh) {
+    if (!session.refresh_token) {
+      throw new Error('Reconnect your wallet to refresh the signed-in session before verifying an ETH lock.');
+    }
+
+    const { data: refreshedData, error: refreshError } = await supabase.auth.refreshSession({
+      refresh_token: session.refresh_token,
+    });
+    if (refreshError) {
+      throw new Error(`Failed to refresh auth session: ${refreshError.message}`);
+    }
+
+    session = refreshedData.session;
+    if (!session?.access_token) {
+      throw new Error('Reconnect your wallet to refresh the signed-in session before verifying an ETH lock.');
+    }
+  }
+
+  return session.access_token;
 }
 
 export function formatEthAmount(value: number): string {

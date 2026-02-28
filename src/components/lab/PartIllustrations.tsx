@@ -1,5 +1,6 @@
 import type { RarityTier } from '../brand/RarityBadge';
-import { RARITY_CONFIG } from '../brand/RarityBadge';
+import { getRarityConfig } from '../brand/RarityBadge';
+import type { RocketSection } from '../../types/domain';
 
 interface IllustrationProps {
   equipped: boolean;
@@ -9,7 +10,7 @@ interface IllustrationProps {
 
 function getAccent(rarity: RarityTier, equipped: boolean) {
   if (!equipped) return { primary: '#2a2f3d', secondary: '#1a1f2a', highlight: '#3a4050', glow: 'none' };
-  const cfg = RARITY_CONFIG[rarity];
+  const cfg = getRarityConfig(rarity);
   return { primary: cfg.color, secondary: cfg.bg, highlight: cfg.border, glow: cfg.glow };
 }
 
@@ -275,7 +276,7 @@ export function SolarWingsIllustration({ equipped, rarity, size = 72 }: Illustra
         />
       ))}
 
-      {[[72, 16, 12, 8], [62, 20, 4, 8], [50, 24, -4, 8], [72, 40, 12, 8], [62, 44, 4, 8], [50, 48, -4, 8]].map(([cx, cy, _w, h], i) => (
+      {[[72, 16, 12, 8], [62, 20, 4, 8], [50, 24, -4, 8], [72, 40, 12, 8], [62, 44, 4, 8], [50, 48, -4, 8]].map(([cx, cy, , h], i) => (
         <rect key={`r${i}`} x={cx - 12} y={cy} width={12} height={h} rx="1"
           fill="url(#sw-cell)"
           stroke={equipped ? a.primary : '#1a2030'}
@@ -735,29 +736,80 @@ export function StarFiberIllustration({ equipped, rarity, size = 72 }: Illustrat
   );
 }
 
-export type PartId =
-  | 'engine' | 'fuel' | 'body' | 'wings' | 'booster'
-  | 'noseCone' | 'heatShield' | 'gyroscope' | 'solarPanels' | 'landingStruts';
-
-const ILLUSTRATIONS: Record<PartId, React.ComponentType<IllustrationProps>> = {
-  engine:       PulseEngineIllustration,
-  fuel:         NebulaTankIllustration,
-  body:         RadiationMantleIllustration,
-  wings:        SolarWingsIllustration,
-  booster:      IonArrayIllustration,
-  noseCone:     NovaThrusterIllustration,
-  heatShield:   ImpactFieldIllustration,
-  gyroscope:    AstroGyroIllustration,
-  solarPanels:  PhotonSailsIllustration,
-  landingStruts: StarFiberIllustration,
+export const SECTION_ILLUSTRATIONS: Record<RocketSection, React.ComponentType<IllustrationProps>> = {
+  coreEngine:        PulseEngineIllustration,
+  wingPlate:         SolarWingsIllustration,
+  fuelCell:          NebulaTankIllustration,
+  navigationModule:  AstroGyroIllustration,
+  payloadBay:        PhotonSailsIllustration,
+  thrusterArray:     IonArrayIllustration,
+  propulsionCables:  StarFiberIllustration,
+  shielding:         RadiationMantleIllustration,
 };
 
-export default function PartIllustration({ id, equipped, rarity, size = 72 }: {
-  id: PartId;
+export function SectionIllustration({ section, equipped, rarity, variantId, size = 72 }: {
+  section: RocketSection;
   equipped: boolean;
   rarity: RarityTier;
+  variantId?: number;
   size?: number;
 }) {
-  const Component = ILLUSTRATIONS[id];
-  return <Component equipped={equipped} rarity={rarity} size={size} />;
+  const Component = SECTION_ILLUSTRATIONS[section];
+  const accent = getRarityConfig(rarity).color;
+
+  const renderVariantGimmick = () => {
+    if (!variantId || !equipped) {
+      return null;
+    }
+
+    const pattern = variantId % 4;
+
+    if (pattern === 0) {
+      return (
+        <div className="absolute inset-x-3 top-2 flex justify-between opacity-70">
+          {[0, 1, 2].map((index) => (
+            <span
+              key={index}
+              className="h-1.5 w-1.5 rounded-full"
+              style={{ background: accent, boxShadow: `0 0 8px ${accent}` }}
+            />
+          ))}
+        </div>
+      );
+    }
+
+    if (pattern === 1) {
+      return (
+        <div
+          className="absolute inset-y-3 right-2 w-1 rounded-full opacity-60"
+          style={{ background: `linear-gradient(180deg, ${accent}, transparent)` }}
+        />
+      );
+    }
+
+    if (pattern === 2) {
+      return (
+        <div className="absolute inset-x-0 bottom-2 flex justify-center opacity-70">
+          <span
+            className="h-1.5 w-8 rounded-full"
+            style={{ background: accent, boxShadow: `0 0 10px ${accent}` }}
+          />
+        </div>
+      );
+    }
+
+    return (
+      <div
+        className="absolute left-2 top-2 h-4 w-4 rotate-45 opacity-60"
+        style={{ border: `1px solid ${accent}` }}
+      />
+    );
+  };
+
+  return (
+    <div className="relative" style={{ width: size, height: size }}>
+      <Component equipped={equipped} rarity={rarity} size={size} />
+      {renderVariantGimmick()}
+    </div>
+  );
 }

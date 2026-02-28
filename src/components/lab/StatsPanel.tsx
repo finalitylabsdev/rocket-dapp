@@ -1,224 +1,205 @@
-import { Shield, Fuel, Zap, Target, Rocket, TrendingUp } from 'lucide-react';
-import type { EquippedParts } from './PartsGrid';
+import { AlertTriangle, Fuel, Rocket, ShieldCheck, Wrench } from 'lucide-react';
 import { ROCKET_MODELS, type RocketModelId } from './RocketModels';
+import type { RocketLabMetrics } from './rocketLabAdapter';
+import type { RocketLaunchHistoryEntry } from '../../lib/rocketLab';
 
 interface StatsPanelProps {
-  equipped: EquippedParts;
-  levels: Record<keyof EquippedParts, number>;
+  metrics: RocketLabMetrics;
   model: RocketModelId;
-  onLaunch: () => void;
+  fluxBalance: number;
   launching: boolean;
+  walletConnected: boolean;
+  launchError: string | null;
+  latestLaunch: RocketLaunchHistoryEntry | null;
+  onLaunch: () => void;
 }
 
-function computeStats(equipped: EquippedParts, levels: Record<keyof EquippedParts, number>, model: RocketModelId) {
-  const modelDef = ROCKET_MODELS.find((m) => m.id === model)!;
-  const eq = Object.values(equipped).filter(Boolean).length;
-  const totalParts = Object.keys(equipped).length;
-  const totalLevels = Object.entries(levels).reduce(
-    (acc, [k, v]) => acc + (equipped[k as keyof EquippedParts] ? v : 0),
-    0
-  );
-
-  const base = eq / totalParts;
-  const bonus = totalLevels / (eq * 3 || 1);
-
-  const stability = Math.round(
-    (equipped.wings ? 0.35 : 0.05) * 100 +
-    (equipped.body ? 0.3 : 0) * 100 +
-    (equipped.booster ? 0.1 : 0) * 100 +
-    bonus * 12 +
-    modelDef.bonuses.stabilityBonus
-  );
-
-  const fuelEff = Math.round(
-    (equipped.fuel ? 0.45 : 0.05) * 100 +
-    (equipped.engine ? 0.25 : 0) * 100 +
-    (equipped.booster ? 0.15 : 0) * 100 +
-    bonus * 10 +
-    modelDef.bonuses.fuelBonus
-  );
-
-  const launchPower = Math.round(
-    (equipped.engine ? 0.42 : 0) * 100 +
-    (equipped.booster ? 0.28 : 0) * 100 +
-    (equipped.fuel ? 0.18 : 0) * 100 +
-    bonus * 12 +
-    modelDef.bonuses.powerBonus
-  );
-
-  const winProb = Math.round(base * 60 + bonus * 20 + (eq === totalParts ? 10 : 0) + modelDef.bonuses.winBonus);
-
-  return {
-    stability: Math.min(100, Math.max(0, stability)),
-    fuelEff: Math.min(100, Math.max(0, fuelEff)),
-    launchPower: Math.min(100, Math.max(0, launchPower)),
-    winProb: Math.min(95, Math.max(0, winProb)),
-  };
+function formatFlux(value: number) {
+  return value.toLocaleString(undefined, {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
 }
 
-function StatBar({ label, value, icon, color }: {
-  label: string;
-  value: number;
-  icon: React.ReactNode;
-  color: string;
-}) {
-  return (
-    <div className="space-y-2">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <div
-            className="w-6 h-6 flex items-center justify-center"
-            style={{ background: '#06080F', border: '1px solid #1E2636' }}
-          >
-            {icon}
-          </div>
-          <span className="text-sm font-mono font-medium uppercase tracking-wider" style={{ color: '#8A94A8' }}>{label}</span>
-        </div>
-        <div className="flex items-center gap-1.5">
-          <span className="font-mono font-bold text-sm" style={{ color: '#E8ECF4' }}>{value}</span>
-          <span className="font-mono text-xs" style={{ color: '#4A5468' }}>/100</span>
-        </div>
-      </div>
-      <div className="h-2 overflow-hidden" style={{ background: '#06080F', border: '1px solid #1E2636' }}>
-        <div
-          className="h-full transition-all duration-700 ease-out"
-          style={{
-            width: `${value}%`,
-            background: color,
-          }}
-        />
-      </div>
-    </div>
-  );
-}
+export default function StatsPanel({
+  metrics,
+  model,
+  fluxBalance,
+  launching,
+  walletConnected,
+  launchError,
+  latestLaunch,
+  onLaunch,
+}: StatsPanelProps) {
+  const modelDef = ROCKET_MODELS.find((entry) => entry.id === model) ?? ROCKET_MODELS[0];
+  const canAfford = fluxBalance >= metrics.fuelCost;
+  const buttonDisabled = !walletConnected || !metrics.canLaunch || launching || !canAfford;
 
-export default function StatsPanel({ equipped, levels, model, onLaunch, launching }: StatsPanelProps) {
-  const stats = computeStats(equipped, levels, model);
-  const equippedCount = Object.values(equipped).filter(Boolean).length;
-  const totalParts = Object.keys(equipped).length;
-  const canLaunch = equippedCount >= 3;
-  const allEquipped = equippedCount === totalParts;
-  const modelDef = ROCKET_MODELS.find((m) => m.id === model)!;
+  const buttonLabel = !walletConnected
+    ? 'Connect Wallet'
+    : launching
+      ? 'Launching…'
+      : !metrics.canLaunch
+        ? 'Equip All 8 Parts'
+        : !canAfford
+          ? 'Insufficient FLUX'
+          : 'Launch Rocket';
 
   return (
-    <div className="border overflow-hidden" style={{ background: '#06080F', border: '1px solid #1E2636' }}>
-      <div className="p-5" style={{ borderBottom: '1px solid #1E2636' }}>
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            <div
-              className="w-8 h-8 flex items-center justify-center"
-              style={{ background: '#0C1018', border: '1px solid #1E2636' }}
-            >
-              <TrendingUp size={15} style={{ color: '#8A94A8' }} />
-            </div>
-            <div>
-              <p className="font-mono font-bold text-sm uppercase tracking-wider" style={{ color: '#E8ECF4' }}>Rocket Stats</p>
-              <p className="font-mono text-[11px]" style={{ color: '#4A5468' }}>{equippedCount}/{totalParts} equipped</p>
-            </div>
+    <div className="border overflow-hidden" style={{ background: 'var(--color-bg-base)', border: '1px solid var(--color-border-subtle)' }}>
+      <div className="p-5" style={{ borderBottom: '1px solid var(--color-border-subtle)' }}>
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <p className="font-mono font-bold text-sm uppercase tracking-wider text-text-primary">Launch Control</p>
+            <p className="mt-1 font-mono text-[11px] text-text-muted">
+              {metrics.equippedSlots}/{metrics.totalSlots} sections equipped
+            </p>
           </div>
           <div
-            className="flex items-center gap-1.5 px-2.5 py-1.5"
-            style={{ background: '#0C1018', border: '1px solid #1E2636' }}
+            className="flex items-center gap-2 px-2.5 py-1.5"
+            style={{ background: modelDef.accentBg, border: `1px solid ${modelDef.accentBorder}` }}
           >
-            <Target size={11} style={{ color: '#8A94A8' }} />
-            <span className="font-mono font-black text-sm" style={{ color: '#E8ECF4' }}>{stats.winProb}%</span>
-            <span className="font-mono text-[10px]" style={{ color: '#4A5468' }}>WIN</span>
+            <ShieldCheck size={12} style={{ color: modelDef.accentColor }} />
+            <span className="font-mono text-[10px] uppercase tracking-[0.16em]" style={{ color: modelDef.accentColor }}>
+              {modelDef.name}
+            </span>
           </div>
         </div>
       </div>
 
-      <div className="p-5 space-y-4" style={{ borderBottom: '1px solid #1E2636' }}>
-        <StatBar
-          label="Stability"
-          value={stats.stability}
-          icon={<Shield size={12} style={{ color: '#3B82F6' }} />}
-          color="#3B82F6"
-        />
-        <StatBar
-          label="Fuel Eff"
-          value={stats.fuelEff}
-          icon={<Fuel size={12} style={{ color: '#4ADE80' }} />}
-          color="#4ADE80"
-        />
-        <StatBar
-          label="Power"
-          value={stats.launchPower}
-          icon={<Zap size={12} style={{ color: '#F59E0B' }} />}
-          color="#F59E0B"
-        />
-      </div>
-
-      <div className="p-5">
-        <div className="grid grid-cols-3 gap-2 mb-4">
+      <div className="p-5 space-y-4" style={{ borderBottom: '1px solid var(--color-border-subtle)' }}>
+        <div className="grid grid-cols-2 gap-2">
           {[
             {
-              label: 'Orbit Class',
-              value: equippedCount >= 5 ? 'High' : equippedCount >= 3 ? 'Low' : 'Sub',
+              label: 'Total Power',
+              value: metrics.totalPower.toLocaleString(),
             },
             {
-              label: 'Multiplier',
-              value: `${(1 + stats.winProb / 100 * 9).toFixed(1)}×`,
+              label: 'Fuel Cost',
+              value: `${formatFlux(metrics.fuelCost)} FLUX`,
             },
             {
-              label: 'φ Reward',
-              value: allEquipped ? '1000' : `${Math.round(stats.winProb * 4)}`,
+              label: 'Balance',
+              value: `${formatFlux(fluxBalance)} FLUX`,
+            },
+            {
+              label: 'Damaged',
+              value: String(metrics.damagedEquippedSlots),
             },
           ].map((item) => (
             <div
               key={item.label}
-              className="p-2.5 text-center"
-              style={{ background: '#0C1018', border: '1px solid #1E2636' }}
+              className="p-3"
+              style={{ background: 'var(--color-bg-card)', border: '1px solid var(--color-border-subtle)' }}
             >
-              <p className="font-mono font-bold text-sm" style={{ color: '#E8ECF4' }}>{item.value}</p>
-              <p className="text-[10px] font-mono mt-0.5 uppercase" style={{ color: '#4A5468' }}>{item.label}</p>
+              <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-text-muted">{item.label}</p>
+              <p className="mt-1 font-mono font-bold text-sm text-text-primary">{item.value}</p>
             </div>
           ))}
         </div>
 
         <div
-          className="px-3 py-2 mb-4 flex items-center gap-2"
-          style={{ background: `${modelDef.accentBg}`, border: `1px solid ${modelDef.accentBorder}` }}
+          className="px-3 py-3"
+          style={{ background: 'var(--color-bg-card)', border: '1px solid var(--color-border-subtle)' }}
         >
-          <div className="w-2 h-2 flex-shrink-0" style={{ background: modelDef.accentColor }} />
-          <span className="text-xs font-mono font-medium uppercase" style={{ color: modelDef.accentColor }}>{modelDef.name}</span>
-          <span className="text-xs font-mono ml-auto" style={{ color: '#4A5468' }}>{modelDef.tagline}</span>
+          <div className="flex items-center justify-between gap-2 text-[10px] font-mono uppercase tracking-[0.16em] text-text-muted">
+            <span>Average Condition</span>
+            <span>{metrics.averageCondition}%</span>
+          </div>
+          <div className="mt-2 h-2 overflow-hidden" style={{ background: 'var(--color-bg-base)', border: '1px solid var(--color-border-subtle)' }}>
+            <div
+              className="h-full"
+              style={{
+                width: `${metrics.averageCondition}%`,
+                background: metrics.averageCondition > 50
+                  ? 'linear-gradient(90deg, rgba(34,197,94,0.45), #22C55E)'
+                  : 'linear-gradient(90deg, rgba(245,158,11,0.4), #F59E0B)',
+              }}
+            />
+          </div>
         </div>
 
-        {!canLaunch && (
-          <p className="text-center text-xs font-mono mb-3" style={{ color: '#4A5468' }}>
-            Equip at least 3 parts to launch
-          </p>
+        <div
+          className="px-3 py-3"
+          style={{ background: 'var(--color-bg-card)', border: '1px solid var(--color-border-subtle)' }}
+        >
+          <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-text-muted">Latest Score Breakdown</p>
+          {latestLaunch ? (
+            <div className="mt-3 grid grid-cols-2 gap-2">
+              {[
+                { label: 'Base', value: latestLaunch.scoreBreakdown.base },
+                { label: 'Luck', value: latestLaunch.scoreBreakdown.luck },
+                { label: 'Random', value: latestLaunch.scoreBreakdown.randomness },
+                { label: 'Total', value: latestLaunch.scoreBreakdown.total },
+              ].map((item) => (
+                <div
+                  key={item.label}
+                  className="px-2.5 py-2"
+                  style={{ background: 'var(--color-bg-base)', border: '1px solid var(--color-border-subtle)' }}
+                >
+                  <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-text-muted">{item.label}</p>
+                  <p className="mt-1 font-mono font-bold text-sm text-text-primary">{item.value.toLocaleString()}</p>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="mt-2 text-xs font-mono leading-relaxed text-text-secondary">
+              Your next launch will populate the first server score breakdown here.
+            </p>
+          )}
+        </div>
+
+        {launchError && (
+          <div
+            className="flex items-start gap-2 px-3 py-3"
+            style={{ background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)' }}
+          >
+            <AlertTriangle size={14} className="mt-0.5 text-red-400" />
+            <p className="text-xs font-mono leading-relaxed text-red-300">{launchError}</p>
+          </div>
         )}
 
+        {!metrics.canLaunch && (
+          <div
+            className="flex items-start gap-2 px-3 py-3"
+            style={{ background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.18)' }}
+          >
+            <Wrench size={14} className="mt-0.5 text-amber-400" />
+            <p className="text-xs font-mono leading-relaxed text-text-secondary">
+              {metrics.blockedSlots > 0
+                ? 'At least one equipped slot is blocked by locked or broken inventory. Repair or swap parts before launch.'
+                : 'Equip one valid part in every rocket section before launch.'}
+            </p>
+          </div>
+        )}
+      </div>
+
+      <div className="p-5">
         <button
           onClick={onLaunch}
-          disabled={!canLaunch || launching}
+          disabled={buttonDisabled}
           className="relative w-full py-4 font-mono font-black text-base transition-all duration-200 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed overflow-hidden flex items-center justify-center gap-2.5 uppercase tracking-widest"
-          style={canLaunch && !launching ? {
+          style={buttonDisabled ? {
+            background: 'var(--color-bg-card)',
+            color: 'var(--color-text-muted)',
+            border: '1px solid var(--color-border-subtle)',
+          } : {
             background: 'transparent',
             color: '#F97316',
             border: '1px solid #F97316',
-          } : {
-            background: '#0C1018',
-            color: '#4A5468',
-            border: '1px solid #1E2636',
           }}
         >
           {launching ? (
-            <>
-              <div className="w-4 h-4 border-2 border-white/30 border-t-white animate-spin" />
-              Launching…
-            </>
+            <div className="w-4 h-4 border-2 border-white/30 border-t-white animate-spin" />
           ) : (
-            <>
-              <Rocket size={18} style={{ color: canLaunch ? '#F97316' : '#4A5468' }} fill={canLaunch ? '#F97316' : 'none'} />
-              Launch Rocket
-              {allEquipped && (
-                <span className="absolute right-4 text-xs font-mono font-bold" style={{ color: '#F97316' }}>
-                  {stats.winProb}%
-                </span>
-              )}
-            </>
+            <Rocket size={18} style={{ color: buttonDisabled ? 'var(--color-text-muted)' : '#F97316' }} />
+          )}
+          {buttonLabel}
+          {!buttonDisabled && (
+            <span className="absolute right-4 flex items-center gap-1 text-xs font-mono font-bold" style={{ color: '#F97316' }}>
+              <Fuel size={12} />
+              {formatFlux(metrics.fuelCost)}
+            </span>
           )}
         </button>
       </div>

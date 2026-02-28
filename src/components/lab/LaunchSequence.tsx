@@ -1,16 +1,19 @@
 import { useEffect, useRef, useState } from 'react';
 import type { RocketModelId } from './RocketModels';
-import type { EquippedParts } from './PartsGrid';
 import { FlaskConical } from 'lucide-react';
 
 interface LaunchResult {
-  score: number;
-  bonus: string;
-  multiplier: string;
+  scoreBreakdown: {
+    base: number;
+    luck: number;
+    randomness: number;
+    total: number;
+  };
+  fuelCostFlux: number;
+  meteoriteDamagePct: number;
 }
 
 interface LaunchSequenceProps {
-  equipped: EquippedParts;
   model: RocketModelId;
   result: LaunchResult | null;
   power: number;
@@ -310,7 +313,7 @@ export default function LaunchSequence(props: LaunchSequenceProps) {
   const [showLandingDust, setShowLandingDust] = useState(false);
   const [showLandedRocket, setShowLandedRocket] = useState(false);
   const [landingComplete, setLandingComplete] = useState(false);
-  const phaseTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const timeoutRefs = useRef<ReturnType<typeof setTimeout>[]>([]);
 
   const modelColor = model === 'heavy' ? '#F59E0B' : model === 'scout' ? '#06D6A0' : '#94A3B8';
   const clampedPower = Math.max(5, Math.min(100, power));
@@ -319,6 +322,16 @@ export default function LaunchSequence(props: LaunchSequenceProps) {
   const marsDisplaySize = isFullPower ? 340 : clampedPower >= 50 ? 220 : clampedPower >= 25 ? 140 : 90;
 
   useEffect(() => {
+    const queueTimeout = (callback: () => void, delay: number) => {
+      const timeoutId = setTimeout(() => {
+        timeoutRefs.current = timeoutRefs.current.filter((entry) => entry !== timeoutId);
+        callback();
+      }, delay);
+
+      timeoutRefs.current.push(timeoutId);
+      return timeoutId;
+    };
+
     const cdInterval = setInterval(() => {
       setCountdown((n) => {
         if (n <= 1) { clearInterval(cdInterval); return 0; }
@@ -326,25 +339,25 @@ export default function LaunchSequence(props: LaunchSequenceProps) {
       });
     }, 700);
 
-    phaseTimer.current = setTimeout(() => {
+    queueTimeout(() => {
       setPhase('liftoff');
-      setTimeout(() => {
+      queueTimeout(() => {
         setPhase('atmosphere');
-        setTimeout(() => {
+        queueTimeout(() => {
           setPhase('space');
-          setTimeout(() => {
+          queueTimeout(() => {
             setPhase('mars');
-            setTimeout(() => {
+            queueTimeout(() => {
               setPhase('result');
               if (isFullPower) {
                 setShowLandedRocket(true);
-                setTimeout(() => {
+                queueTimeout(() => {
                   setShowLandingDust(true);
-                  setTimeout(() => setShowLandingDust(false), 2200);
+                  queueTimeout(() => setShowLandingDust(false), 2200);
                 }, 2600);
-                setTimeout(() => setLandingComplete(true), 3400);
+                queueTimeout(() => setLandingComplete(true), 3400);
               }
-              setTimeout(() => setShowResultCard(true), 800);
+              queueTimeout(() => setShowResultCard(true), 800);
             }, PHASE_DURATIONS.mars);
           }, PHASE_DURATIONS.space);
         }, PHASE_DURATIONS.atmosphere);
@@ -353,9 +366,12 @@ export default function LaunchSequence(props: LaunchSequenceProps) {
 
     return () => {
       clearInterval(cdInterval);
-      if (phaseTimer.current) clearTimeout(phaseTimer.current);
+      for (const timeoutId of timeoutRefs.current) {
+        clearTimeout(timeoutId);
+      }
+      timeoutRefs.current = [];
     };
-  }, []);
+  }, [isFullPower]);
 
   const bgGradient = () => {
     if (phase === 'countdown' || phase === 'liftoff') {
@@ -861,25 +877,53 @@ export default function LaunchSequence(props: LaunchSequenceProps) {
             </div>
 
             <p className="font-mono text-[11px] font-bold mb-1 tracking-widest" style={{ color: '#4A5468' }}>
-              {isFullPower ? 'MARS LANDING COMPLETE' : 'DEEP SPACE MISSION COMPLETE'}
+              {isFullPower ? 'LAUNCH RECORDED' : 'FLIGHT REPORT READY'}
             </p>
             <p className="font-data font-black text-5xl mb-1" style={{ color: '#E8ECF4' }}>
-              +{result.score}
+              +{result.scoreBreakdown.total}
               <span className="text-2xl ml-2" style={{ color: '#4A5468' }}>GS</span>
             </p>
-            <p className="text-sm mb-1" style={{ color: '#4A5468' }}>{result.multiplier}× Grav Score multiplier</p>
+            <p className="text-sm mb-1" style={{ color: '#4A5468' }}>Server-authoritative Rocket Lab settlement</p>
 
             <div
               className="inline-flex items-center gap-1.5  px-3 py-1 mb-4 text-xs font-bold"
               style={{ background: `${modelColor}12`, border: `1px solid ${modelColor}30`, color: modelColor }}
             >
               <div className="w-1.5 h-1.5 " style={{ background: modelColor }} />
-              {clampedPower}% thrust reached
+              {clampedPower}% thrust profile
             </div>
 
             <div className=" p-3 mb-6" style={{ background: '#06080F', border: '1px solid #1E2636' }}>
-              <p className="text-xs mb-1" style={{ color: '#4A5468' }}>Mission Event</p>
-              <p className="font-mono font-bold text-sm" style={{ color: '#E8ECF4' }}>{result.bonus}</p>
+              <p className="text-xs mb-2" style={{ color: '#4A5468' }}>Score Breakdown</p>
+              <div className="grid grid-cols-2 gap-2 text-left">
+                {[
+                  { label: 'Base', value: result.scoreBreakdown.base },
+                  { label: 'Luck', value: result.scoreBreakdown.luck },
+                  { label: 'Random', value: result.scoreBreakdown.randomness },
+                  { label: 'Total', value: result.scoreBreakdown.total },
+                ].map((item) => (
+                  <div
+                    key={item.label}
+                    className="px-2.5 py-2"
+                    style={{ background: '#0C1018', border: '1px solid #1E2636' }}
+                  >
+                    <p className="text-[10px] font-mono uppercase tracking-[0.16em]" style={{ color: '#4A5468' }}>
+                      {item.label}
+                    </p>
+                    <p className="mt-1 font-mono font-bold text-sm" style={{ color: '#E8ECF4' }}>
+                      {item.value.toLocaleString()}
+                    </p>
+                  </div>
+                ))}
+              </div>
+              <div className="mt-3 flex items-center justify-between text-[11px] font-mono" style={{ color: '#9BA7BE' }}>
+                <span>Fuel</span>
+                <span>{result.fuelCostFlux.toFixed(2)} FLUX</span>
+              </div>
+              <div className="mt-1 flex items-center justify-between text-[11px] font-mono" style={{ color: '#9BA7BE' }}>
+                <span>Meteorite Wear</span>
+                <span>{result.meteoriteDamagePct}%</span>
+              </div>
             </div>
 
             <button
@@ -892,7 +936,7 @@ export default function LaunchSequence(props: LaunchSequenceProps) {
                 letterSpacing: '0.06em',
               }}
             >
-              Record Score & Continue
+              Close Launch Report
             </button>
           </div>
         </div>

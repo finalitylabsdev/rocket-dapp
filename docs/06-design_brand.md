@@ -813,6 +813,19 @@ All critical actions (whitelist, swap, buy box, bid, launch) use a **bottom draw
 | **No data**             | Illustrated empty state with φ‑themed artwork + clear CTA. E.g., empty inventory: "Your hangar is empty. Open a Star Vault Box to get your first part." + \[Go to Star Vault]. |
 | **Transaction pending** | Inline loader (pulsing dots in accent colour) replacing the CTA button text. "Confirming…"                                                                                     |
 | **Error**               | Red‑bordered toast with plain‑language explanation + retry action.                                                                                                             |
+| **Catalog degraded**    | Star Vault must render an explicit degraded metadata panel when `box_tiers` reads fail or return empty. Never let the grid silently disappear. Box purchases pause until the live catalog recovers. |
+
+***
+
+## App 3 Metadata Asset Fallback
+
+Star Vault and inventory visuals resolve in a strict order so the product can stay metadata-driven without hiding degraded states:
+
+1. Use the runtime asset URL from catalog / RPC payloads when one exists.
+2. If no URL is available yet, render a deterministic local visual recipe keyed by stable metadata (`box_tiers.id`, `section_key`, or explicit asset key).
+3. If the key cannot be resolved, render an explicit compatibility fallback and label it as degraded, rather than pretending the normal path succeeded.
+
+Rarity badges follow the same rule: if rarity config is unavailable, they revert to launch-default tier styling, not a neutral loading badge.
 
 ***
 
@@ -850,11 +863,13 @@ A guided 7‑step onboarding that overlays the real UI (spotlight + tooltip patt
 | 2    | Whitelist button         | "Lock 0.05 ETH to enter the testnet. This funds the prize pool."              | Complete whitelist.                            |
 | 3    | Claim button             | "Claim your first φ. Come back every 24h for more."                           | Claim φ.                                       |
 | 4    | Exchange tab             | "Head to the Exchange to swap φ for other tokens, or hold and keep claiming." | Navigate to Exchange.                          |
-| 5    | Star Vault tab           | "Ready for some loot? Buy a mystery box and see what part you get."           | Navigate to Vault.                             |
+| 5    | Star Vault tab           | "Ready for some loot? Buy a mystery box and inspect the live catalog-backed crate before you open it." | Navigate to Vault.                             |
 | 6    | Assembler tab            | "Once you have parts, build your rocket here."                                | Navigate to Assembler.                         |
 | 7    | Launch button (disabled) | "Fill all 8 slots, then launch. Aim for the top 3 to win real ETH."           | Dismiss (button locked until parts collected). |
 
 After completion, a "Tour Complete" toast with confetti appears. The user can replay the tour from Settings.
+
+If Star Vault catalog reads are degraded during onboarding, the overlay should acknowledge the degraded metadata banner and direct the user to retry, rather than skipping the vault state or showing placeholder-only boxes.
 
 ***
 

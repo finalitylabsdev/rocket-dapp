@@ -1,68 +1,132 @@
 import { useEffect } from 'react';
 import type { RocketModelId } from './RocketModels';
-
-interface EquippedParts {
-  engine: boolean;
-  fuel: boolean;
-  body: boolean;
-  wings: boolean;
-  booster: boolean;
-  noseCone?: boolean;
-  heatShield?: boolean;
-  gyroscope?: boolean;
-  solarPanels?: boolean;
-  landingStruts?: boolean;
-}
+import { useTheme } from '../../context/ThemeContext';
+import { ROCKET_SECTIONS } from '../../types/domain';
+import type { RocketLabSlots } from './rocketLabAdapter';
 
 interface RocketPreviewProps {
-  equipped: EquippedParts;
+  slots: RocketLabSlots;
   model: RocketModelId;
   launching: boolean;
   onLaunchComplete: () => void;
 }
 
-function StandardRocket({ equipped }: { equipped: EquippedParts }) {
+function getPreviewAssembly(slots: RocketLabSlots) {
+  return {
+    engine: slots.coreEngine.status === 'equipped',
+    fuel: slots.fuelCell.status === 'equipped',
+    body: slots.shielding.status === 'equipped',
+    wings: slots.wingPlate.status === 'equipped',
+    booster: slots.thrusterArray.status === 'equipped',
+    noseCone: slots.navigationModule.status === 'equipped',
+    heatShield: slots.shielding.status === 'equipped',
+    gyroscope: slots.navigationModule.status === 'equipped',
+    solarPanels: slots.payloadBay.status === 'equipped',
+    landingStruts: slots.propulsionCables.status === 'equipped',
+  };
+}
+
+const VARIANT_MARKER_LAYOUT: Record<RocketSection, { left: string; top: string }> = {
+  navigationModule: { left: '50%', top: '12%' },
+  shielding: { left: '50%', top: '28%' },
+  fuelCell: { left: '50%', top: '46%' },
+  payloadBay: { left: '23%', top: '42%' },
+  wingPlate: { left: '16%', top: '52%' },
+  coreEngine: { left: '50%', top: '66%' },
+  thrusterArray: { left: '50%', top: '82%' },
+  propulsionCables: { left: '76%', top: '56%' },
+};
+
+function VariantMarkers({ slots }: { slots: RocketLabSlots }) {
+  return (
+    <div className="pointer-events-none absolute inset-0">
+      {ROCKET_SECTIONS.map((section) => {
+        const part = slots[section].equippedPart;
+        const variantId = part?.variantId;
+        if (!variantId) {
+          return null;
+        }
+
+        const pattern = variantId % 4;
+        const color = pattern === 0
+          ? '#F97316'
+          : pattern === 1
+            ? '#4ADE80'
+            : pattern === 2
+              ? '#38BDF8'
+              : '#FACC15';
+        const layout = VARIANT_MARKER_LAYOUT[section];
+
+        return (
+          <div
+            key={`${section}-${variantId}`}
+            className="absolute -translate-x-1/2 -translate-y-1/2"
+            style={{ left: layout.left, top: layout.top }}
+          >
+            <div
+              className="rounded-full"
+              style={{
+                width: pattern === 2 ? 14 : 10,
+                height: pattern === 1 ? 14 : 10,
+                border: `1px solid ${color}`,
+                background: `${color}22`,
+                boxShadow: `0 0 14px ${color}55`,
+                transform: pattern === 3 ? 'rotate(45deg)' : undefined,
+              }}
+            />
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+function StandardRocket({ slots, light }: { slots: RocketLabSlots; light: boolean }) {
+  const equipped = getPreviewAssembly(slots);
+  const c = light
+    ? { body0: '#8a8a8a', body1: '#555555', nozzle0: '#9a9a9a', nozzle1: '#606060', stroke: '#888', strokeSub: '#777', detail: '#6a6a6a', detailStroke: '#888', inner: '#5a5a5a', innerStroke: '#7a7a7a', empty: '#c8c8c8', emptyStroke: '#aaa', sheenOp: '0.12', band: '#999' }
+    : { body0: '#404040', body1: '#1a1a1a', nozzle0: '#606060', nozzle1: '#222', stroke: '#383838', strokeSub: '#353535', detail: '#2a2a2a', detailStroke: '#404040', inner: '#1f1f1f', innerStroke: '#2d2d2d', empty: '#0e0e0e', emptyStroke: '#222', sheenOp: '0.06', band: '#2a2a2a' };
   return (
     <svg width="120" height="280" viewBox="0 0 120 280" fill="none" className="drop-shadow-2xl">
       <defs>
         <radialGradient id="s-bodyGrad" cx="35%" cy="40%" r="65%">
-          <stop offset="0%" stopColor="#404040" />
-          <stop offset="100%" stopColor="#1a1a1a" />
+          <stop offset="0%" stopColor={c.body0} />
+          <stop offset="100%" stopColor={c.body1} />
         </radialGradient>
         <radialGradient id="s-nozzleGrad" cx="50%" cy="20%" r="80%">
-          <stop offset="0%" stopColor="#606060" />
-          <stop offset="100%" stopColor="#222" />
+          <stop offset="0%" stopColor={c.nozzle0} />
+          <stop offset="100%" stopColor={c.nozzle1} />
         </radialGradient>
         <linearGradient id="s-sheen" x1="0%" y1="0%" x2="100%" y2="0%">
           <stop offset="0%" stopColor="white" stopOpacity="0" />
-          <stop offset="40%" stopColor="white" stopOpacity="0.06" />
+          <stop offset="40%" stopColor="white" stopOpacity={c.sheenOp} />
           <stop offset="100%" stopColor="white" stopOpacity="0" />
         </linearGradient>
       </defs>
 
       {equipped.noseCone ? (
         <>
-          <path d="M60 4 C60 4 44 30 42 58 L78 58 C76 30 60 4 60 4 Z" fill="url(#s-bodyGrad)" stroke="#383838" strokeWidth="1" />
+          <path d="M60 4 C60 4 44 30 42 58 L78 58 C76 30 60 4 60 4 Z" fill="url(#s-bodyGrad)" stroke={c.stroke} strokeWidth="1" />
           <path d="M60 4 C60 4 44 30 42 58 L78 58 C76 30 60 4 60 4 Z" fill="url(#s-sheen)" />
           <circle cx="60" cy="22" r="4" fill="#3B82F6" opacity="0.8" />
           <circle cx="60" cy="22" r="2" fill="#60a5fa" opacity="1" />
         </>
       ) : (
-        <path d="M60 4 C60 4 44 30 42 58 L78 58 C76 30 60 4 60 4 Z" fill="#141414" stroke="#252525" strokeWidth="1" strokeDasharray="4 3" />
+        <path d="M60 4 C60 4 44 30 42 58 L78 58 C76 30 60 4 60 4 Z" fill={light ? '#d0d0d0' : '#141414'} stroke={light ? '#b0b0b0' : '#252525'} strokeWidth="1" strokeDasharray="4 3" />
       )}
 
       {equipped.body ? (
         <>
-          <path d="M42 56 L38 104 L82 104 L78 56 Z" fill="url(#s-bodyGrad)" stroke="#383838" strokeWidth="1" />
+          <path d="M42 56 L38 104 L82 104 L78 56 Z" fill="url(#s-bodyGrad)" stroke={c.stroke} strokeWidth="1" />
           <path d="M42 56 L38 104 L82 104 L78 56 Z" fill="url(#s-sheen)" />
-          <circle cx="60" cy="72" r="7" fill="#2a2a2a" stroke="#404040" strokeWidth="1" />
+          <circle cx="60" cy="72" r="7" fill={c.detail} stroke={c.detailStroke} strokeWidth="1" />
           <circle cx="60" cy="72" r="4" fill="#4ADE80" opacity="0.6" />
           <circle cx="60" cy="72" r="2" fill="#4ADE80" opacity="0.9" />
-          <circle cx="60" cy="92" r="4" fill="#2a2a2a" stroke="#353535" strokeWidth="1" />
+          <circle cx="60" cy="92" r="4" fill={c.detail} stroke={c.strokeSub} strokeWidth="1" />
           <circle cx="60" cy="92" r="2" fill="#8A94A8" opacity="0.5" />
         </>
       ) : (
-        <path d="M42 56 L38 104 L82 104 L78 56 Z" fill="#141414" stroke="#252525" strokeWidth="1" strokeDasharray="4 3" />
+        <path d="M42 56 L38 104 L82 104 L78 56 Z" fill={light ? '#d0d0d0' : '#141414'} stroke={light ? '#b0b0b0' : '#252525'} strokeWidth="1" strokeDasharray="4 3" />
       )}
 
       {equipped.heatShield ? (
@@ -71,92 +135,92 @@ function StandardRocket({ equipped }: { equipped: EquippedParts }) {
           <rect x="36" y="102" width="48" height="10" rx="2" fill="url(#s-sheen)" />
         </>
       ) : (
-        <rect x="36" y="102" width="48" height="10" rx="2" fill="#0e0e0e" stroke="#222" strokeWidth="1" strokeDasharray="3 2" />
+        <rect x="36" y="102" width="48" height="10" rx="2" fill={c.empty} stroke={c.emptyStroke} strokeWidth="1" strokeDasharray="3 2" />
       )}
 
       {equipped.fuel ? (
         <>
-          <rect x="36" y="110" width="48" height="72" rx="4" fill="url(#s-bodyGrad)" stroke="#303030" strokeWidth="1" />
+          <rect x="36" y="110" width="48" height="72" rx="4" fill="url(#s-bodyGrad)" stroke={light ? '#777' : '#303030'} strokeWidth="1" />
           <rect x="36" y="110" width="48" height="72" rx="4" fill="url(#s-sheen)" />
           {[122, 138, 154, 170].map((y) => (
             <line key={y} x1="38" y1={y} x2="82" y2={y} stroke="white" strokeWidth="0.5" strokeOpacity="0.05" />
           ))}
-          <rect x="42" y="118" width="10" height="56" rx="3" fill="#1f1f1f" stroke="#2d2d2d" strokeWidth="0.8" />
-          <rect x="56" y="118" width="10" height="56" rx="3" fill="#1f1f1f" stroke="#2d2d2d" strokeWidth="0.8" />
-          <rect x="70" y="118" width="10" height="56" rx="3" fill="#1f1f1f" stroke="#2d2d2d" strokeWidth="0.8" />
+          <rect x="42" y="118" width="10" height="56" rx="3" fill={c.inner} stroke={c.innerStroke} strokeWidth="0.8" />
+          <rect x="56" y="118" width="10" height="56" rx="3" fill={c.inner} stroke={c.innerStroke} strokeWidth="0.8" />
+          <rect x="70" y="118" width="10" height="56" rx="3" fill={c.inner} stroke={c.innerStroke} strokeWidth="0.8" />
           <rect x="42" y="154" width="10" height="20" rx="2" fill="#4ADE80" fillOpacity="0.15" />
           <rect x="56" y="136" width="10" height="38" rx="2" fill="#4ADE80" fillOpacity="0.12" />
           <rect x="70" y="148" width="10" height="26" rx="2" fill="#4ADE80" fillOpacity="0.1" />
         </>
       ) : (
-        <rect x="36" y="110" width="48" height="72" rx="4" fill="#0e0e0e" stroke="#222" strokeWidth="1" strokeDasharray="4 3" />
+        <rect x="36" y="110" width="48" height="72" rx="4" fill={c.empty} stroke={c.emptyStroke} strokeWidth="1" strokeDasharray="4 3" />
       )}
 
       {equipped.gyroscope ? (
         <>
-          <circle cx="60" cy="185" r="8" fill="#1E2636" stroke="#3B82F6" strokeOpacity="0.5" strokeWidth="1" />
+          <circle cx="60" cy="185" r="8" fill={light ? '#D8DEE8' : '#1E2636'} stroke="#3B82F6" strokeOpacity="0.5" strokeWidth="1" />
           <circle cx="60" cy="185" r="4" fill="none" stroke="#3B82F6" strokeOpacity="0.7" strokeWidth="1" />
           <line x1="52" y1="185" x2="68" y2="185" stroke="#3B82F6" strokeOpacity="0.5" strokeWidth="0.8" />
           <line x1="60" y1="177" x2="60" y2="193" stroke="#3B82F6" strokeOpacity="0.5" strokeWidth="0.8" />
         </>
       ) : (
-        <circle cx="60" cy="185" r="8" fill="#0e0e0e" stroke="#222" strokeWidth="1" strokeDasharray="3 2" />
+        <circle cx="60" cy="185" r="8" fill={c.empty} stroke={c.emptyStroke} strokeWidth="1" strokeDasharray="3 2" />
       )}
 
       {equipped.solarPanels ? (
         <>
-          <rect x="4" y="125" width="28" height="44" rx="2" fill="#1E2636" stroke="#F59E0B" strokeOpacity="0.5" strokeWidth="1" />
+          <rect x="4" y="125" width="28" height="44" rx="2" fill={light ? '#D8DEE8' : '#1E2636'} stroke="#F59E0B" strokeOpacity="0.5" strokeWidth="1" />
           <line x1="4" y1="136" x2="32" y2="136" stroke="#F59E0B" strokeOpacity="0.3" strokeWidth="0.8" />
           <line x1="4" y1="147" x2="32" y2="147" stroke="#F59E0B" strokeOpacity="0.3" strokeWidth="0.8" />
           <line x1="4" y1="158" x2="32" y2="158" stroke="#F59E0B" strokeOpacity="0.3" strokeWidth="0.8" />
-          <rect x="32" y="143" width="4" height="8" rx="1" fill="#2a2a2a" />
-          <rect x="88" y="125" width="28" height="44" rx="2" fill="#1E2636" stroke="#F59E0B" strokeOpacity="0.5" strokeWidth="1" />
+          <rect x="32" y="143" width="4" height="8" rx="1" fill={c.detail} />
+          <rect x="88" y="125" width="28" height="44" rx="2" fill={light ? '#D8DEE8' : '#1E2636'} stroke="#F59E0B" strokeOpacity="0.5" strokeWidth="1" />
           <line x1="88" y1="136" x2="116" y2="136" stroke="#F59E0B" strokeOpacity="0.3" strokeWidth="0.8" />
           <line x1="88" y1="147" x2="116" y2="147" stroke="#F59E0B" strokeOpacity="0.3" strokeWidth="0.8" />
           <line x1="88" y1="158" x2="116" y2="158" stroke="#F59E0B" strokeOpacity="0.3" strokeWidth="0.8" />
-          <rect x="84" y="143" width="4" height="8" rx="1" fill="#2a2a2a" />
+          <rect x="84" y="143" width="4" height="8" rx="1" fill={c.detail} />
         </>
       ) : (
         <>
-          <rect x="4" y="125" width="28" height="44" rx="2" fill="#0e0e0e" stroke="#222" strokeWidth="1" strokeDasharray="4 3" />
-          <rect x="88" y="125" width="28" height="44" rx="2" fill="#0e0e0e" stroke="#222" strokeWidth="1" strokeDasharray="4 3" />
+          <rect x="4" y="125" width="28" height="44" rx="2" fill={c.empty} stroke={c.emptyStroke} strokeWidth="1" strokeDasharray="4 3" />
+          <rect x="88" y="125" width="28" height="44" rx="2" fill={c.empty} stroke={c.emptyStroke} strokeWidth="1" strokeDasharray="4 3" />
         </>
       )}
 
       {equipped.wings ? (
         <>
-          <path d="M36 158 L8 200 L12 202 L36 180 Z" fill="url(#s-bodyGrad)" stroke="#353535" strokeWidth="1" />
-          <path d="M84 158 L112 200 L108 202 L84 180 Z" fill="url(#s-bodyGrad)" stroke="#353535" strokeWidth="1" />
+          <path d="M36 158 L8 200 L12 202 L36 180 Z" fill="url(#s-bodyGrad)" stroke={c.strokeSub} strokeWidth="1" />
+          <path d="M84 158 L112 200 L108 202 L84 180 Z" fill="url(#s-bodyGrad)" stroke={c.strokeSub} strokeWidth="1" />
           <path d="M36 158 L8 200 L12 202 L36 180 Z" fill="url(#s-sheen)" />
           <path d="M84 158 L112 200 L108 202 L84 180 Z" fill="url(#s-sheen)" />
         </>
       ) : (
         <>
-          <path d="M36 158 L8 200 L12 202 L36 180 Z" fill="#0e0e0e" stroke="#222" strokeWidth="1" strokeDasharray="4 3" />
-          <path d="M84 158 L112 200 L108 202 L84 180 Z" fill="#0e0e0e" stroke="#222" strokeWidth="1" strokeDasharray="4 3" />
+          <path d="M36 158 L8 200 L12 202 L36 180 Z" fill={c.empty} stroke={c.emptyStroke} strokeWidth="1" strokeDasharray="4 3" />
+          <path d="M84 158 L112 200 L108 202 L84 180 Z" fill={c.empty} stroke={c.emptyStroke} strokeWidth="1" strokeDasharray="4 3" />
         </>
       )}
 
       {equipped.engine ? (
         <>
-          <rect x="38" y="190" width="44" height="28" rx="5" fill="url(#s-bodyGrad)" stroke="#404040" strokeWidth="1" />
+          <rect x="38" y="190" width="44" height="28" rx="5" fill="url(#s-bodyGrad)" stroke={c.detailStroke} strokeWidth="1" />
           <rect x="38" y="190" width="44" height="28" rx="5" fill="url(#s-sheen)" />
-          <rect x="44" y="194" width="10" height="20" rx="3" fill="#252525" stroke="#353535" strokeWidth="0.8" />
-          <rect x="56" y="194" width="10" height="20" rx="3" fill="#252525" stroke="#353535" strokeWidth="0.8" />
-          <rect x="68" y="194" width="10" height="20" rx="3" fill="#252525" stroke="#353535" strokeWidth="0.8" />
+          <rect x="44" y="194" width="10" height="20" rx="3" fill={light ? '#484848' : '#252525'} stroke={c.strokeSub} strokeWidth="0.8" />
+          <rect x="56" y="194" width="10" height="20" rx="3" fill={light ? '#484848' : '#252525'} stroke={c.strokeSub} strokeWidth="0.8" />
+          <rect x="68" y="194" width="10" height="20" rx="3" fill={light ? '#484848' : '#252525'} stroke={c.strokeSub} strokeWidth="0.8" />
         </>
       ) : (
-        <rect x="38" y="190" width="44" height="28" rx="5" fill="#0e0e0e" stroke="#222" strokeWidth="1" strokeDasharray="4 3" />
+        <rect x="38" y="190" width="44" height="28" rx="5" fill={c.empty} stroke={c.emptyStroke} strokeWidth="1" strokeDasharray="4 3" />
       )}
 
       {equipped.booster ? (
         <>
-          <path d="M38 216 L26 256 L44 248 L60 262 L76 248 L94 256 L82 216 Z" fill="url(#s-nozzleGrad)" stroke="#404040" strokeWidth="1" />
+          <path d="M38 216 L26 256 L44 248 L60 262 L76 248 L94 256 L82 216 Z" fill="url(#s-nozzleGrad)" stroke={c.detailStroke} strokeWidth="1" />
           <path d="M38 216 L26 256 L44 248 L60 262 L76 248 L94 256 L82 216 Z" fill="url(#s-sheen)" />
           <ellipse cx="60" cy="262" rx="14" ry="3" fill="#4ADE80" fillOpacity="0.08" />
         </>
       ) : (
-        <path d="M38 216 L26 256 L44 248 L60 262 L76 248 L94 256 L82 216 Z" fill="#0e0e0e" stroke="#222" strokeWidth="1" strokeDasharray="4 3" />
+        <path d="M38 216 L26 256 L44 248 L60 262 L76 248 L94 256 L82 216 Z" fill={c.empty} stroke={c.emptyStroke} strokeWidth="1" strokeDasharray="4 3" />
       )}
 
       {equipped.landingStruts && (
@@ -170,28 +234,32 @@ function StandardRocket({ equipped }: { equipped: EquippedParts }) {
         </>
       )}
 
-      <rect x="36" y="109" width="48" height="3" rx="1.5" fill="#2a2a2a" opacity="0.8" />
-      <rect x="36" y="189" width="48" height="3" rx="1.5" fill="#2a2a2a" opacity="0.6" />
-      <rect x="36" y="215" width="48" height="3" rx="1.5" fill="#2a2a2a" opacity="0.6" />
+      <rect x="36" y="109" width="48" height="3" rx="1.5" fill={c.band} opacity="0.8" />
+      <rect x="36" y="189" width="48" height="3" rx="1.5" fill={c.band} opacity="0.6" />
+      <rect x="36" y="215" width="48" height="3" rx="1.5" fill={c.band} opacity="0.6" />
     </svg>
   );
 }
 
-function HeavyRocket({ equipped }: { equipped: EquippedParts }) {
+function HeavyRocket({ slots, light }: { slots: RocketLabSlots; light: boolean }) {
+  const equipped = getPreviewAssembly(slots);
+  const c = light
+    ? { body0: '#8a8a70', body1: '#5a5a40', nozzle0: '#9a9a78', nozzle1: '#686848', stroke: '#8a8a68', strokeSub: '#7a7a58', detail: '#6a6a50', detailStroke: '#8a8a68', inner: '#585838', innerStroke: '#7a7a58', empty: '#c8c8b8', emptyStroke: '#aaa898', sheenOp: '0.10', band: '#8a8a68' }
+    : { body0: '#3a3a2a', body1: '#1a1a0e', nozzle0: '#585840', nozzle1: '#202010', stroke: '#4a4a30', strokeSub: '#3a3a22', detail: '#2a2a18', detailStroke: '#5a5a38', inner: '#1a1a10', innerStroke: '#2e2e1e', empty: '#0e0e0a', emptyStroke: '#1e1e12', sheenOp: '0.05', band: '#3a3a28' };
   return (
     <svg width="140" height="280" viewBox="0 0 140 280" fill="none" className="drop-shadow-2xl">
       <defs>
         <radialGradient id="h-bodyGrad" cx="35%" cy="40%" r="65%">
-          <stop offset="0%" stopColor="#3a3a2a" />
-          <stop offset="100%" stopColor="#1a1a0e" />
+          <stop offset="0%" stopColor={c.body0} />
+          <stop offset="100%" stopColor={c.body1} />
         </radialGradient>
         <radialGradient id="h-nozzleGrad" cx="50%" cy="20%" r="80%">
-          <stop offset="0%" stopColor="#585840" />
-          <stop offset="100%" stopColor="#202010" />
+          <stop offset="0%" stopColor={c.nozzle0} />
+          <stop offset="100%" stopColor={c.nozzle1} />
         </radialGradient>
         <linearGradient id="h-sheen" x1="0%" y1="0%" x2="100%" y2="0%">
           <stop offset="0%" stopColor="white" stopOpacity="0" />
-          <stop offset="40%" stopColor="white" stopOpacity="0.05" />
+          <stop offset="40%" stopColor="white" stopOpacity={c.sheenOp} />
           <stop offset="100%" stopColor="white" stopOpacity="0" />
         </linearGradient>
         <linearGradient id="h-amber" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -202,31 +270,31 @@ function HeavyRocket({ equipped }: { equipped: EquippedParts }) {
 
       {equipped.noseCone ? (
         <>
-          <path d="M70 6 C70 6 52 28 50 56 L90 56 C88 28 70 6 70 6 Z" fill="url(#h-bodyGrad)" stroke="#4a4a30" strokeWidth="1.5" />
+          <path d="M70 6 C70 6 52 28 50 56 L90 56 C88 28 70 6 70 6 Z" fill="url(#h-bodyGrad)" stroke={c.stroke} strokeWidth="1.5" />
           <path d="M70 6 C70 6 52 28 50 56 L90 56 C88 28 70 6 70 6 Z" fill="url(#h-sheen)" />
-          <circle cx="70" cy="24" r="5" fill="#2a2a18" stroke="#5a5a38" strokeWidth="1" />
+          <circle cx="70" cy="24" r="5" fill={c.detail} stroke={c.detailStroke} strokeWidth="1" />
           <circle cx="70" cy="24" r="2.5" fill="#F59E0B" opacity="0.8" />
         </>
       ) : (
-        <path d="M70 6 C70 6 52 28 50 56 L90 56 C88 28 70 6 70 6 Z" fill="#141410" stroke="#252515" strokeWidth="1" strokeDasharray="4 3" />
+        <path d="M70 6 C70 6 52 28 50 56 L90 56 C88 28 70 6 70 6 Z" fill={light ? '#c8c8b8' : '#141410'} stroke={light ? '#aaa898' : '#252515'} strokeWidth="1" strokeDasharray="4 3" />
       )}
 
       {equipped.body ? (
         <>
-          <rect x="44" y="54" width="52" height="56" rx="5" fill="url(#h-bodyGrad)" stroke="#4a4a30" strokeWidth="1.5" />
+          <rect x="44" y="54" width="52" height="56" rx="5" fill="url(#h-bodyGrad)" stroke={c.stroke} strokeWidth="1.5" />
           <rect x="44" y="54" width="52" height="56" rx="5" fill="url(#h-sheen)" />
           {[66, 78, 90].map((y) => (
             <line key={y} x1="46" y1={y} x2="94" y2={y} stroke="white" strokeWidth="0.5" strokeOpacity="0.05" />
           ))}
-          <circle cx="70" cy="70" r="9" fill="#2a2a18" stroke="#5a5a38" strokeWidth="1" />
+          <circle cx="70" cy="70" r="9" fill={c.detail} stroke={c.detailStroke} strokeWidth="1" />
           <circle cx="70" cy="70" r="5" fill="#F59E0B" opacity="0.5" />
           <circle cx="70" cy="70" r="2.5" fill="#F59E0B" opacity="0.9" />
-          <rect x="52" y="92" width="36" height="10" rx="3" fill="#1a1a10" stroke="#3a3a22" strokeWidth="0.8" />
+          <rect x="52" y="92" width="36" height="10" rx="3" fill={c.inner} stroke={c.strokeSub} strokeWidth="0.8" />
           <rect x="56" y="95" width="8" height="4" rx="1" fill="#F59E0B" fillOpacity="0.25" />
           <rect x="68" y="95" width="8" height="4" rx="1" fill="#F59E0B" fillOpacity="0.2" />
         </>
       ) : (
-        <rect x="44" y="54" width="52" height="56" rx="5" fill="#141410" stroke="#252515" strokeWidth="1" strokeDasharray="4 3" />
+        <rect x="44" y="54" width="52" height="56" rx="5" fill={light ? '#c8c8b8' : '#141410'} stroke={light ? '#aaa898' : '#252515'} strokeWidth="1" strokeDasharray="4 3" />
       )}
 
       {equipped.heatShield ? (
@@ -237,30 +305,30 @@ function HeavyRocket({ equipped }: { equipped: EquippedParts }) {
           <rect x="44" y="116" width="52" height="2" rx="1" fill="#F59E0B" fillOpacity="0.08" />
         </>
       ) : (
-        <rect x="40" y="108" width="60" height="14" rx="3" fill="#0e0e0a" stroke="#222215" strokeWidth="1" strokeDasharray="3 2" />
+        <rect x="40" y="108" width="60" height="14" rx="3" fill={c.empty} stroke={c.emptyStroke} strokeWidth="1" strokeDasharray="3 2" />
       )}
 
       {equipped.fuel ? (
         <>
-          <rect x="40" y="120" width="60" height="80" rx="5" fill="url(#h-bodyGrad)" stroke="#3a3a28" strokeWidth="1.5" />
+          <rect x="40" y="120" width="60" height="80" rx="5" fill="url(#h-bodyGrad)" stroke={c.strokeSub} strokeWidth="1.5" />
           <rect x="40" y="120" width="60" height="80" rx="5" fill="url(#h-sheen)" />
           {[135, 150, 165, 180].map((y) => (
             <line key={y} x1="42" y1={y} x2="98" y2={y} stroke="white" strokeWidth="0.5" strokeOpacity="0.05" />
           ))}
-          <rect x="46" y="128" width="14" height="64" rx="3" fill="#1a1a10" stroke="#2e2e1e" strokeWidth="0.8" />
-          <rect x="64" y="128" width="14" height="64" rx="3" fill="#1a1a10" stroke="#2e2e1e" strokeWidth="0.8" />
-          <rect x="82" y="128" width="14" height="64" rx="3" fill="#1a1a10" stroke="#2e2e1e" strokeWidth="0.8" />
+          <rect x="46" y="128" width="14" height="64" rx="3" fill={c.inner} stroke={c.innerStroke} strokeWidth="0.8" />
+          <rect x="64" y="128" width="14" height="64" rx="3" fill={c.inner} stroke={c.innerStroke} strokeWidth="0.8" />
+          <rect x="82" y="128" width="14" height="64" rx="3" fill={c.inner} stroke={c.innerStroke} strokeWidth="0.8" />
           <rect x="46" y="170" width="14" height="22" rx="2" fill="#4ADE80" fillOpacity="0.15" />
           <rect x="64" y="150" width="14" height="42" rx="2" fill="#4ADE80" fillOpacity="0.12" />
           <rect x="82" y="162" width="14" height="30" rx="2" fill="#4ADE80" fillOpacity="0.1" />
         </>
       ) : (
-        <rect x="40" y="120" width="60" height="80" rx="5" fill="#0e0e0a" stroke="#1e1e12" strokeWidth="1" strokeDasharray="4 3" />
+        <rect x="40" y="120" width="60" height="80" rx="5" fill={c.empty} stroke={c.emptyStroke} strokeWidth="1" strokeDasharray="4 3" />
       )}
 
       {equipped.gyroscope && (
         <>
-          <circle cx="70" cy="206" r="10" fill="#1E2636" stroke="#3B82F6" strokeOpacity="0.5" strokeWidth="1" />
+          <circle cx="70" cy="206" r="10" fill={light ? '#D8DEE8' : '#1E2636'} stroke="#3B82F6" strokeOpacity="0.5" strokeWidth="1" />
           <circle cx="70" cy="206" r="5" fill="none" stroke="#3B82F6" strokeOpacity="0.7" strokeWidth="1" />
           <line x1="60" y1="206" x2="80" y2="206" stroke="#3B82F6" strokeOpacity="0.5" strokeWidth="0.8" />
           <line x1="70" y1="196" x2="70" y2="216" stroke="#3B82F6" strokeOpacity="0.5" strokeWidth="0.8" />
@@ -269,58 +337,58 @@ function HeavyRocket({ equipped }: { equipped: EquippedParts }) {
 
       {equipped.solarPanels ? (
         <>
-          <rect x="2" y="132" width="32" height="52" rx="2" fill="#1E2636" stroke="#F59E0B" strokeOpacity="0.5" strokeWidth="1" />
+          <rect x="2" y="132" width="32" height="52" rx="2" fill={light ? '#D8DEE8' : '#1E2636'} stroke="#F59E0B" strokeOpacity="0.5" strokeWidth="1" />
           <line x1="2" y1="145" x2="34" y2="145" stroke="#F59E0B" strokeOpacity="0.3" strokeWidth="0.8" />
           <line x1="2" y1="158" x2="34" y2="158" stroke="#F59E0B" strokeOpacity="0.3" strokeWidth="0.8" />
           <line x1="2" y1="171" x2="34" y2="171" stroke="#F59E0B" strokeOpacity="0.3" strokeWidth="0.8" />
-          <rect x="34" y="154" width="6" height="10" rx="1" fill="#2a2a18" />
-          <rect x="106" y="132" width="32" height="52" rx="2" fill="#1E2636" stroke="#F59E0B" strokeOpacity="0.5" strokeWidth="1" />
+          <rect x="34" y="154" width="6" height="10" rx="1" fill={c.detail} />
+          <rect x="106" y="132" width="32" height="52" rx="2" fill={light ? '#D8DEE8' : '#1E2636'} stroke="#F59E0B" strokeOpacity="0.5" strokeWidth="1" />
           <line x1="106" y1="145" x2="138" y2="145" stroke="#F59E0B" strokeOpacity="0.3" strokeWidth="0.8" />
           <line x1="106" y1="158" x2="138" y2="158" stroke="#F59E0B" strokeOpacity="0.3" strokeWidth="0.8" />
           <line x1="106" y1="171" x2="138" y2="171" stroke="#F59E0B" strokeOpacity="0.3" strokeWidth="0.8" />
-          <rect x="100" y="154" width="6" height="10" rx="1" fill="#2a2a18" />
+          <rect x="100" y="154" width="6" height="10" rx="1" fill={c.detail} />
         </>
       ) : (
         <>
-          <rect x="2" y="132" width="32" height="52" rx="2" fill="#0e0e0a" stroke="#1e1e10" strokeWidth="1" strokeDasharray="4 3" />
-          <rect x="106" y="132" width="32" height="52" rx="2" fill="#0e0e0a" stroke="#1e1e10" strokeWidth="1" strokeDasharray="4 3" />
+          <rect x="2" y="132" width="32" height="52" rx="2" fill={c.empty} stroke={c.emptyStroke} strokeWidth="1" strokeDasharray="4 3" />
+          <rect x="106" y="132" width="32" height="52" rx="2" fill={c.empty} stroke={c.emptyStroke} strokeWidth="1" strokeDasharray="4 3" />
         </>
       )}
 
       {equipped.wings ? (
         <>
-          <path d="M40 172 L6 218 L14 220 L40 196 Z" fill="url(#h-bodyGrad)" stroke="#3a3a28" strokeWidth="1.2" />
-          <path d="M100 172 L134 218 L126 220 L100 196 Z" fill="url(#h-bodyGrad)" stroke="#3a3a28" strokeWidth="1.2" />
+          <path d="M40 172 L6 218 L14 220 L40 196 Z" fill="url(#h-bodyGrad)" stroke={c.strokeSub} strokeWidth="1.2" />
+          <path d="M100 172 L134 218 L126 220 L100 196 Z" fill="url(#h-bodyGrad)" stroke={c.strokeSub} strokeWidth="1.2" />
           <path d="M40 172 L6 218 L14 220 L40 196 Z" fill="url(#h-sheen)" />
           <path d="M100 172 L134 218 L126 220 L100 196 Z" fill="url(#h-sheen)" />
         </>
       ) : (
         <>
-          <path d="M40 172 L6 218 L14 220 L40 196 Z" fill="#0e0e0a" stroke="#1e1e10" strokeWidth="1" strokeDasharray="4 3" />
-          <path d="M100 172 L134 218 L126 220 L100 196 Z" fill="#0e0e0a" stroke="#1e1e10" strokeWidth="1" strokeDasharray="4 3" />
+          <path d="M40 172 L6 218 L14 220 L40 196 Z" fill={c.empty} stroke={c.emptyStroke} strokeWidth="1" strokeDasharray="4 3" />
+          <path d="M100 172 L134 218 L126 220 L100 196 Z" fill={c.empty} stroke={c.emptyStroke} strokeWidth="1" strokeDasharray="4 3" />
         </>
       )}
 
       {equipped.engine ? (
         <>
-          <rect x="42" y="198" width="56" height="32" rx="6" fill="url(#h-bodyGrad)" stroke="#4a4a30" strokeWidth="1.5" />
+          <rect x="42" y="198" width="56" height="32" rx="6" fill="url(#h-bodyGrad)" stroke={c.stroke} strokeWidth="1.5" />
           <rect x="42" y="198" width="56" height="32" rx="6" fill="url(#h-sheen)" />
-          <rect x="48" y="202" width="12" height="24" rx="3" fill="#252515" stroke="#383820" strokeWidth="0.8" />
-          <rect x="64" y="202" width="12" height="24" rx="3" fill="#252515" stroke="#383820" strokeWidth="0.8" />
-          <rect x="80" y="202" width="12" height="24" rx="3" fill="#252515" stroke="#383820" strokeWidth="0.8" />
+          <rect x="48" y="202" width="12" height="24" rx="3" fill={light ? '#484830' : '#252515'} stroke={light ? '#6a6a50' : '#383820'} strokeWidth="0.8" />
+          <rect x="64" y="202" width="12" height="24" rx="3" fill={light ? '#484830' : '#252515'} stroke={light ? '#6a6a50' : '#383820'} strokeWidth="0.8" />
+          <rect x="80" y="202" width="12" height="24" rx="3" fill={light ? '#484830' : '#252515'} stroke={light ? '#6a6a50' : '#383820'} strokeWidth="0.8" />
         </>
       ) : (
-        <rect x="42" y="198" width="56" height="32" rx="6" fill="#0e0e0a" stroke="#1e1e12" strokeWidth="1" strokeDasharray="4 3" />
+        <rect x="42" y="198" width="56" height="32" rx="6" fill={c.empty} stroke={c.emptyStroke} strokeWidth="1" strokeDasharray="4 3" />
       )}
 
       {equipped.booster ? (
         <>
-          <path d="M42 228 L28 266 L52 256 L70 272 L88 256 L112 266 L98 228 Z" fill="url(#h-nozzleGrad)" stroke="#4a4a30" strokeWidth="1.2" />
+          <path d="M42 228 L28 266 L52 256 L70 272 L88 256 L112 266 L98 228 Z" fill="url(#h-nozzleGrad)" stroke={c.stroke} strokeWidth="1.2" />
           <path d="M42 228 L28 266 L52 256 L70 272 L88 256 L112 266 L98 228 Z" fill="url(#h-sheen)" />
           <ellipse cx="70" cy="272" rx="18" ry="3.5" fill="#4ADE80" fillOpacity="0.08" />
         </>
       ) : (
-        <path d="M42 228 L28 266 L52 256 L70 272 L88 256 L112 266 L98 228 Z" fill="#0e0e0a" stroke="#1e1e12" strokeWidth="1" strokeDasharray="4 3" />
+        <path d="M42 228 L28 266 L52 256 L70 272 L88 256 L112 266 L98 228 Z" fill={c.empty} stroke={c.emptyStroke} strokeWidth="1" strokeDasharray="4 3" />
       )}
 
       {equipped.landingStruts && (
@@ -334,58 +402,62 @@ function HeavyRocket({ equipped }: { equipped: EquippedParts }) {
         </>
       )}
 
-      <rect x="40" y="107" width="60" height="3" rx="1.5" fill="#3a3a28" opacity="0.8" />
-      <rect x="40" y="197" width="60" height="3" rx="1.5" fill="#3a3a28" opacity="0.6" />
-      <rect x="40" y="227" width="60" height="3" rx="1.5" fill="#3a3a28" opacity="0.6" />
+      <rect x="40" y="107" width="60" height="3" rx="1.5" fill={c.band} opacity="0.8" />
+      <rect x="40" y="197" width="60" height="3" rx="1.5" fill={c.band} opacity="0.6" />
+      <rect x="40" y="227" width="60" height="3" rx="1.5" fill={c.band} opacity="0.6" />
     </svg>
   );
 }
 
-function ScoutRocket({ equipped }: { equipped: EquippedParts }) {
+function ScoutRocket({ slots, light }: { slots: RocketLabSlots; light: boolean }) {
+  const equipped = getPreviewAssembly(slots);
+  const c = light
+    ? { body0: '#5a8a82', body1: '#3a6a62', nozzle0: '#6a9a92', nozzle1: '#4a7a72', stroke: '#5a9a90', strokeSub: '#4a8a80', detail: '#3a7a70', detailStroke: '#5a9a90', inner: '#3a6a62', innerStroke: '#5a8a82', empty: '#b8d0cc', emptyStroke: '#90b0a8', sheenOp: '0.12', band: '#5a9a90' }
+    : { body0: '#1a3a35', body1: '#0a1a18', nozzle0: '#20504a', nozzle1: '#0a1e1c', stroke: '#1a4a44', strokeSub: '#1a3a35', detail: '#0a2220', detailStroke: '#1a4a44', inner: '#0a1e1c', innerStroke: '#183830', empty: '#0a1210', emptyStroke: '#152522', sheenOp: '0.07', band: '#1a4a44' };
   return (
     <svg width="90" height="280" viewBox="0 0 90 280" fill="none" className="drop-shadow-2xl">
       <defs>
         <radialGradient id="sc-bodyGrad" cx="35%" cy="40%" r="65%">
-          <stop offset="0%" stopColor="#1a3a35" />
-          <stop offset="100%" stopColor="#0a1a18" />
+          <stop offset="0%" stopColor={c.body0} />
+          <stop offset="100%" stopColor={c.body1} />
         </radialGradient>
         <radialGradient id="sc-nozzleGrad" cx="50%" cy="20%" r="80%">
-          <stop offset="0%" stopColor="#20504a" />
-          <stop offset="100%" stopColor="#0a1e1c" />
+          <stop offset="0%" stopColor={c.nozzle0} />
+          <stop offset="100%" stopColor={c.nozzle1} />
         </radialGradient>
         <linearGradient id="sc-sheen" x1="0%" y1="0%" x2="100%" y2="0%">
           <stop offset="0%" stopColor="white" stopOpacity="0" />
-          <stop offset="40%" stopColor="white" stopOpacity="0.07" />
+          <stop offset="40%" stopColor="white" stopOpacity={c.sheenOp} />
           <stop offset="100%" stopColor="white" stopOpacity="0" />
         </linearGradient>
       </defs>
 
       {equipped.noseCone ? (
         <>
-          <path d="M45 2 C45 2 34 22 33 50 L57 50 C56 22 45 2 45 2 Z" fill="url(#sc-bodyGrad)" stroke="#1a4a44" strokeWidth="1" />
+          <path d="M45 2 C45 2 34 22 33 50 L57 50 C56 22 45 2 45 2 Z" fill="url(#sc-bodyGrad)" stroke={c.stroke} strokeWidth="1" />
           <path d="M45 2 C45 2 34 22 33 50 L57 50 C56 22 45 2 45 2 Z" fill="url(#sc-sheen)" />
           <circle cx="45" cy="18" r="3" fill="#06D6A0" opacity="0.8" />
           <circle cx="45" cy="18" r="1.5" fill="#4DF5CE" opacity="1" />
         </>
       ) : (
-        <path d="M45 2 C45 2 34 22 33 50 L57 50 C56 22 45 2 45 2 Z" fill="#0a1210" stroke="#152522" strokeWidth="1" strokeDasharray="4 3" />
+        <path d="M45 2 C45 2 34 22 33 50 L57 50 C56 22 45 2 45 2 Z" fill={c.empty} stroke={c.emptyStroke} strokeWidth="1" strokeDasharray="4 3" />
       )}
 
       {equipped.body ? (
         <>
-          <rect x="32" y="48" width="26" height="66" rx="4" fill="url(#sc-bodyGrad)" stroke="#1a4a44" strokeWidth="1" />
+          <rect x="32" y="48" width="26" height="66" rx="4" fill="url(#sc-bodyGrad)" stroke={c.stroke} strokeWidth="1" />
           <rect x="32" y="48" width="26" height="66" rx="4" fill="url(#sc-sheen)" />
           {[62, 76, 90].map((y) => (
             <line key={y} x1="34" y1={y} x2="56" y2={y} stroke="white" strokeWidth="0.5" strokeOpacity="0.06" />
           ))}
-          <circle cx="45" cy="65" r="6" fill="#0a2220" stroke="#1a4a44" strokeWidth="1" />
+          <circle cx="45" cy="65" r="6" fill={c.detail} stroke={c.stroke} strokeWidth="1" />
           <circle cx="45" cy="65" r="3.5" fill="#06D6A0" opacity="0.5" />
           <circle cx="45" cy="65" r="1.5" fill="#06D6A0" opacity="0.95" />
-          <circle cx="45" cy="85" r="3" fill="#0a2220" stroke="#1a3a38" strokeWidth="0.8" />
+          <circle cx="45" cy="85" r="3" fill={c.detail} stroke={c.strokeSub} strokeWidth="0.8" />
           <circle cx="45" cy="85" r="1.5" fill="#06D6A0" opacity="0.4" />
         </>
       ) : (
-        <rect x="32" y="48" width="26" height="66" rx="4" fill="#0a1210" stroke="#152522" strokeWidth="1" strokeDasharray="4 3" />
+        <rect x="32" y="48" width="26" height="66" rx="4" fill={c.empty} stroke={c.emptyStroke} strokeWidth="1" strokeDasharray="4 3" />
       )}
 
       {equipped.heatShield ? (
@@ -393,28 +465,28 @@ function ScoutRocket({ equipped }: { equipped: EquippedParts }) {
           <rect x="30" y="112" width="30" height="8" rx="2" fill="#06D6A0" fillOpacity="0.18" stroke="#06D6A0" strokeOpacity="0.4" strokeWidth="1" />
         </>
       ) : (
-        <rect x="30" y="112" width="30" height="8" rx="2" fill="#0a1210" stroke="#152522" strokeWidth="1" strokeDasharray="3 2" />
+        <rect x="30" y="112" width="30" height="8" rx="2" fill={c.empty} stroke={c.emptyStroke} strokeWidth="1" strokeDasharray="3 2" />
       )}
 
       {equipped.fuel ? (
         <>
-          <rect x="31" y="118" width="28" height="62" rx="3" fill="url(#sc-bodyGrad)" stroke="#1a3a35" strokeWidth="1" />
+          <rect x="31" y="118" width="28" height="62" rx="3" fill="url(#sc-bodyGrad)" stroke={c.strokeSub} strokeWidth="1" />
           <rect x="31" y="118" width="28" height="62" rx="3" fill="url(#sc-sheen)" />
           {[130, 144, 158, 168].map((y) => (
             <line key={y} x1="33" y1={y} x2="57" y2={y} stroke="white" strokeWidth="0.5" strokeOpacity="0.05" />
           ))}
-          <rect x="35" y="122" width="8" height="54" rx="2" fill="#0a1e1c" stroke="#183830" strokeWidth="0.7" />
-          <rect x="47" y="122" width="8" height="54" rx="2" fill="#0a1e1c" stroke="#183830" strokeWidth="0.7" />
+          <rect x="35" y="122" width="8" height="54" rx="2" fill={c.inner} stroke={c.innerStroke} strokeWidth="0.7" />
+          <rect x="47" y="122" width="8" height="54" rx="2" fill={c.inner} stroke={c.innerStroke} strokeWidth="0.7" />
           <rect x="35" y="160" width="8" height="16" rx="1.5" fill="#4ADE80" fillOpacity="0.15" />
           <rect x="47" y="142" width="8" height="34" rx="1.5" fill="#4ADE80" fillOpacity="0.12" />
         </>
       ) : (
-        <rect x="31" y="118" width="28" height="62" rx="3" fill="#0a1210" stroke="#152522" strokeWidth="1" strokeDasharray="4 3" />
+        <rect x="31" y="118" width="28" height="62" rx="3" fill={c.empty} stroke={c.emptyStroke} strokeWidth="1" strokeDasharray="4 3" />
       )}
 
       {equipped.gyroscope && (
         <>
-          <circle cx="45" cy="186" r="7" fill="#1E2636" stroke="#3B82F6" strokeOpacity="0.5" strokeWidth="1" />
+          <circle cx="45" cy="186" r="7" fill={light ? '#D8DEE8' : '#1E2636'} stroke="#3B82F6" strokeOpacity="0.5" strokeWidth="1" />
           <circle cx="45" cy="186" r="3.5" fill="none" stroke="#3B82F6" strokeOpacity="0.7" strokeWidth="0.8" />
           <line x1="38" y1="186" x2="52" y2="186" stroke="#3B82F6" strokeOpacity="0.5" strokeWidth="0.7" />
           <line x1="45" y1="179" x2="45" y2="193" stroke="#3B82F6" strokeOpacity="0.5" strokeWidth="0.7" />
@@ -423,57 +495,57 @@ function ScoutRocket({ equipped }: { equipped: EquippedParts }) {
 
       {equipped.solarPanels ? (
         <>
-          <rect x="4" y="128" width="24" height="38" rx="2" fill="#1E2636" stroke="#06D6A0" strokeOpacity="0.5" strokeWidth="0.8" />
+          <rect x="4" y="128" width="24" height="38" rx="2" fill={light ? '#D8DEE8' : '#1E2636'} stroke="#06D6A0" strokeOpacity="0.5" strokeWidth="0.8" />
           <line x1="4" y1="138" x2="28" y2="138" stroke="#06D6A0" strokeOpacity="0.3" strokeWidth="0.7" />
           <line x1="4" y1="148" x2="28" y2="148" stroke="#06D6A0" strokeOpacity="0.3" strokeWidth="0.7" />
           <line x1="4" y1="158" x2="28" y2="158" stroke="#06D6A0" strokeOpacity="0.3" strokeWidth="0.7" />
-          <rect x="28" y="141" width="3" height="8" rx="1" fill="#0a2220" />
-          <rect x="62" y="128" width="24" height="38" rx="2" fill="#1E2636" stroke="#06D6A0" strokeOpacity="0.5" strokeWidth="0.8" />
+          <rect x="28" y="141" width="3" height="8" rx="1" fill={c.detail} />
+          <rect x="62" y="128" width="24" height="38" rx="2" fill={light ? '#D8DEE8' : '#1E2636'} stroke="#06D6A0" strokeOpacity="0.5" strokeWidth="0.8" />
           <line x1="62" y1="138" x2="86" y2="138" stroke="#06D6A0" strokeOpacity="0.3" strokeWidth="0.7" />
           <line x1="62" y1="148" x2="86" y2="148" stroke="#06D6A0" strokeOpacity="0.3" strokeWidth="0.7" />
           <line x1="62" y1="158" x2="86" y2="158" stroke="#06D6A0" strokeOpacity="0.3" strokeWidth="0.7" />
-          <rect x="59" y="141" width="3" height="8" rx="1" fill="#0a2220" />
+          <rect x="59" y="141" width="3" height="8" rx="1" fill={c.detail} />
         </>
       ) : (
         <>
-          <rect x="4" y="128" width="24" height="38" rx="2" fill="#0a1210" stroke="#152522" strokeWidth="1" strokeDasharray="3 2" />
-          <rect x="62" y="128" width="24" height="38" rx="2" fill="#0a1210" stroke="#152522" strokeWidth="1" strokeDasharray="3 2" />
+          <rect x="4" y="128" width="24" height="38" rx="2" fill={c.empty} stroke={c.emptyStroke} strokeWidth="1" strokeDasharray="3 2" />
+          <rect x="62" y="128" width="24" height="38" rx="2" fill={c.empty} stroke={c.emptyStroke} strokeWidth="1" strokeDasharray="3 2" />
         </>
       )}
 
       {equipped.wings ? (
         <>
-          <path d="M31 168 L8 200 L14 202 L31 182 Z" fill="url(#sc-bodyGrad)" stroke="#1a3a35" strokeWidth="1" />
-          <path d="M59 168 L82 200 L76 202 L59 182 Z" fill="url(#sc-bodyGrad)" stroke="#1a3a35" strokeWidth="1" />
+          <path d="M31 168 L8 200 L14 202 L31 182 Z" fill="url(#sc-bodyGrad)" stroke={c.strokeSub} strokeWidth="1" />
+          <path d="M59 168 L82 200 L76 202 L59 182 Z" fill="url(#sc-bodyGrad)" stroke={c.strokeSub} strokeWidth="1" />
           <path d="M31 168 L8 200 L14 202 L31 182 Z" fill="url(#sc-sheen)" />
           <path d="M59 168 L82 200 L76 202 L59 182 Z" fill="url(#sc-sheen)" />
         </>
       ) : (
         <>
-          <path d="M31 168 L8 200 L14 202 L31 182 Z" fill="#0a1210" stroke="#152522" strokeWidth="1" strokeDasharray="4 3" />
-          <path d="M59 168 L82 200 L76 202 L59 182 Z" fill="#0a1210" stroke="#152522" strokeWidth="1" strokeDasharray="4 3" />
+          <path d="M31 168 L8 200 L14 202 L31 182 Z" fill={c.empty} stroke={c.emptyStroke} strokeWidth="1" strokeDasharray="4 3" />
+          <path d="M59 168 L82 200 L76 202 L59 182 Z" fill={c.empty} stroke={c.emptyStroke} strokeWidth="1" strokeDasharray="4 3" />
         </>
       )}
 
       {equipped.engine ? (
         <>
-          <rect x="31" y="178" width="28" height="22" rx="4" fill="url(#sc-bodyGrad)" stroke="#1a4a44" strokeWidth="1" />
+          <rect x="31" y="178" width="28" height="22" rx="4" fill="url(#sc-bodyGrad)" stroke={c.stroke} strokeWidth="1" />
           <rect x="31" y="178" width="28" height="22" rx="4" fill="url(#sc-sheen)" />
-          <rect x="35" y="182" width="8" height="14" rx="2.5" fill="#0a2220" stroke="#1a3a35" strokeWidth="0.7" />
-          <rect x="47" y="182" width="8" height="14" rx="2.5" fill="#0a2220" stroke="#1a3a35" strokeWidth="0.7" />
+          <rect x="35" y="182" width="8" height="14" rx="2.5" fill={c.detail} stroke={c.strokeSub} strokeWidth="0.7" />
+          <rect x="47" y="182" width="8" height="14" rx="2.5" fill={c.detail} stroke={c.strokeSub} strokeWidth="0.7" />
         </>
       ) : (
-        <rect x="31" y="178" width="28" height="22" rx="4" fill="#0a1210" stroke="#152522" strokeWidth="1" strokeDasharray="4 3" />
+        <rect x="31" y="178" width="28" height="22" rx="4" fill={c.empty} stroke={c.emptyStroke} strokeWidth="1" strokeDasharray="4 3" />
       )}
 
       {equipped.booster ? (
         <>
-          <path d="M32 198 L22 234 L36 228 L45 242 L54 228 L68 234 L58 198 Z" fill="url(#sc-nozzleGrad)" stroke="#1a4a44" strokeWidth="1" />
+          <path d="M32 198 L22 234 L36 228 L45 242 L54 228 L68 234 L58 198 Z" fill="url(#sc-nozzleGrad)" stroke={c.stroke} strokeWidth="1" />
           <path d="M32 198 L22 234 L36 228 L45 242 L54 228 L68 234 L58 198 Z" fill="url(#sc-sheen)" />
           <ellipse cx="45" cy="242" rx="11" ry="2.5" fill="#06D6A0" fillOpacity="0.1" />
         </>
       ) : (
-        <path d="M32 198 L22 234 L36 228 L45 242 L54 228 L68 234 L58 198 Z" fill="#0a1210" stroke="#152522" strokeWidth="1" strokeDasharray="4 3" />
+        <path d="M32 198 L22 234 L36 228 L45 242 L54 228 L68 234 L58 198 Z" fill={c.empty} stroke={c.emptyStroke} strokeWidth="1" strokeDasharray="4 3" />
       )}
 
       {equipped.landingStruts && (
@@ -487,14 +559,17 @@ function ScoutRocket({ equipped }: { equipped: EquippedParts }) {
         </>
       )}
 
-      <rect x="30" y="111" width="30" height="2.5" rx="1.25" fill="#1a4a44" opacity="0.7" />
-      <rect x="30" y="177" width="30" height="2.5" rx="1.25" fill="#1a4a44" opacity="0.6" />
-      <rect x="30" y="197" width="30" height="2.5" rx="1.25" fill="#1a4a44" opacity="0.6" />
+      <rect x="30" y="111" width="30" height="2.5" rx="1.25" fill={c.band} opacity="0.7" />
+      <rect x="30" y="177" width="30" height="2.5" rx="1.25" fill={c.band} opacity="0.6" />
+      <rect x="30" y="197" width="30" height="2.5" rx="1.25" fill={c.band} opacity="0.6" />
     </svg>
   );
 }
 
-export default function RocketPreview({ equipped, model, launching, onLaunchComplete }: RocketPreviewProps) {
+export default function RocketPreview({ slots, model, launching, onLaunchComplete }: RocketPreviewProps) {
+  const { theme } = useTheme();
+  const light = theme === 'light';
+
   useEffect(() => {
     if (launching) {
       const t = setTimeout(onLaunchComplete, 2200);
@@ -502,9 +577,11 @@ export default function RocketPreview({ equipped, model, launching, onLaunchComp
     }
   }, [launching, onLaunchComplete]);
 
-  const totalParts = Object.keys(equipped).length;
-  const equippedCount = Object.values(equipped).filter(Boolean).length;
-  const completeness = equippedCount / totalParts;
+  const readyCount = ROCKET_SECTIONS.reduce(
+    (count, section) => count + (slots[section].status === 'equipped' ? 1 : 0),
+    0,
+  );
+  const completeness = readyCount / ROCKET_SECTIONS.length;
   const glowIntensity = 0.03 + completeness * 0.15;
 
   const modelColor = model === 'heavy' ? 'rgba(245,158,11,' : model === 'scout' ? 'rgba(6,214,160,' : 'rgba(255,255,255,';
@@ -546,14 +623,14 @@ export default function RocketPreview({ equipped, model, launching, onLaunchComp
       `}</style>
 
       <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-        <div className="absolute w-48 h-48 rounded-full border border-white/[0.04]"
+        <div className={`absolute w-48 h-48 rounded-full border ${light ? 'border-black/[0.06]' : 'border-white/[0.04]'}`}
           style={{ boxShadow: `0 0 60px ${modelColor}${glowIntensity})`, transition: 'box-shadow 0.8s ease' }} />
-        <div className="absolute w-72 h-72 rounded-full border border-white/[0.025]" />
+        <div className={`absolute w-72 h-72 rounded-full border ${light ? 'border-black/[0.04]' : 'border-white/[0.025]'}`} />
         <div
-          className="absolute w-56 h-56 rounded-full border border-white/[0.05]"
+          className={`absolute w-56 h-56 rounded-full border ${light ? 'border-black/[0.07]' : 'border-white/[0.05]'}`}
           style={{ animation: 'orbitRing 20s linear infinite' }}
         >
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-white/20" />
+          <div className={`absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 w-2 h-2 rounded-full ${light ? 'bg-black/15' : 'bg-white/20'}`} />
         </div>
       </div>
 
@@ -565,6 +642,8 @@ export default function RocketPreview({ equipped, model, launching, onLaunchComp
             : 'rocketFloat 4s ease-in-out infinite',
         }}
       >
+        <VariantMarkers slots={slots} />
+
         {launching && (
           <div
             className="absolute -bottom-6 left-1/2 -translate-x-1/2 w-40 h-40 rounded-full border border-white/20"
@@ -572,11 +651,11 @@ export default function RocketPreview({ equipped, model, launching, onLaunchComp
           />
         )}
 
-        {model === 'standard' && <StandardRocket equipped={equipped} />}
-        {model === 'heavy' && <HeavyRocket equipped={equipped} />}
-        {model === 'scout' && <ScoutRocket equipped={equipped} />}
+        {model === 'standard' && <StandardRocket slots={slots} light={light} />}
+        {model === 'heavy' && <HeavyRocket slots={slots} light={light} />}
+        {model === 'scout' && <ScoutRocket slots={slots} light={light} />}
 
-        {(equipped.booster || equipped.engine) && !launching && (
+        {(slots.coreEngine.status === 'equipped' || slots.thrusterArray.status === 'equipped') && !launching && (
           <div className="relative -mt-3 flex flex-col items-center">
             <svg width="60" height="48" viewBox="0 0 60 48" style={{ animation: 'thrustFlame 0.3s ease-in-out infinite', transformOrigin: 'top center' }}>
               <defs>
@@ -617,8 +696,18 @@ export default function RocketPreview({ equipped, model, launching, onLaunchComp
 
       <div className="absolute bottom-4 left-0 right-0 flex justify-center">
         <div className="flex items-center gap-1.5">
-          {Object.entries(equipped).map(([key, on]) => (
-            <div key={key} className={`w-1.5 h-1.5 rounded-full transition-all duration-500 ${on ? 'bg-dot-green' : 'bg-zinc-800'}`} />
+          {ROCKET_SECTIONS.map((section) => (
+            <div
+              key={section}
+              className="w-1.5 h-1.5 rounded-full transition-all duration-500"
+              style={{
+                background: slots[section].status === 'equipped'
+                  ? '#4ADE80'
+                  : slots[section].status === 'available'
+                    ? '#F59E0B'
+                    : 'var(--color-bg-inset)',
+              }}
+            />
           ))}
         </div>
       </div>

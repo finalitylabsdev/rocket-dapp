@@ -12,29 +12,31 @@ export default {
       },
       colors: {
         // Base void palette (from brief)
-        void: '#06080F',
-        'void-mid': '#0C1018',
-        dust: '#1E2636',
-        star: '#E8ECF4',
-        'star-dim': '#8A94A8',
+        void: 'var(--color-bg-base)',
+        'void-mid': 'var(--color-bg-card)',
+        dust: 'var(--color-border-subtle)',
+        star: 'var(--color-text-primary)',
+        'star-dim': 'var(--color-text-secondary)',
 
-        // Legacy aliases (keep for existing components)
-        'bg-base': '#06080F',
-        'bg-card': '#0C1018',
-        'bg-card-hover': '#111824',
-        'bg-surface': '#06080F',
-        'border-subtle': '#1E2636',
-        'border-default': '#2A3348',
-        'border-strong': '#3A4A60',
-        'text-primary': '#E8ECF4',
-        'text-secondary': '#8A94A8',
-        'text-muted': '#4A5468',
-        'accent-white': '#E8ECF4',
-        'accent-gray': '#8A94A8',
-        'accent-dim': '#4A5468',
+        // Semantic theme tokens (CSS variables)
+        'bg-base': 'var(--color-bg-base)',
+        'bg-card': 'var(--color-bg-card)',
+        'bg-card-hover': 'var(--color-bg-card-hover)',
+        'bg-surface': 'var(--color-bg-surface)',
+        'bg-inset': 'var(--color-bg-inset)',
+        'border-subtle': 'var(--color-border-subtle)',
+        'border-default': 'var(--color-border-default)',
+        'border-strong': 'var(--color-border-strong)',
+        'text-primary': 'var(--color-text-primary)',
+        'text-secondary': 'var(--color-text-secondary)',
+        'text-muted': 'var(--color-text-muted)',
+        'text-faint': 'var(--color-text-faint)',
+        'accent-white': 'var(--color-text-primary)',
+        'accent-gray': 'var(--color-text-secondary)',
+        'accent-dim': 'var(--color-text-muted)',
+
+        // Accent colours (fixed — work on both themes)
         'dot-green': '#4ADE80',
-
-        // App accent colours
         'app-gate': '#8B5CF6',
         'app-exchange': '#06D6A0',
         'app-vault': '#F6C547',
@@ -43,7 +45,7 @@ export default {
         'app-liftoff': '#F97316',
         'app-jackpot': '#FACC15',
 
-        // Rarity colours
+        // Rarity colours (fixed)
         'rarity-common': '#6B7280',
         'rarity-uncommon': '#22C55E',
         'rarity-rare': '#3B82F6',

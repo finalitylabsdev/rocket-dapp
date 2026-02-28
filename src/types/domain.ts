@@ -26,42 +26,133 @@ export const ROCKET_SECTIONS = [
 ] as const;
 export type RocketSection = typeof ROCKET_SECTIONS[number];
 
-export const LEGACY_PART_SLOTS = [
-  'engine',
-  'fuel',
-  'body',
-  'wings',
-  'booster',
-  'noseCone',
-  'heatShield',
-  'gyroscope',
-  'solarPanels',
-  'landingStruts',
-] as const;
-export type LegacyPartSlot = typeof LEGACY_PART_SLOTS[number];
-
-export const ALL_PART_SLOTS = [...ROCKET_SECTIONS, ...LEGACY_PART_SLOTS] as const;
-export type PartSlot = typeof ALL_PART_SLOTS[number];
-
-export const LEGACY_TO_CANONICAL_SECTION: Record<LegacyPartSlot, RocketSection> = {
-  engine: 'coreEngine',
-  fuel: 'fuelCell',
-  body: 'shielding',
-  wings: 'wingPlate',
-  booster: 'thrusterArray',
-  noseCone: 'navigationModule',
-  heatShield: 'shielding',
-  gyroscope: 'navigationModule',
-  solarPanels: 'payloadBay',
-  landingStruts: 'propulsionCables',
-};
-
+export interface AssetReference {
+  key: string;
+  url?: string | null;
+  alt?: string | null;
+}
 export interface InventoryPart {
   id: string;
+  variantId?: number;
+  variantIndex?: number;
   name: string;
-  slot: PartSlot;
+  slot: RocketSection;
+  equippedSectionKey?: RocketSection;
   rarity: RarityTier;
   power: number;
-  attributes?: [number, number, number];
+  totalPower: number;
+  attributes: [number, number, number];
+  attributeNames: [string, string, string];
+  partValue: number;
+  conditionPct?: number;
+  serialNumber?: string;
+  serialTrait?: string;
+  isShiny?: boolean;
+  sectionName: string;
+  rarityTierId: number;
+  isLocked?: boolean;
+  isEquipped?: boolean;
+  source?: 'mystery_box' | 'auction_win' | 'admin';
+  createdAt?: string;
+  illustration?: AssetReference | null;
 }
 
+export interface BoxTierConfig {
+  id: string;
+  name: string;
+  rarity: RarityTier;
+  tagline: string;
+  price: number;
+  rewards: string[];
+  possible: { label: string; value: string }[];
+  illustration?: AssetReference | null;
+}
+
+export interface RarityTierConfig {
+  id: number;
+  name: RarityTier;
+  multiplier: number;
+  attrFloor: number;
+  attrCap: number;
+  attrBias: number;
+  dropCurveExponent: number;
+  baseBoxPriceFlux: number;
+  approximateDropRate: number;
+  color: string;
+  bg: string;
+  border: string;
+  glow: string;
+  intensity: number;
+  illustration?: AssetReference | null;
+}
+
+export interface RocketSectionConfig {
+  id: number;
+  key: RocketSection;
+  displayName: string;
+  description: string | null;
+  attributeNames: [string, string, string];
+  illustration?: AssetReference | null;
+}
+
+export interface AuctionBid {
+  id: number;
+  wallet: string;
+  amount: number;
+  createdAt: string;
+}
+
+export interface AuctionPartInfo {
+  id: string;
+  name: string;
+  sectionName: string;
+  rarity: RarityTier;
+  rarityTierId: number;
+  attributes: [number, number, number];
+  attributeNames: [string, string, string];
+  partValue: number;
+  totalPower: NonNullable<InventoryPart['totalPower']>;
+  serialNumber: NonNullable<InventoryPart['serialNumber']>;
+  isShiny: NonNullable<InventoryPart['isShiny']>;
+  submittedBy: string;
+}
+
+export type AuctionRoundStatus =
+  | 'accepting_submissions'
+  | 'bidding'
+  | 'finalizing'
+  | 'completed'
+  | 'no_submissions';
+
+export interface AuctionRound {
+  roundId: number;
+  status: AuctionRoundStatus;
+  startsAt: string;
+  submissionEndsAt: string;
+  endsAt: string;
+  biddingOpensAt: string | null;
+  part: AuctionPartInfo | null;
+  bids: AuctionBid[];
+  currentHighestBid: number;
+  bidCount: number;
+}
+
+export interface AuctionHistoryEntry {
+  roundId: number;
+  status: Extract<AuctionRoundStatus, 'completed' | 'no_submissions'>;
+  startsAt: string;
+  endsAt: string;
+  finalPrice: number;
+  winnerWallet: string | null;
+  partName: string | null;
+  rarity: RarityTier | null;
+  partValue: number;
+  totalPower: NonNullable<InventoryPart['totalPower']>;
+  serialNumber: NonNullable<InventoryPart['serialNumber']>;
+  isShiny: NonNullable<InventoryPart['isShiny']>;
+  sectionName: string | null;
+  sellerWallet: string | null;
+}
+
+export type InventorySortKey = 'section' | 'rarity' | 'power' | 'value' | 'name';
+export type InventorySortDir = 'asc' | 'desc';

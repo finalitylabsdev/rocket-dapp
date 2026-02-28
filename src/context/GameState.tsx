@@ -3,17 +3,11 @@ import {
   useCallback,
   useContext,
   useEffect,
-  useMemo,
   useState,
   type ReactNode,
 } from 'react';
 import {
-  ALL_PART_SLOTS,
-  LEGACY_PART_SLOTS,
-  LEGACY_TO_CANONICAL_SECTION,
-  ROCKET_SECTIONS,
   type InventoryPart,
-  type PartSlot,
   type RocketSection,
 } from '../types/domain';
 import {
@@ -22,143 +16,114 @@ import {
   FAUCET_INTERVAL_MS,
   WHITELIST_BONUS_FLUX,
 } from '../config/spec';
-import { adjustFluxBalance, claimFluxFromFaucet, formatFluxError, syncFluxBalance } from '../lib/flux';
+import {
+  adjustFluxBalance,
+  claimFluxFromFaucet,
+  formatFluxError,
+  syncFluxBalance,
+  type FluxBalance,
+} from '../lib/flux';
+import { formatStarVaultError, getUserInventory } from '../lib/starVault';
+import { setRocketLoadoutPart as persistRocketLoadoutPart } from '../lib/rocketLoadout';
+import { supabase } from '../lib/supabase';
 import { useWallet } from '../hooks/useWallet';
 
-export type { InventoryPart, PartSlot, RarityTier, RocketSection } from '../types/domain';
+export type { InventoryPart, RarityTier, RocketSection } from '../types/domain';
+
+interface ServerSnapshot {
+  balance?: FluxBalance | null;
+  inventory?: InventoryPart[];
+}
+
+type ClaimDailyFluxResult =
+  | {
+    status: 'claimed';
+    creditedAmount: number;
+    balance: FluxBalance;
+  }
+  | {
+    status: 'unchanged';
+    creditedAmount: 0;
+    balance: FluxBalance;
+  }
+  | {
+    status: 'cooldown' | 'failed';
+  };
 
 interface GameState {
   fluxBalance: number;
   inventory: InventoryPart[];
-  equipped: Record<PartSlot, InventoryPart | null>;
-  canonicalEquipped: Record<RocketSection, InventoryPart | null>;
-  levels: Record<PartSlot, number>;
-  scores: number[];
-  lockedEth: boolean;
   lastDailyClaim: number | null;
   isFluxSyncing: boolean;
   isClaimingFlux: boolean;
+  isInventorySyncing: boolean;
   refreshFluxBalance: () => Promise<void>;
-  claimDailyFlux: () => Promise<boolean>;
+  claimDailyFlux: () => Promise<ClaimDailyFluxResult>;
   spendFlux: (amount: number, reason?: string, payload?: Record<string, unknown>) => Promise<boolean>;
   creditFlux: (amount: number, reason?: string, payload?: Record<string, unknown>) => Promise<boolean>;
   addPart: (part: InventoryPart) => void;
-  equipPart: (slot: PartSlot, part: InventoryPart) => void;
-  unequipPart: (slot: PartSlot) => void;
-  upgradePart: (slot: PartSlot) => Promise<boolean>;
-  recordScore: (score: number) => void;
+  replaceInventory: (inventory: InventoryPart[]) => void;
+  refreshInventory: () => Promise<void>;
+  setRocketLoadoutPart: (section: RocketSection, partId: string | null) => Promise<InventoryPart[]>;
+  applyServerSnapshot: (snapshot: ServerSnapshot) => void;
 }
 
-const STORAGE_KEY = 'phinet-game-state';
-
-interface StoredGameState {
-  fluxBalance: number;
-  inventory: InventoryPart[];
-  equipped: Record<PartSlot, InventoryPart | null>;
-  levels: Record<PartSlot, number>;
-  scores: number[];
-  lockedEth: boolean;
-  lastDailyClaim: number | null;
-}
-
-const equippedDefaults = Object.fromEntries(
-  ALL_PART_SLOTS.map((slot) => [slot, null]),
-) as Record<PartSlot, InventoryPart | null>;
-
-const levelDefaults = Object.fromEntries(
-  ALL_PART_SLOTS.map((slot) => [slot, 1]),
-) as Record<PartSlot, number>;
-
-const canonicalDefaults = Object.fromEntries(
-  ROCKET_SECTIONS.map((section) => [section, null]),
-) as Record<RocketSection, InventoryPart | null>;
-
-const defaults: StoredGameState = {
+const defaults = {
   fluxBalance: 0,
-  inventory: [],
-  equipped: equippedDefaults,
-  levels: levelDefaults,
-  scores: [],
-  lockedEth: false,
-  lastDailyClaim: null,
+  inventory: [] as InventoryPart[],
+  lastDailyClaim: null as number | null,
 };
 
-function deriveCanonicalEquipped(
-  equipped: Record<PartSlot, InventoryPart | null>,
-): Record<RocketSection, InventoryPart | null> {
-  const canonical = { ...canonicalDefaults };
+// ETH lock truth now lives in EthLockState/useEthLock so shell and feature gates share one source.
 
-  for (const section of ROCKET_SECTIONS) {
-    canonical[section] = equipped[section];
-  }
-
-  for (const legacySlot of LEGACY_PART_SLOTS) {
-    const legacyPart = equipped[legacySlot];
-    const mappedSection = LEGACY_TO_CANONICAL_SECTION[legacySlot];
-    if (!canonical[mappedSection] && legacyPart) {
-      canonical[mappedSection] = legacyPart;
-    }
-  }
-
-  return canonical;
-}
-
-function load() {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) {
-      return {
-        ...defaults,
-        equipped: { ...equippedDefaults },
-        levels: { ...levelDefaults },
-      };
-    }
-    const parsed = JSON.parse(raw) as Partial<StoredGameState>;
-    return {
-      ...defaults,
-      ...parsed,
-      equipped: { ...equippedDefaults, ...(parsed.equipped || {}) },
-      levels: { ...levelDefaults, ...(parsed.levels || {}) },
-    };
-  } catch {
-    return {
-      ...defaults,
-      equipped: { ...equippedDefaults },
-      levels: { ...levelDefaults },
-    };
-  }
+function clearServerBackedState<T extends typeof defaults>(state: T): T {
+  return {
+    ...state,
+    fluxBalance: 0,
+    inventory: [],
+    lastDailyClaim: null,
+  };
 }
 
 const GameStateContext = createContext<GameState | null>(null);
 
 export function GameStateProvider({ children }: { children: ReactNode }) {
   const wallet = useWallet();
-  const [state, setState] = useState(load);
+  const [state, setState] = useState({ ...defaults });
   const [isFluxSyncing, setIsFluxSyncing] = useState(false);
   const [isClaimingFlux, setIsClaimingFlux] = useState(false);
+  const [isInventorySyncing, setIsInventorySyncing] = useState(false);
 
-  useEffect(() => {
-    const { fluxBalance, inventory, equipped, levels, scores, lockedEth, lastDailyClaim } = state;
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({ fluxBalance, inventory, equipped, levels, scores, lockedEth, lastDailyClaim }));
-  }, [state]);
-
-  const applyRemoteFluxBalance = useCallback((nextBalance: {
-    availableBalance: number;
-    lastFaucetClaimedAt: string | null;
-    whitelistBonusGrantedAt: string | null;
-  }) => {
-    setState((s) => ({
-      ...s,
+  const applyRemoteFluxBalance = useCallback((nextBalance: FluxBalance) => {
+    setState((current) => ({
+      ...current,
       fluxBalance: nextBalance.availableBalance,
       lastDailyClaim: nextBalance.lastFaucetClaimedAt
         ? new Date(nextBalance.lastFaucetClaimedAt).getTime()
         : null,
-      lockedEth: nextBalance.whitelistBonusGrantedAt !== null,
     }));
   }, []);
 
+  const replaceInventory = useCallback((inventory: InventoryPart[]) => {
+    setState((current) => ({
+      ...current,
+      inventory,
+    }));
+  }, []);
+
+  const applyServerSnapshot = useCallback((snapshot: ServerSnapshot) => {
+    if (snapshot.balance) {
+      applyRemoteFluxBalance(snapshot.balance);
+    }
+
+    if (snapshot.inventory) {
+      replaceInventory(snapshot.inventory);
+    }
+  }, [applyRemoteFluxBalance, replaceInventory]);
+
   const refreshFluxBalance = useCallback(async () => {
     if (!wallet.address) {
+      setIsFluxSyncing(false);
       return;
     }
 
@@ -168,41 +133,99 @@ export function GameStateProvider({ children }: { children: ReactNode }) {
       const balance = await syncFluxBalance(wallet.address, WHITELIST_BONUS_FLUX);
       applyRemoteFluxBalance(balance);
     } catch (error) {
-      console.error('Failed to refresh Flux balance:', formatFluxError(error, 'Failed to refresh Flux balance.'));
+      console.error('Failed to refresh FLUX balance:', formatFluxError(error, 'Failed to refresh FLUX balance.'));
     } finally {
       setIsFluxSyncing(false);
     }
   }, [applyRemoteFluxBalance, wallet.address]);
 
+  const refreshInventory = useCallback(async () => {
+    if (!wallet.address) {
+      setIsInventorySyncing(false);
+      replaceInventory([]);
+      return;
+    }
+
+    setIsInventorySyncing(true);
+
+    try {
+      const inventory = await getUserInventory(wallet.address);
+      replaceInventory(inventory);
+    } catch (error) {
+      console.error('Failed to refresh inventory:', formatStarVaultError(error, 'Failed to refresh inventory.'));
+    } finally {
+      setIsInventorySyncing(false);
+    }
+  }, [replaceInventory, wallet.address]);
+
   useEffect(() => {
     if (!wallet.address) {
       setIsFluxSyncing(false);
       setIsClaimingFlux(false);
-      setState((s) => ({
-        ...s,
-        fluxBalance: 0,
-        lockedEth: false,
-        lastDailyClaim: null,
-      }));
+      setIsInventorySyncing(false);
+      setState((current) => clearServerBackedState(current));
       return;
     }
 
-    void refreshFluxBalance();
-  }, [refreshFluxBalance, wallet.address]);
+    setState((current) => clearServerBackedState(current));
+    void Promise.all([
+      refreshFluxBalance(),
+      refreshInventory(),
+    ]);
+  }, [refreshFluxBalance, refreshInventory, wallet.address]);
+
+  useEffect(() => {
+    const supabaseClient = supabase;
+
+    if (!wallet.address || !supabaseClient) {
+      return;
+    }
+
+    const channel = supabaseClient
+      .channel('inventory-parts')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'inventory_parts' },
+        () => {
+          void refreshInventory();
+        },
+      )
+      .subscribe((status, error) => {
+        if (status === 'SUBSCRIBED') {
+          void refreshInventory();
+          return;
+        }
+
+        if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+          console.warn('Inventory realtime subscription degraded:', error?.message ?? status);
+          void refreshInventory();
+          return;
+        }
+
+        if (status === 'CLOSED') {
+          console.warn('Inventory realtime subscription closed. Falling back to manual refresh until it reconnects.');
+        }
+      });
+
+    return () => {
+      void supabaseClient.removeChannel(channel);
+    };
+  }, [refreshInventory, wallet.address]);
 
   const claimDailyFlux = useCallback(async () => {
     if (!wallet.address || isClaimingFlux) {
-      return false;
+      return { status: 'failed' } as const;
     }
 
     const now = Date.now();
     if (state.lastDailyClaim && now - state.lastDailyClaim < FAUCET_INTERVAL_MS) {
-      return false;
+      return { status: 'cooldown' } as const;
     }
 
     setIsClaimingFlux(true);
 
     try {
+      const previousBalance = state.fluxBalance;
       const balance = await claimFluxFromFaucet(
         wallet.address,
         EFFECTIVE_DAILY_CLAIM_FLUX,
@@ -210,14 +233,28 @@ export function GameStateProvider({ children }: { children: ReactNode }) {
         WHITELIST_BONUS_FLUX,
       );
       applyRemoteFluxBalance(balance);
-      return true;
+      const creditedAmount = Math.max(0, balance.availableBalance - previousBalance);
+
+      if (creditedAmount > 0) {
+        return {
+          status: 'claimed',
+          creditedAmount,
+          balance,
+        } as const;
+      }
+
+      return {
+        status: 'unchanged',
+        creditedAmount: 0,
+        balance,
+      } as const;
     } catch (error) {
-      console.error('Failed to claim Flux:', formatFluxError(error, 'Failed to claim Flux.'));
-      return false;
+      console.error('Failed to claim FLUX:', formatFluxError(error, 'Failed to claim FLUX.'));
+      return { status: 'failed' } as const;
     } finally {
       setIsClaimingFlux(false);
     }
-  }, [applyRemoteFluxBalance, isClaimingFlux, state.lastDailyClaim, wallet.address]);
+  }, [applyRemoteFluxBalance, isClaimingFlux, state.fluxBalance, state.lastDailyClaim, wallet.address]);
 
   const mutateFluxBalance = useCallback(async (
     delta: number,
@@ -247,7 +284,7 @@ export function GameStateProvider({ children }: { children: ReactNode }) {
       applyRemoteFluxBalance(balance);
       return true;
     } catch (error) {
-      console.error('Failed to update Flux balance:', formatFluxError(error, 'Failed to update Flux balance.'));
+      console.error('Failed to update FLUX balance:', formatFluxError(error, 'Failed to update FLUX balance.'));
       return false;
     }
   }, [applyRemoteFluxBalance, state.fluxBalance, wallet.address]);
@@ -272,59 +309,52 @@ export function GameStateProvider({ children }: { children: ReactNode }) {
     { ...payload, amount_flux: amount },
   ), [mutateFluxBalance]);
 
-  const addPart = (part: InventoryPart) => setState(s => ({ ...s, inventory: [...s.inventory, part] }));
+  const addPart = useCallback((part: InventoryPart) => {
+    setState((current) => ({
+      ...current,
+      inventory: [part, ...current.inventory],
+    }));
+  }, []);
 
-  const equipPart = (slot: PartSlot, part: InventoryPart) => setState(s => ({
-    ...s,
-    equipped: { ...s.equipped, [slot]: part },
-    inventory: s.inventory.filter(p => p.id !== part.id),
-  }));
+  const setRocketLoadoutPart = useCallback(async (
+    section: RocketSection,
+    partId: string | null,
+  ) => {
+    if (!wallet.address) {
+      throw new Error('Connect a wallet to edit the Rocket Lab loadout.');
+    }
 
-  const unequipPart = (slot: PartSlot) => setState(s => {
-    const part = s.equipped[slot];
-    if (!part) return s;
-    return { ...s, equipped: { ...s.equipped, [slot]: null }, inventory: [...s.inventory, part] };
-  });
+    setIsInventorySyncing(true);
 
-  const upgradePart = async (slot: PartSlot) => {
-    if (state.levels[slot] >= 3) return false;
-    const cost = 20 + state.levels[slot] * 15;
-    const didSpend = await spendFlux(
-      cost,
-      'legacy_part_upgrade',
-      {
-        slot,
-        next_level: state.levels[slot] + 1,
-      },
-    );
-    if (!didSpend) return false;
-    setState(s => ({ ...s, levels: { ...s.levels, [slot]: s.levels[slot] + 1 } }));
-    return true;
-  };
-
-  const recordScore = (score: number) => setState(s => ({ ...s, scores: [...s.scores, score] }));
-
-  const canonicalEquipped = useMemo(
-    () => deriveCanonicalEquipped(state.equipped),
-    [state.equipped],
-  );
+    try {
+      const inventory = await persistRocketLoadoutPart(wallet.address, section, partId);
+      replaceInventory(inventory);
+      return inventory;
+    } catch (error) {
+      const message = formatStarVaultError(error, 'Failed to update the Rocket Lab loadout.');
+      console.error('Failed to update Rocket Lab loadout:', message);
+      throw new Error(message);
+    } finally {
+      setIsInventorySyncing(false);
+    }
+  }, [replaceInventory, wallet.address]);
 
   return (
     <GameStateContext.Provider
       value={{
         ...state,
-        canonicalEquipped,
         isFluxSyncing,
         isClaimingFlux,
+        isInventorySyncing,
         refreshFluxBalance,
         claimDailyFlux,
         spendFlux,
         creditFlux,
         addPart,
-        equipPart,
-        unequipPart,
-        upgradePart,
-        recordScore,
+        replaceInventory,
+        refreshInventory,
+        setRocketLoadoutPart,
+        applyServerSnapshot,
       }}
     >
       {children}
@@ -334,6 +364,8 @@ export function GameStateProvider({ children }: { children: ReactNode }) {
 
 export function useGameState() {
   const ctx = useContext(GameStateContext);
-  if (!ctx) throw new Error('useGameState must be used within GameStateProvider');
+  if (!ctx) {
+    throw new Error('useGameState must be used within GameStateProvider');
+  }
   return ctx;
 }

@@ -3,20 +3,158 @@
 @tailwind utilities;
 
 @layer base {
+  :root {
+    --color-bg-base: #06080F;
+    --color-bg-card: #0C1018;
+    --color-bg-card-hover: #111824;
+    --color-bg-surface: #06080F;
+    --color-bg-inset: #0A0F1A;
+    --color-border-subtle: #1E2636;
+    --color-border-default: #2A3348;
+    --color-border-strong: #3A4A60;
+    --color-text-primary: #E8ECF4;
+    --color-text-secondary: #8A94A8;
+    --color-text-muted: #4A5468;
+    --color-text-faint: #2A3348;
+    --color-bg-tag: rgba(30,38,54,0.8);
+    --color-bg-toast: rgba(12,16,24,0.98);
+    --starfield-dot: rgba(232,236,244,0.03);
+    --scrollbar-track: #06080F;
+    --scrollbar-thumb: #2A3348;
+    --scrollbar-thumb-hover: #3A4A60;
+    --onboard-white: #E8ECF4;
+    --onboard-black: #06080F;
+    --onboard-primary-100: rgba(74, 222, 128, 0.08);
+    --onboard-primary-200: rgba(74, 222, 128, 0.16);
+    --onboard-primary-300: rgba(74, 222, 128, 0.28);
+    --onboard-primary-400: #6EE7A0;
+    --onboard-primary-500: #4ADE80;
+    --onboard-primary-600: #22C55E;
+    --onboard-primary-700: #15803D;
+    --onboard-gray-100: var(--color-bg-inset);
+    --onboard-gray-200: var(--color-border-subtle);
+    --onboard-gray-300: var(--color-border-default);
+    --onboard-gray-400: var(--color-border-strong);
+    --onboard-gray-500: #152032;
+    --onboard-gray-600: var(--color-bg-card);
+    --onboard-gray-700: var(--color-bg-base);
+    --onboard-success-500: #4ADE80;
+    --onboard-success-600: #22C55E;
+    --onboard-warning-100: rgba(245, 158, 11, 0.08);
+    --onboard-warning-200: rgba(245, 158, 11, 0.14);
+    --onboard-warning-300: rgba(245, 158, 11, 0.2);
+    --onboard-warning-400: rgba(245, 158, 11, 0.3);
+    --onboard-warning-500: #F59E0B;
+    --onboard-warning-600: #FBBF24;
+    --onboard-warning-700: #E8ECF4;
+    --onboard-danger-500: #FB7185;
+    --onboard-danger-600: #E11D48;
+    --onboard-font-family-normal: 'JetBrains Mono', 'Inter', sans-serif;
+    --onboard-font-size-3: 1.25rem;
+    --onboard-font-size-4: 1rem;
+    --onboard-font-size-5: 0.9375rem;
+    --onboard-font-size-6: 0.875rem;
+    --onboard-font-size-7: 0.8125rem;
+    --onboard-spacing-1: 2rem;
+    --onboard-spacing-2: 1.5rem;
+    --onboard-spacing-3: 1rem;
+    --onboard-spacing-4: 0.75rem;
+    --onboard-spacing-5: 0.5rem;
+    --onboard-border-radius-1: 0px;
+    --onboard-border-radius-2: 0px;
+    --onboard-border-radius-3: 0px;
+    --onboard-border-radius-4: 0px;
+    --onboard-shadow-0: none;
+    --onboard-shadow-1: 0 18px 44px rgba(0, 0, 0, 0.38);
+    --onboard-shadow-2: inset 0 0 0 1px rgba(74, 222, 128, 0.08);
+    --onboard-connect-content-width: min(34rem, calc(100vw - 2rem));
+    --onboard-connect-content-height: auto;
+    --onboard-connect-sidebar-background:
+      radial-gradient(circle at top left, rgba(74, 222, 128, 0.08), transparent 38%),
+      linear-gradient(180deg, rgba(12, 16, 24, 0.96), rgba(6, 8, 15, 0.98));
+    --onboard-connect-sidebar-color: var(--color-text-primary);
+    --onboard-connect-sidebar-border-color: rgba(74, 222, 128, 0.16);
+    --onboard-connect-sidebar-progress-background: rgba(74, 222, 128, 0.12);
+    --onboard-connect-sidebar-progress-color: #4ADE80;
+    --onboard-connect-header-background: rgba(12, 16, 24, 0.96);
+    --onboard-connect-header-color: var(--color-text-primary);
+    --onboard-main-scroll-container-background:
+      linear-gradient(180deg, rgba(12, 16, 24, 0.98), rgba(6, 8, 15, 0.98));
+    --onboard-link-color: #6EE7A0;
+    --onboard-close-button-background: rgba(6, 8, 15, 0.9);
+    --onboard-close-button-color: var(--color-text-secondary);
+    --onboard-wallet-button-background: rgba(6, 8, 15, 0.92);
+    --onboard-wallet-button-background-hover: rgba(74, 222, 128, 0.08);
+    --onboard-wallet-button-color: var(--color-text-primary);
+    --onboard-wallet-button-color-hover: var(--color-text-primary);
+    --onboard-wallet-button-border-color: var(--color-border-default);
+    --onboard-wallet-button-border-radius: 0px;
+    --onboard-wallet-button-box-shadow: inset 0 0 0 1px rgba(42, 51, 72, 0.8);
+    --onboard-wallet-button-box-shadow-hover: inset 0 0 0 1px rgba(74, 222, 128, 0.4);
+    --onboard-wallet-app-icon-border-color: rgba(74, 222, 128, 0.12);
+    --onboard-modal-background: rgba(12, 16, 24, 0.98);
+    --onboard-modal-color: var(--color-text-primary);
+    --onboard-modal-border-radius: 0px;
+    --onboard-modal-backdrop: rgba(6, 8, 15, 0.76);
+    --onboard-modal-box-shadow: 0 28px 72px rgba(0, 0, 0, 0.52);
+    --onboard-action-required-modal-background: rgba(12, 16, 24, 0.98);
+    --onboard-action-required-text-color: var(--color-text-primary);
+    --onboard-action-required-btn-text-color: #4ADE80;
+  }
+
+  [data-theme="light"] {
+    --color-bg-base: #FFFFFF;
+    --color-bg-card: #F8F9FC;
+    --color-bg-card-hover: #F1F3F8;
+    --color-bg-surface: #FFFFFF;
+    --color-bg-inset: #EEF0F5;
+    --color-border-subtle: #E2E5EC;
+    --color-border-default: #D1D5DE;
+    --color-border-strong: #B8BCC8;
+    --color-text-primary: #1A1D27;
+    --color-text-secondary: #4A5068;
+    --color-text-muted: #8A94A8;
+    --color-text-faint: #C0C5D0;
+    --color-bg-tag: rgba(226,229,236,0.8);
+    --color-bg-toast: rgba(255,255,255,0.98);
+    --starfield-dot: rgba(0,0,0,0);
+    --scrollbar-track: #FFFFFF;
+    --scrollbar-thumb: #C0C5D0;
+    --scrollbar-thumb-hover: #A0A5B0;
+    --onboard-connect-sidebar-background:
+      radial-gradient(circle at top left, rgba(34, 197, 94, 0.08), transparent 40%),
+      linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(248, 249, 252, 0.98));
+    --onboard-connect-sidebar-color: var(--color-text-primary);
+    --onboard-connect-header-background: rgba(255, 255, 255, 0.98);
+    --onboard-main-scroll-container-background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(248, 249, 252, 0.98));
+    --onboard-close-button-background: rgba(248, 249, 252, 0.9);
+    --onboard-wallet-button-background: rgba(255, 255, 255, 0.96);
+    --onboard-wallet-button-background-hover: rgba(34, 197, 94, 0.06);
+    --onboard-wallet-button-box-shadow: inset 0 0 0 1px rgba(209, 213, 222, 0.85);
+    --onboard-wallet-button-box-shadow-hover: inset 0 0 0 1px rgba(34, 197, 94, 0.3);
+    --onboard-modal-background: rgba(255, 255, 255, 0.98);
+    --onboard-modal-backdrop: rgba(15, 23, 42, 0.18);
+    --onboard-modal-box-shadow: 0 20px 56px rgba(15, 23, 42, 0.14);
+    --onboard-warning-700: #1A1D27;
+  }
+
   * {
     box-sizing: border-box;
   }
 
   html {
     scroll-behavior: smooth;
+    overflow-x: hidden;
   }
 
   body {
     font-family: 'Inter', sans-serif;
-    background-color: #06080F;
-    color: #E8ECF4;
+    background-color: var(--color-bg-base);
+    color: var(--color-text-primary);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    overflow-x: hidden;
   }
 }
 
@@ -37,26 +175,26 @@
 
   .btn-secondary {
     @apply bg-transparent font-semibold px-6 py-3 transition-all duration-200 active:scale-95 inline-flex items-center gap-2;
-    border: 1px solid #2A3348;
-    color: #8A94A8;
+    border: 1px solid var(--color-border-default);
+    color: var(--color-text-secondary);
     font-family: 'JetBrains Mono', monospace;
     letter-spacing: 0.04em;
   }
   .btn-secondary:hover {
-    border-color: #3A4A60;
-    color: #E8ECF4;
+    border-color: var(--color-border-strong);
+    color: var(--color-text-primary);
   }
 
   .card {
-    background: #0C1018;
-    border: 1px solid #1E2636;
+    background: var(--color-bg-card);
+    border: 1px solid var(--color-border-subtle);
     padding: 1.5rem;
   }
 
   .stat-card {
     @apply p-5;
-    background: #06080F;
-    border: 1px solid #1E2636;
+    background: var(--color-bg-base);
+    border: 1px solid var(--color-border-subtle);
   }
 
   .section-title {
@@ -65,7 +203,7 @@
     font-size: 1.125rem;
     text-transform: uppercase;
     letter-spacing: 0.1em;
-    color: #E8ECF4;
+    color: var(--color-text-primary);
   }
   .section-title::after {
     content: ' >';
@@ -74,19 +212,19 @@
 
   .tag {
     @apply inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5;
-    background: rgba(30, 38, 54, 0.8);
-    color: #8A94A8;
-    border: 1px solid #2A3348;
+    background: var(--color-bg-tag);
+    color: var(--color-text-secondary);
+    border: 1px solid var(--color-border-default);
     font-family: 'JetBrains Mono', monospace;
     letter-spacing: 0.04em;
     text-transform: uppercase;
   }
 
   .app-toast {
-    background: rgba(12, 16, 24, 0.98) !important;
-    border: 1px solid #1E2636 !important;
+    background: var(--color-bg-toast) !important;
+    border: 1px solid var(--color-border-subtle) !important;
     border-radius: 0 !important;
-    color: #E8ECF4 !important;
+    color: var(--color-text-primary) !important;
     box-shadow: 0 18px 44px rgba(0, 0, 0, 0.38) !important;
     font-family: 'JetBrains Mono', monospace !important;
   }
@@ -96,7 +234,7 @@
   }
 
   .app-toast-title {
-    color: #E8ECF4;
+    color: var(--color-text-primary);
     font-size: 0.75rem;
     font-weight: 700;
     letter-spacing: 0.08em;
@@ -104,7 +242,7 @@
   }
 
   .app-toast-description {
-    color: #8A94A8;
+    color: var(--color-text-secondary);
     font-size: 0.75rem;
     line-height: 1.5;
   }
@@ -116,8 +254,8 @@
 
   .app-toast-close {
     background: transparent !important;
-    border: 1px solid #2A3348 !important;
-    color: #8A94A8 !important;
+    border: 1px solid var(--color-border-default) !important;
+    color: var(--color-text-secondary) !important;
     border-radius: 0 !important;
   }
 
@@ -143,8 +281,8 @@
 
   .app-toast-cancel {
     background: transparent !important;
-    border: 1px solid #2A3348 !important;
-    color: #8A94A8 !important;
+    border: 1px solid var(--color-border-default) !important;
+    color: var(--color-text-secondary) !important;
   }
 
   .app-toast-loading {
@@ -268,13 +406,13 @@
 }
 
 ::-webkit-scrollbar-track {
-  background: #06080F;
+  background: var(--scrollbar-track);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #2A3348;
+  background: var(--scrollbar-thumb);
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #3A4A60;
+  background: var(--scrollbar-thumb-hover);
 }

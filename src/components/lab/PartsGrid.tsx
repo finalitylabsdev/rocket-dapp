@@ -1,247 +1,383 @@
-import { ArrowUp, CheckCircle2, Zap } from 'lucide-react';
-import RarityBadge, { type RarityTier, RARITY_CONFIG } from '../brand/RarityBadge';
+import RarityBadge, { getRarityConfig } from '../brand/RarityBadge';
 import PhiSymbol from '../brand/PhiSymbol';
-
-export interface EquippedParts {
-  engine: boolean;
-  fuel: boolean;
-  body: boolean;
-  wings: boolean;
-  booster: boolean;
-}
-
-export type EquippedPartId = keyof EquippedParts;
-
-interface Part {
-  id: EquippedPartId;
-  name: string;
-  label: string;
-  rarity: RarityTier;
-  power: number;
-  upgradeCost: number;
-  maxLevel: number;
-  description: string;
-}
+import { SectionIllustration } from './PartIllustrations';
+import { type RocketLabSlotView, type RocketLabSlots } from './rocketLabAdapter';
+import { ROCKET_SECTIONS, type InventoryPart, type RocketSection } from '../../types/domain';
+import { estimateRepairCost, getEffectivePartPower, getPartConditionPct } from '../../lib/rocketLab';
 
 interface PartsGridProps {
-  equipped: EquippedParts;
-  levels: Record<EquippedPartId, number>;
-  onToggle: (id: EquippedPartId) => void;
-  onUpgrade: (id: EquippedPartId) => void;
+  slots: RocketLabSlots;
+  isSyncing: boolean;
+  disabled: boolean;
+  actionKey: string | null;
+  onEquip: (partId: string, section: RocketSection) => void;
+  onUnequip: (section: RocketSection) => void;
+  onRepair: (partId: string) => void;
 }
 
-const PARTS: Part[] = [
-  {
-    id: 'engine',
-    name: 'Pulse Engine',
-    label: 'Core Engine',
-    rarity: 'Legendary',
-    power: 92,
-    upgradeCost: 120,
-    maxLevel: 3,
-    description: 'Rhythmic energy rings from a central core.',
-  },
-  {
-    id: 'fuel',
-    name: 'Nebula Tank',
-    label: 'Fuel Cells',
-    rarity: 'Rare',
-    power: 74,
-    upgradeCost: 80,
-    maxLevel: 3,
-    description: 'Swirling nebula-coloured fluid within.',
-  },
-  {
-    id: 'body',
-    name: 'Radiation Mantle',
-    label: 'Shielding',
-    rarity: 'Common',
-    power: 68,
-    upgradeCost: 40,
-    maxLevel: 3,
-    description: 'Layered, cape-like protective panels.',
-  },
-  {
-    id: 'wings',
-    name: 'Solar Wings',
-    label: 'Wing-Plates',
-    rarity: 'Epic',
-    power: 55,
-    upgradeCost: 95,
-    maxLevel: 3,
-    description: 'Wide panels with embedded solar cells.',
-  },
-  {
-    id: 'booster',
-    name: 'Ion Array',
-    label: 'Thruster Array',
-    rarity: 'Rare',
-    power: 88,
-    upgradeCost: 60,
-    maxLevel: 3,
-    description: 'Grid of ion emitters, uniform glow.',
-  },
-];
+function formatFlux(value: number) {
+  return value.toLocaleString(undefined, {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+}
 
-export const PART_UPGRADE_COSTS: Record<EquippedPartId, number> = PARTS.reduce(
-  (costs, part) => ({
-    ...costs,
-    [part.id]: part.upgradeCost,
-  }),
-  {
-    engine: 0,
-    fuel: 0,
-    body: 0,
-    wings: 0,
-    booster: 0,
-  } as Record<EquippedPartId, number>,
-);
+function getSlotSummary(slot: RocketLabSlotView) {
+  if (slot.equippedPart) {
+    return {
+      label: 'Equipped',
+      border: slot.equippedPart ? getRarityConfig(slot.equippedPart.rarity).color : '#4ADE80',
+      accent: slot.equippedPart ? getRarityConfig(slot.equippedPart.rarity).bg : 'rgba(74,222,128,0.08)',
+      copy: 'The server loadout for this slot is active and will be used for launches.',
+    };
+  }
 
-function PartCard({ part, equipped, level, onToggle, onUpgrade }: {
-  part: Part;
-  equipped: boolean;
-  level: number;
-  onToggle: () => void;
-  onUpgrade: () => void;
+  if (slot.ownedParts.length > 0) {
+    return {
+      label: 'Unassigned',
+      border: '#F59E0B',
+      accent: 'rgba(245,158,11,0.08)',
+      copy: slot.equipableCount > 0
+        ? 'Select one owned part to equip this slot.'
+        : 'Only locked or broken parts are available here right now.',
+    };
+  }
+
+  return {
+    label: 'Empty',
+    border: 'var(--color-border-subtle)',
+    accent: 'var(--color-bg-base)',
+    copy: slot.description,
+  };
+}
+
+function PartActions({
+  part,
+  section,
+  disabled,
+  actionKey,
+  onEquip,
+  onUnequip,
+  onRepair,
+}: {
+  part: InventoryPart;
+  section: RocketSection;
+  disabled: boolean;
+  actionKey: string | null;
+  onEquip: (partId: string, section: RocketSection) => void;
+  onUnequip: (section: RocketSection) => void;
+  onRepair: (partId: string) => void;
 }) {
-  const cfg = RARITY_CONFIG[part.rarity];
-  const effectivePower = part.power + (level - 1) * 8;
-  const levelProgress = (level / part.maxLevel) * 100;
+  const conditionPct = getPartConditionPct(part);
+  const repairCost = estimateRepairCost(part);
+  const isBusy = (key: string) => disabled || actionKey === key;
+
+  return (
+    <div className="mt-3 flex flex-wrap gap-2">
+      {part.isEquipped ? (
+        <button
+          onClick={() => onUnequip(section)}
+          disabled={isBusy(`unequip:${section}`)}
+          className="px-2.5 py-1.5 text-[10px] font-mono font-bold uppercase tracking-[0.16em] disabled:opacity-50"
+          style={{ background: 'var(--color-bg-card)', border: '1px solid var(--color-border-subtle)' }}
+        >
+          {actionKey === `unequip:${section}` ? 'Unequipping…' : 'Unequip'}
+        </button>
+      ) : (
+        <button
+          onClick={() => onEquip(part.id, section)}
+          disabled={part.isLocked || conditionPct <= 0 || isBusy(`equip:${part.id}`)}
+          className="px-2.5 py-1.5 text-[10px] font-mono font-bold uppercase tracking-[0.16em] disabled:opacity-50"
+          style={{
+            background: part.isLocked || conditionPct <= 0 ? 'var(--color-bg-card)' : 'rgba(249,115,22,0.12)',
+            border: part.isLocked || conditionPct <= 0 ? '1px solid var(--color-border-subtle)' : '1px solid rgba(249,115,22,0.4)',
+            color: part.isLocked || conditionPct <= 0 ? 'var(--color-text-muted)' : '#F97316',
+          }}
+        >
+          {actionKey === `equip:${part.id}` ? 'Equipping…' : 'Equip'}
+        </button>
+      )}
+
+      {conditionPct < 100 && (
+        <button
+          onClick={() => onRepair(part.id)}
+          disabled={part.isLocked || repairCost <= 0 || isBusy(`repair:${part.id}`)}
+          className="px-2.5 py-1.5 text-[10px] font-mono font-bold uppercase tracking-[0.16em] disabled:opacity-50"
+          style={{
+            background: repairCost <= 0 ? 'var(--color-bg-card)' : 'rgba(34,197,94,0.10)',
+            border: repairCost <= 0 ? '1px solid var(--color-border-subtle)' : '1px solid rgba(34,197,94,0.35)',
+            color: repairCost <= 0 ? 'var(--color-text-muted)' : '#22C55E',
+          }}
+        >
+          {actionKey === `repair:${part.id}` ? 'Repairing…' : `Repair ${formatFlux(repairCost)}`}
+        </button>
+      )}
+    </div>
+  );
+}
+
+function PartRow({
+  part,
+  section,
+  disabled,
+  actionKey,
+  onEquip,
+  onUnequip,
+  onRepair,
+}: {
+  part: InventoryPart;
+  section: RocketSection;
+  disabled: boolean;
+  actionKey: string | null;
+  onEquip: (partId: string, section: RocketSection) => void;
+  onUnequip: (section: RocketSection) => void;
+  onRepair: (partId: string) => void;
+}) {
+  const rarityConfig = getRarityConfig(part.rarity);
+  const conditionPct = getPartConditionPct(part);
+  const effectivePower = getEffectivePartPower(part);
 
   return (
     <div
-      className="relative overflow-hidden cursor-pointer select-none transition-all duration-200"
-      style={equipped ? {
-        background: '#0A0F1A',
-        border: `1px solid ${cfg.color}`,
-      } : {
-        background: '#06080F',
-        border: '1px solid #1E2636',
+      className="overflow-hidden"
+      style={{
+        background: part.isEquipped ? 'var(--color-bg-inset)' : 'var(--color-bg-card)',
+        border: `1px solid ${part.isEquipped ? rarityConfig.color : 'var(--color-border-subtle)'}`,
       }}
-      onClick={onToggle}
     >
-      {equipped && (
-        <div
-          className="absolute top-0 left-0 right-0 h-[1px]"
-          style={{ background: `linear-gradient(90deg, transparent, ${cfg.color}, transparent)` }}
-        />
-      )}
-
       <div className="p-3">
-        <div className="relative mb-3">
-          <div
-            className="w-full aspect-square overflow-hidden flex items-center justify-center"
-            style={{
-              background: '#06080F',
-              border: `1px solid ${equipped ? cfg.border : '#1E2636'}`,
-            }}
-          >
-            <Zap size={32} style={{ color: equipped ? cfg.color : '#2A3348' }} />
-          </div>
-          {equipped && (
-            <div className="absolute top-2 right-2">
-              <CheckCircle2 size={14} style={{ color: '#4ADE80' }} />
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <div className="flex flex-wrap items-center gap-2">
+              <p className="truncate font-mono font-bold text-sm text-text-primary">{part.name}</p>
+              {part.isEquipped && (
+                <span
+                  className="px-2 py-0.5 text-[9px] font-mono font-bold uppercase tracking-[0.16em]"
+                  style={{ background: `${rarityConfig.color}18`, color: rarityConfig.color }}
+                >
+                  Equipped
+                </span>
+              )}
+              {part.isLocked && (
+                <span className="px-2 py-0.5 text-[9px] font-mono font-bold uppercase tracking-[0.16em] text-amber-400">
+                  Locked
+                </span>
+              )}
+              {part.isShiny && (
+                <span className="px-2 py-0.5 text-[9px] font-mono font-bold uppercase tracking-[0.16em] text-yellow-300">
+                  Shiny
+                </span>
+              )}
             </div>
-          )}
-          <div className="absolute bottom-2 left-2">
-            <RarityBadge tier={part.rarity} size="xs" showIcon={false} />
+            <p className="mt-1 text-[10px] font-mono uppercase tracking-[0.16em] text-text-muted">
+              Serial {part.serialNumber ?? 'Pending'} · {part.serialTrait ?? 'Standard'}
+            </p>
           </div>
+          <RarityBadge tier={part.rarity} size="xs" showIcon={part.isEquipped} />
         </div>
 
-        <p
-          className="font-mono font-bold text-sm mb-0.5 leading-tight uppercase tracking-wider"
-          style={{ color: '#E8ECF4' }}
-        >
-          {part.name}
-        </p>
-        <p className="text-[10px] mb-2 leading-snug font-mono" style={{ color: '#4A5468' }}>
-          {part.description}
-        </p>
-
-        <div className="flex items-center gap-1 mb-2">
-          <Zap size={9} style={{ color: '#4A5468' }} />
-          <span className="font-mono font-bold text-xs" style={{ color: '#8A94A8' }}>{effectivePower}</span>
-          <span className="text-[9px] font-mono" style={{ color: '#4A5468' }}>PWR</span>
-          <span className="text-[9px] font-mono ml-auto uppercase" style={{ color: '#4A5468' }}>{part.label}</span>
-        </div>
-
-        <div className="mb-2.5">
-          <div className="flex items-center justify-between mb-1">
-            <span className="text-[9px] font-mono uppercase" style={{ color: '#4A5468' }}>Level</span>
-            <span className="font-mono text-[9px]" style={{ color: '#4A5468' }}>
-              Lv.{level}/{part.maxLevel}
-            </span>
-          </div>
-          <div className="h-1 overflow-hidden" style={{ background: '#1E2636' }}>
-            <div
-              className="h-full transition-all duration-500"
-              style={{
-                width: `${levelProgress}%`,
-                background: cfg.color,
-              }}
+        <div className="mt-3 grid grid-cols-[72px_1fr] gap-3">
+          <div
+            className="flex items-center justify-center"
+            style={{ background: 'var(--color-bg-base)', border: '1px solid var(--color-border-subtle)' }}
+          >
+            <SectionIllustration
+              section={section}
+              equipped={Boolean(part.isEquipped)}
+              rarity={part.rarity}
+              variantId={part.variantId}
+              size={72}
             />
           </div>
+
+          <div className="space-y-2">
+            <div className="grid grid-cols-2 gap-2">
+              <div
+                className="px-2.5 py-2"
+                style={{ background: 'var(--color-bg-base)', border: '1px solid var(--color-border-subtle)' }}
+              >
+                <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-text-muted">Power</p>
+                <p className="mt-1 font-mono font-bold text-sm text-text-primary">
+                  {effectivePower}
+                  {conditionPct < 100 && (
+                    <span className="ml-1 text-[10px] text-text-muted">/ {part.power}</span>
+                  )}
+                </p>
+              </div>
+              <div
+                className="px-2.5 py-2"
+                style={{ background: 'var(--color-bg-base)', border: '1px solid var(--color-border-subtle)' }}
+              >
+                <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-text-muted">Value</p>
+                <p className="mt-1 flex items-center gap-1 font-mono font-bold text-sm text-text-primary">
+                  <PhiSymbol size={10} color="currentColor" />
+                  {part.partValue}
+                </p>
+              </div>
+            </div>
+
+            <div
+              className="px-2.5 py-2"
+              style={{ background: 'var(--color-bg-base)', border: '1px solid var(--color-border-subtle)' }}
+            >
+              <div className="mb-1 flex items-center justify-between text-[10px] font-mono uppercase tracking-[0.16em]">
+                <span className="text-text-muted">Condition</span>
+                <span className={conditionPct > 0 ? 'text-text-primary' : 'text-red-400'}>
+                  {conditionPct.toFixed(0)}%
+                </span>
+              </div>
+              <div className="h-1 overflow-hidden" style={{ background: 'var(--color-border-subtle)' }}>
+                <div
+                  className="h-full"
+                  style={{
+                    width: `${conditionPct}%`,
+                    background: conditionPct > 50
+                      ? 'linear-gradient(90deg, rgba(34,197,94,0.45), #22C55E)'
+                      : conditionPct > 0
+                        ? 'linear-gradient(90deg, rgba(245,158,11,0.4), #F59E0B)'
+                        : 'linear-gradient(90deg, rgba(239,68,68,0.4), #EF4444)',
+                  }}
+                />
+              </div>
+            </div>
+          </div>
         </div>
 
-        <button
-          onClick={(e) => { e.stopPropagation(); onUpgrade(); }}
-          disabled={level >= part.maxLevel}
-          className="w-full flex items-center justify-center gap-1 py-1.5 text-[10px] font-mono font-bold transition-all duration-200 active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed uppercase tracking-wider"
-          style={level < part.maxLevel ? {
-            background: cfg.bg,
-            color: cfg.color,
-            border: `1px solid ${cfg.border}`,
-          } : {
-            background: '#06080F',
-            color: '#4A5468',
-            border: '1px solid #1E2636',
-          }}
-        >
-          {level >= part.maxLevel ? (
-            'MAX LEVEL'
-          ) : (
-            <>
-              <ArrowUp size={10} />
-              <PhiSymbol size={9} color="currentColor" />
-              {part.upgradeCost}
-            </>
-          )}
-        </button>
+        <PartActions
+          part={part}
+          section={section}
+          disabled={disabled}
+          actionKey={actionKey}
+          onEquip={onEquip}
+          onUnequip={onUnequip}
+          onRepair={onRepair}
+        />
       </div>
     </div>
   );
 }
 
-export default function PartsGrid({ equipped, levels, onToggle, onUpgrade }: PartsGridProps) {
-  const equippedCount = Object.values(equipped).filter(Boolean).length;
-  const totalParts = Object.keys(equipped).length;
+function SlotCard({
+  slot,
+  disabled,
+  actionKey,
+  onEquip,
+  onUnequip,
+  onRepair,
+}: {
+  slot: RocketLabSlotView;
+  disabled: boolean;
+  actionKey: string | null;
+  onEquip: (partId: string, section: RocketSection) => void;
+  onUnequip: (section: RocketSection) => void;
+  onRepair: (partId: string) => void;
+}) {
+  const summary = getSlotSummary(slot);
+
+  return (
+    <div
+      className="relative overflow-hidden"
+      style={{
+        background: 'var(--color-bg-base)',
+        border: `1px solid ${summary.border}`,
+      }}
+    >
+      <div
+        className="absolute inset-x-0 top-0 h-px"
+        style={{ background: `linear-gradient(90deg, transparent, ${summary.border}, transparent)` }}
+      />
+
+      <div className="p-4">
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <p className="font-mono font-bold text-[11px] uppercase tracking-[0.16em] text-text-muted">
+              {slot.displayName}
+            </p>
+            <p className="mt-1 font-mono text-xs leading-relaxed text-text-secondary">{summary.copy}</p>
+          </div>
+          <span
+            className="px-2 py-1 text-[10px] font-mono font-bold uppercase tracking-[0.16em]"
+            style={{ background: summary.accent, color: summary.border }}
+          >
+            {summary.label}
+          </span>
+        </div>
+
+        <div className="mt-3 flex flex-wrap gap-2 text-[10px] font-mono uppercase tracking-[0.16em] text-text-muted">
+          <span>{slot.ownedParts.length} owned</span>
+          <span>{slot.equipableCount} ready</span>
+          <span>{slot.brokenCount} broken</span>
+          <span>{slot.lockedCount} locked</span>
+        </div>
+
+        <div className="mt-4 space-y-3">
+          {slot.ownedParts.length === 0 ? (
+            <div
+              className="px-3 py-4 text-center text-xs font-mono text-text-muted"
+              style={{ background: 'var(--color-bg-card)', border: '1px solid var(--color-border-subtle)' }}
+            >
+              No parts owned for this rocket section yet.
+            </div>
+          ) : (
+            slot.ownedParts.map((part) => (
+              <PartRow
+                key={part.id}
+                part={part}
+                section={slot.section}
+                disabled={disabled}
+                actionKey={actionKey}
+                onEquip={onEquip}
+                onUnequip={onUnequip}
+                onRepair={onRepair}
+              />
+            ))
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default function PartsGrid({
+  slots,
+  isSyncing,
+  disabled,
+  actionKey,
+  onEquip,
+  onUnequip,
+  onRepair,
+}: PartsGridProps) {
+  const equippedCount = ROCKET_SECTIONS.reduce(
+    (count, section) => count + (slots[section].equippedPart ? 1 : 0),
+    0,
+  );
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-5">
+      <div className="mb-5 flex items-center justify-between gap-4">
         <div>
-          <p
-            className="font-mono font-bold text-base uppercase tracking-wider"
-            style={{ color: '#E8ECF4' }}
-          >
-            Parts Inventory
+          <p className="font-mono font-bold text-base uppercase tracking-wider text-text-primary">
+            Rocket Loadout
           </p>
-          <p className="text-xs mt-0.5 font-mono" style={{ color: '#4A5468' }}>
-            {equippedCount}/{totalParts} equipped · Click to toggle
+          <p className="mt-0.5 text-xs font-mono text-text-muted">
+            {isSyncing
+              ? 'Refreshing server inventory…'
+              : `${equippedCount}/${ROCKET_SECTIONS.length} sections equipped and ready for launch management`}
           </p>
         </div>
-        <span className="tag text-[10px]">Season 1</span>
+        <span className="tag text-[10px]">Server Loadout</span>
       </div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-3">
-        {PARTS.map((part) => (
-          <PartCard
-            key={part.id}
-            part={part}
-            equipped={equipped[part.id]}
-            level={levels[part.id]}
-            onToggle={() => onToggle(part.id)}
-            onUpgrade={() => onUpgrade(part.id)}
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+        {ROCKET_SECTIONS.map((section) => (
+          <SlotCard
+            key={section}
+            slot={slots[section]}
+            disabled={disabled}
+            actionKey={actionKey}
+            onEquip={onEquip}
+            onUnequip={onUnequip}
+            onRepair={onRepair}
           />
         ))}
       </div>
