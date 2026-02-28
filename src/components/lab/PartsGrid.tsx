@@ -1,4 +1,4 @@
-import { X } from 'lucide-react';
+import { BadgeInfo, Gauge, Orbit, Sparkles, X } from 'lucide-react';
 import RarityBadge, { getRarityConfig } from '../brand/RarityBadge';
 import PhiSymbol from '../brand/PhiSymbol';
 import { SectionIllustration } from './PartIllustrations';
@@ -50,6 +50,27 @@ function getSlotSummary(slot: RocketLabSlotView) {
     accent: 'var(--color-bg-base)',
     copy: slot.description,
   };
+}
+
+function getAttributeIcon(index: number) {
+  if (index === 0) return Gauge;
+  if (index === 1) return Orbit;
+  return Sparkles;
+}
+
+function getPartLore(part: InventoryPart, section: RocketSection) {
+  const signatures: Record<RocketSection, string> = {
+    coreEngine: 'A pulse-tuned burn chamber lined with redundant gravitic vanes and a stubborn ignition core.',
+    wingPlate: 'A fin array cut for vacuum drift, tuned to flex just enough when the starwind turns noisy.',
+    fuelCell: 'A sealed reservoir stack that hums with overpressured coolant and suspiciously calm reserve flow.',
+    navigationModule: 'A guidance shell wrapped around a dream-logic gyro that swears it can feel distant moons.',
+    payloadBay: 'A modular cargo cavity with velvet clamps, hidden tie-downs, and entirely too many warning lights.',
+    thrusterArray: 'A clustered exhaust rack built for sharp corrections, hot departures, and theatrical recoil.',
+    propulsionCables: 'A braided transmission spine that carries charge, telemetry, and at least one undocumented shortcut.',
+    shielding: 'A layered mantle of ablative mesh and mirrored plating tuned to shrug off radiant debris.',
+  };
+
+  return `${signatures[section]} Calibrated under the ${part.serialTrait ?? 'standard'} protocol for ${part.name.toLowerCase()}.`;
 }
 
 function PartActions({
@@ -152,6 +173,7 @@ function PartRow({
   const conditionPct = getPartConditionPct(part);
   const effectivePower = getEffectivePartPower(part);
   const isBusy = disabled || actionKey === `unequip:${section}`;
+  const rarityConfig = getRarityConfig(part.rarity);
   const unequipAction = readOnly
     ? getPreviewActionButtonProps('rocketUnequip')
     : {
@@ -170,54 +192,7 @@ function PartRow({
       }}
     >
       <div className="p-3">
-        <div className="flex items-start justify-between gap-3">
-          <div className="min-w-0">
-            <p className="font-mono font-bold text-sm leading-tight text-text-primary">
-              {part.name}
-            </p>
-            <div className="mt-1 flex flex-wrap items-center gap-2">
-              {part.isEquipped && (
-                <span
-                  className="px-2 py-0.5 text-[9px] font-mono font-bold uppercase tracking-[0.16em]"
-                  style={{ background: 'rgba(74,222,128,0.12)', color: '#4ADE80' }}
-                >
-                  Equipped
-                </span>
-              )}
-              {part.isLocked && (
-                <span className="px-2 py-0.5 text-[9px] font-mono font-bold uppercase tracking-[0.16em] text-amber-400">
-                  Locked
-                </span>
-              )}
-              {part.isShiny && (
-                <span className="px-2 py-0.5 text-[9px] font-mono font-bold uppercase tracking-[0.16em] text-yellow-300">
-                  Shiny
-                </span>
-              )}
-            </div>
-            <p className="mt-1 text-[10px] font-mono uppercase tracking-[0.16em] leading-relaxed text-text-muted">
-              Serial {part.serialNumber ?? 'Pending'} · {part.serialTrait ?? 'Standard'}
-            </p>
-          </div>
-          <div className="flex items-center gap-2 shrink-0">
-            <RarityBadge tier={part.rarity} size="xs" showIcon={part.isEquipped} />
-            {part.isEquipped && (
-              <button
-                onClick={runPreviewGuardedAction('rocketUnequip', () => onUnequip(section))}
-                disabled={unequipAction.disabled}
-                aria-disabled={unequipAction['aria-disabled']}
-                title={unequipAction.title ?? 'Unequip'}
-                data-click-denied={unequipAction['data-click-denied']}
-                className="flex items-center justify-center w-6 h-6 disabled:opacity-50"
-                style={{ background: 'rgba(239,68,68,0.12)', border: '1px solid rgba(239,68,68,0.3)' }}
-              >
-                <X size={12} style={{ color: '#EF4444' }} />
-              </button>
-            )}
-          </div>
-        </div>
-
-        <div className="mt-3 grid grid-cols-[72px_1fr] gap-3">
+        <div className="grid grid-cols-[72px_1fr] gap-3 items-start">
           <div
             className="flex aspect-square w-[72px] shrink-0 items-center justify-center overflow-hidden"
             style={{ background: 'var(--color-bg-base)', border: '1px solid var(--color-border-subtle)' }}
@@ -231,7 +206,54 @@ function PartRow({
             />
           </div>
 
-          <div className="space-y-2">
+          <div className="space-y-3">
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <p className="font-mono font-bold text-sm leading-tight text-text-primary">
+                  {part.name}
+                </p>
+                <div className="mt-1 flex flex-wrap items-center gap-2">
+                  {part.isEquipped && (
+                    <span
+                      className="px-2 py-0.5 text-[9px] font-mono font-bold uppercase tracking-[0.16em]"
+                      style={{ background: 'rgba(74,222,128,0.12)', color: '#4ADE80' }}
+                    >
+                      Equipped
+                    </span>
+                  )}
+                  {part.isLocked && (
+                    <span className="px-2 py-0.5 text-[9px] font-mono font-bold uppercase tracking-[0.16em] text-amber-400">
+                      Locked
+                    </span>
+                  )}
+                  {part.isShiny && (
+                    <span className="px-2 py-0.5 text-[9px] font-mono font-bold uppercase tracking-[0.16em] text-yellow-300">
+                      Shiny
+                    </span>
+                  )}
+                </div>
+                <p className="mt-1 text-[10px] font-mono uppercase tracking-[0.16em] leading-relaxed text-text-muted">
+                  Serial {part.serialNumber ?? 'Pending'} · {part.serialTrait ?? 'Standard'}
+                </p>
+              </div>
+              <div className="flex items-center gap-2 shrink-0">
+                <RarityBadge tier={part.rarity} size="xs" showIcon={part.isEquipped} />
+                {part.isEquipped && (
+                  <button
+                    onClick={runPreviewGuardedAction('rocketUnequip', () => onUnequip(section))}
+                    disabled={unequipAction.disabled}
+                    aria-disabled={unequipAction['aria-disabled']}
+                    title={unequipAction.title ?? 'Unequip'}
+                    data-click-denied={unequipAction['data-click-denied']}
+                    className="flex items-center justify-center w-6 h-6 disabled:opacity-50"
+                    style={{ background: 'rgba(239,68,68,0.12)', border: '1px solid rgba(239,68,68,0.3)' }}
+                  >
+                    <X size={12} style={{ color: '#EF4444' }} />
+                  </button>
+                )}
+              </div>
+            </div>
+
             <div className="grid grid-cols-2 gap-2">
               <div
                 className="px-2.5 py-2"
@@ -267,7 +289,7 @@ function PartRow({
                   {conditionPct.toFixed(0)}%
                 </span>
               </div>
-              <div className="h-1 overflow-hidden" style={{ background: 'var(--color-border-subtle)' }}>
+              <div className="h-1 overflow-hidden w-1/2 min-w-[96px]" style={{ background: 'var(--color-border-subtle)' }}>
                 <div
                   className="h-full"
                   style={{
@@ -280,6 +302,63 @@ function PartRow({
                   }}
                 />
               </div>
+            </div>
+
+            <div
+              className="px-3 py-2.5"
+              style={{
+                background: `linear-gradient(135deg, ${rarityConfig.bg}, rgba(15,23,42,0.18))`,
+                border: `1px solid ${rarityConfig.border}`,
+              }}
+            >
+              <div className="flex items-center gap-2">
+                <BadgeInfo size={12} style={{ color: rarityConfig.color }} />
+                <p className="font-mono text-[10px] font-bold uppercase tracking-[0.16em]" style={{ color: rarityConfig.color }}>
+                  Field Notes
+                </p>
+              </div>
+              <p className="mt-1.5 text-[11px] leading-relaxed text-text-secondary">
+                {getPartLore(part, section)}
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 gap-2">
+              {part.attributeNames.map((label, index) => {
+                const AttributeIcon = getAttributeIcon(index);
+                const value = part.attributes[index];
+
+                return (
+                  <div
+                    key={label}
+                    className="flex items-center justify-between gap-3 px-2.5 py-2"
+                    style={{ background: 'var(--color-bg-base)', border: '1px solid var(--color-border-subtle)' }}
+                  >
+                    <div className="flex min-w-0 items-center gap-2">
+                      <div
+                        className="flex h-6 w-6 shrink-0 items-center justify-center"
+                        style={{ background: `${rarityConfig.color}14`, border: `1px solid ${rarityConfig.border}` }}
+                      >
+                        <AttributeIcon size={12} style={{ color: rarityConfig.color }} />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="truncate font-mono text-[10px] uppercase tracking-[0.16em] text-text-muted">{label}</p>
+                        <p className="font-mono text-xs font-bold text-text-primary">{value}</p>
+                      </div>
+                    </div>
+                    <div className="flex shrink-0 items-center gap-2">
+                      <div className="h-1 overflow-hidden w-14" style={{ background: 'var(--color-border-subtle)' }}>
+                        <div
+                          className="h-full"
+                          style={{
+                            width: `${Math.max(4, Math.min(100, value))}%`,
+                            background: `linear-gradient(90deg, ${rarityConfig.color}55, ${rarityConfig.color})`,
+                          }}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </div>
         </div>

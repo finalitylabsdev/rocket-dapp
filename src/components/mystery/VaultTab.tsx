@@ -1,4 +1,4 @@
-import { Gavel } from 'lucide-react';
+import { BadgeInfo, Flame, Gavel, Gauge, Shield, Sparkles } from 'lucide-react';
 import BoxCard from './BoxCard';
 import JourneyCue from '../JourneyCue';
 import RarityBadge, { getRarityConfig } from '../brand/RarityBadge';
@@ -84,15 +84,29 @@ function LoadingLastDrawWindow() {
 }
 
 function AttributeBars({ part }: { part: InventoryPart }) {
+  const cfg = getRarityConfig(part.rarity);
+  const icons = [Flame, Gauge, Shield] as const;
+
   return (
     <div className="space-y-2 mt-4">
       {part.attributes.map((value, index) => (
-        <div key={part.attributeNames[index]}>
-          <div className="flex items-center justify-between text-[10px] font-mono uppercase tracking-wider mb-1">
-            <span style={APP3_TEXT_SECONDARY_STYLE}>{part.attributeNames[index]}</span>
-            <span style={APP3_TEXT_PRIMARY_STYLE}>{value}</span>
+        <div key={part.attributeNames[index]} className="rounded-xl px-3 py-2" style={APP3_INSET_STYLE}>
+          <div className="flex items-center justify-between gap-3 text-[10px] font-mono uppercase tracking-wider mb-1">
+            <div className="flex min-w-0 items-center gap-2">
+              <div
+                className="flex h-5 w-5 shrink-0 items-center justify-center rounded-md"
+                style={{ background: `${cfg.color}12`, border: `1px solid ${cfg.border}` }}
+              >
+                {(() => {
+                  const Icon = icons[index] ?? Sparkles;
+                  return <Icon size={10} style={{ color: cfg.color }} />;
+                })()}
+              </div>
+              <span className="truncate" style={APP3_TEXT_SECONDARY_STYLE}>{part.attributeNames[index]}</span>
+            </div>
+            <span className="shrink-0" style={APP3_TEXT_PRIMARY_STYLE}>{value}</span>
           </div>
-          <div className="h-1.5 overflow-hidden" style={APP3_TRACK_STYLE}>
+          <div className="h-1.5 w-1/2 min-w-[7.5rem] overflow-hidden rounded-full" style={APP3_TRACK_STYLE}>
             <div
               className="h-full"
               style={{
@@ -107,6 +121,10 @@ function AttributeBars({ part }: { part: InventoryPart }) {
   );
 }
 
+function getPartLore(part: InventoryPart) {
+  return `Archive Briefing: ${part.name} was tuned inside a low-gravity calibration rack until its ${part.attributeNames[0].toLowerCase()} harmonics settled. The ${part.serialTrait ?? 'standard'} signature now keeps ${part.sectionName.toLowerCase()} output unnervingly smooth during drift corrections. Field crews still note a soft relay chatter during warm starts, but the lattice remains stable once the auxiliary spool catches its second cycle.`;
+}
+
 function LastDrawWindow({ part }: { part: InventoryPart }) {
   const cfg = getRarityConfig(part.rarity);
   const previewSlots = buildRocketLabSlots([
@@ -118,35 +136,26 @@ function LastDrawWindow({ part }: { part: InventoryPart }) {
   ]);
 
   return (
-    <div className="relative overflow-hidden p-px">
-      <div
-        className="pointer-events-none absolute inset-[-70%]"
-        style={{
-          background: 'conic-gradient(from 0deg, #F59E0B, #22C55E, #06B6D4, #3B82F6, #8B5CF6, #EF4444, #F59E0B)',
-          animation: 'lastDrawBorderOrbit 5s linear infinite',
-        }}
-      />
-      <div
-        className="relative overflow-hidden p-5"
+    <div className="relative pt-3">
+      <div className="relative overflow-hidden p-px">
+        <div
+          className="pointer-events-none absolute inset-[-70%]"
+          style={{
+            background: 'conic-gradient(from 0deg, #F59E0B, #22C55E, #06B6D4, #3B82F6, #8B5CF6, #EF4444, #F59E0B)',
+            animation: 'lastDrawBorderOrbit 5s linear infinite',
+          }}
+        />
+
+        <div
+          className="relative overflow-hidden p-5"
         style={{
           ...APP3_PANEL_STYLE,
           border: 'none',
           boxShadow: `inset 0 0 0 1px ${cfg.color}14`,
         }}
       >
-        <span
-          className="absolute top-4 right-4 inline-flex items-center rounded-full px-2.5 py-1 text-[9px] font-mono font-semibold uppercase tracking-[0.22em]"
-          style={{
-            color: 'var(--color-text-secondary)',
-            background: 'var(--color-bg-card)',
-            border: `1px solid ${cfg.border}`,
-          }}
-        >
-          LAST DRAW
-        </span>
-
-        <div className="grid grid-cols-1 gap-5 pt-6 lg:grid-cols-[minmax(0,1fr)_18rem] lg:items-center">
-          <div className="pr-24 lg:pr-0">
+        <div className="grid grid-cols-1 gap-5 lg:grid-cols-[minmax(0,1.15fr)_minmax(12rem,0.7fr)_18rem] lg:items-start">
+          <div>
             <div className="flex items-start gap-3">
               <SectionGlyph asset={part.illustration} fallbackKey={part.slot} size="md" />
               <div className="min-w-0 flex-1">
@@ -201,8 +210,25 @@ function LastDrawWindow({ part }: { part: InventoryPart }) {
             </div>
           </div>
 
+          <div className="flex h-full min-h-[14rem] items-center px-2">
+            <div className="max-w-[15rem]">
+              <div className="flex items-center gap-2">
+                <BadgeInfo size={12} style={{ color: cfg.color }} />
+                <span
+                  className="text-[9px] font-mono font-semibold uppercase tracking-[0.18em]"
+                  style={{ color: cfg.color }}
+                >
+                  Component Brief
+                </span>
+              </div>
+              <p className="mt-2 text-[11px] font-mono leading-relaxed text-text-secondary">
+                {getPartLore(part)}
+              </p>
+            </div>
+          </div>
+
           <div
-            className="rounded-2xl px-3 py-2 sm:px-4 sm:py-3"
+            className="rounded-2xl self-start px-3 py-2 sm:px-4 sm:py-3"
             style={{
               ...APP3_INSET_STYLE,
               border: `1px solid ${cfg.border}`,
@@ -220,6 +246,26 @@ function LastDrawWindow({ part }: { part: InventoryPart }) {
             />
           </div>
         </div>
+      </div>
+      </div>
+
+      <div
+        className="absolute right-5 z-10 overflow-hidden -translate-y-1/2"
+        style={{ top: '0.75rem' }}
+      >
+        <div
+          className="pointer-events-none absolute inset-[-200%]"
+          style={{
+            background: 'conic-gradient(from 0deg, #F59E0B, #22C55E, #06B6D4, #3B82F6, #8B5CF6, #EF4444, #F59E0B)',
+            animation: 'lastDrawBorderOrbit 5s linear infinite',
+          }}
+        />
+        <span
+          className="relative inline-flex items-center justify-center px-3 py-1.5 text-[9px] font-mono font-black uppercase tracking-[0.22em]"
+          style={{ color: '#fff' }}
+        >
+          LAST DRAW
+        </span>
       </div>
     </div>
   );
