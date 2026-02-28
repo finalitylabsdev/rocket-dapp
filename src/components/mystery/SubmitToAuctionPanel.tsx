@@ -3,7 +3,17 @@ import { Upload } from 'lucide-react';
 import RarityBadge from '../brand/RarityBadge';
 import type { InventoryPart } from '../../types/domain';
 import { AUCTION_MIN_RARITY_TIER } from '../../config/spec';
-import { APP3_CONTROL_STYLE, APP3_INSET_STYLE, APP3_PANEL_STYLE, APP3_TEXT_MUTED_STYLE, APP3_TEXT_PRIMARY_STYLE, APP3_TEXT_SECONDARY_STYLE } from './ui';
+import {
+  APP3_CONTROL_STYLE,
+  APP3_INSET_STYLE,
+  APP3_META_CHIP_STYLE,
+  APP3_PANEL_STYLE,
+  APP3_SHINY_BADGE_STYLE,
+  APP3_TEXT_MUTED_STYLE,
+  APP3_TEXT_PRIMARY_STYLE,
+  APP3_TEXT_SECONDARY_STYLE,
+  formatAuctionSerialNumber,
+} from './ui';
 
 interface SubmitToAuctionPanelProps {
   inventory: InventoryPart[];
@@ -81,7 +91,7 @@ export default function SubmitToAuctionPanel({
           </select>
 
           {selectedPart && (
-            <div className="mt-3 p-3" style={APP3_INSET_STYLE}>
+            <div className="mt-3 p-3 space-y-3" style={APP3_INSET_STYLE}>
               <div className="flex items-center justify-between gap-2">
                 <div>
                   <p className="font-mono font-semibold text-sm" style={APP3_TEXT_PRIMARY_STYLE}>
@@ -92,6 +102,29 @@ export default function SubmitToAuctionPanel({
                   </p>
                 </div>
                 <RarityBadge tier={selectedPart.rarity} size="xs" />
+              </div>
+
+              <div className="flex flex-wrap gap-2">
+                <span
+                  className="px-2 py-1 text-[9px] font-mono uppercase tracking-wider"
+                  style={APP3_META_CHIP_STYLE}
+                >
+                  Power {(selectedPart.totalPower ?? selectedPart.power).toLocaleString()}
+                </span>
+                <span
+                  className="px-2 py-1 text-[9px] font-mono uppercase tracking-wider"
+                  style={APP3_META_CHIP_STYLE}
+                >
+                  Serial {formatAuctionSerialNumber(selectedPart.serialNumber ?? 0)}
+                </span>
+                {selectedPart.isShiny && (
+                  <span
+                    className="px-2 py-1 text-[9px] font-mono font-semibold uppercase tracking-wider"
+                    style={APP3_SHINY_BADGE_STYLE}
+                  >
+                    Shiny / Inverted
+                  </span>
+                )}
               </div>
             </div>
           )}

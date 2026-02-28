@@ -642,8 +642,8 @@ BEGIN
   END IF;
 
   v_starts_at := now();
-  v_submission_ends_at := v_starts_at + interval '30 minutes';
-  v_ends_at := v_starts_at + interval '4 hours';
+  v_submission_ends_at := v_starts_at + interval '15 minutes';
+  v_ends_at := v_starts_at + interval '1 hour';
 
   INSERT INTO public.auction_rounds (
     status,
@@ -697,11 +697,13 @@ BEGIN
     RETURN jsonb_build_object('status', 'round_not_ready_for_transition');
   END IF;
 
-  SELECT *
+  SELECT s.*
   INTO v_best_submission
-  FROM public.auction_submissions
-  WHERE round_id = p_round_id
-  ORDER BY rarity_tier_id DESC, part_value DESC
+  FROM public.auction_submissions s
+  JOIN public.inventory_parts ip
+    ON ip.id = s.part_id
+  WHERE s.round_id = p_round_id
+  ORDER BY ip.total_power DESC, s.rarity_tier_id DESC, s.created_at ASC
   LIMIT 1;
 
   IF NOT FOUND THEN
@@ -788,6 +790,9 @@ BEGIN
       'attr2_name', rs.attr2_name,
       'attr3_name', rs.attr3_name,
       'part_value', ip.part_value,
+      'total_power', ip.total_power,
+      'serial_number', ip.serial_number,
+      'is_shiny', COALESCE(ip.is_shiny, false),
       'submitted_by', v_round.selected_by_wallet
     )
     INTO v_part_info
@@ -867,6 +872,9 @@ BEGIN
         pv.name AS part_name,
         rt.name AS rarity,
         ip.part_value,
+        ip.total_power,
+        ip.serial_number,
+        COALESCE(ip.is_shiny, false) AS is_shiny,
         rs.display_name AS section_name,
         ar.selected_by_wallet AS seller_wallet
       FROM public.auction_rounds ar

@@ -69,6 +69,9 @@ interface InventoryPartPayload {
   attr2_name?: string;
   attr3_name?: string;
   part_value?: number | string;
+  total_power?: number | string | null;
+  serial_number?: number | string | null;
+  is_shiny?: boolean | null;
   is_locked?: boolean;
   is_equipped?: boolean;
   source?: 'mystery_box' | 'auction_win' | 'admin';
@@ -227,13 +230,18 @@ function normalizeInventoryPart(payload: InventoryPartPayload): InventoryPart {
   const attr2 = toNumber(payload.attr2);
   const attr3 = toNumber(payload.attr3);
   const partValue = toNumber(payload.part_value);
+  const fallbackPower = Math.round((attr1 + attr2 + attr3) / 3);
+  const totalPower = toNumber(payload.total_power);
 
   return {
     id: payload.id,
     name: payload.name,
     slot: payload.section_key as RocketSection,
     rarity: payload.rarity,
-    power: Math.round((attr1 + attr2 + attr3) / 3),
+    power: fallbackPower,
+    totalPower: totalPower > 0 ? totalPower : fallbackPower,
+    serialNumber: toNumber(payload.serial_number),
+    isShiny: Boolean(payload.is_shiny),
     attributes: [attr1, attr2, attr3],
     attributeNames: [
       payload.attr1_name ?? 'Attribute 1',

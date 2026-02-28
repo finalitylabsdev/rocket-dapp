@@ -13,7 +13,17 @@ import AuctionOpsPanel from './AuctionOpsPanel';
 import AuctionResultModal from './AuctionResultModal';
 import SubmitToAuctionPanel from './SubmitToAuctionPanel';
 import TopContributors from './TopContributors';
-import { APP3_INSET_STYLE, APP3_PANEL_STYLE, APP3_TEXT_MUTED_STYLE, APP3_TEXT_PRIMARY_STYLE, APP3_TEXT_SECONDARY_STYLE, formatFluxValue } from './ui';
+import {
+  APP3_INSET_STYLE,
+  APP3_META_CHIP_STYLE,
+  APP3_PANEL_STYLE,
+  APP3_SHINY_BADGE_STYLE,
+  APP3_TEXT_MUTED_STYLE,
+  APP3_TEXT_PRIMARY_STYLE,
+  APP3_TEXT_SECONDARY_STYLE,
+  formatAuctionSerialNumber,
+  formatFluxValue,
+} from './ui';
 import { NEBULA_BIDS_ENABLED } from '../../config/flags';
 
 interface BidsTabProps {
@@ -273,6 +283,34 @@ export default function BidsTab({ preferredPartId, onPreferredPartHandled, onNav
                       <p className="mt-1 text-[10px] font-mono uppercase tracking-wider" style={APP3_TEXT_SECONDARY_STYLE}>
                         {entry.partName ?? 'No winning part'}
                       </p>
+                      {(entry.totalPower > 0 || entry.serialNumber > 0 || entry.isShiny) && (
+                        <div className="mt-2 flex flex-wrap gap-2">
+                          {entry.totalPower > 0 && (
+                            <span
+                              className="px-2 py-1 text-[9px] font-mono uppercase tracking-wider"
+                              style={APP3_META_CHIP_STYLE}
+                            >
+                              Power {entry.totalPower.toLocaleString()}
+                            </span>
+                          )}
+                          {entry.serialNumber > 0 && (
+                            <span
+                              className="px-2 py-1 text-[9px] font-mono uppercase tracking-wider"
+                              style={APP3_META_CHIP_STYLE}
+                            >
+                              Serial {formatAuctionSerialNumber(entry.serialNumber)}
+                            </span>
+                          )}
+                          {entry.isShiny && (
+                            <span
+                              className="px-2 py-1 text-[9px] font-mono font-semibold uppercase tracking-wider"
+                              style={APP3_SHINY_BADGE_STYLE}
+                            >
+                              Shiny / Inverted
+                            </span>
+                          )}
+                        </div>
+                      )}
                     </div>
                     <span className="text-xs font-mono" style={{ color: '#C084FC' }}>
                       {formatFluxValue(entry.finalPrice)} FLUX
