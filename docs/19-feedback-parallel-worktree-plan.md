@@ -14,6 +14,7 @@ Use this as the canonical progress tracker during implementation. Each worktree 
 - [x] `wt_core_inv_contract` completed the backend inventory contract workstream in this branch.
 - [x] `wt_core_inv_contract` completed the immediate Star Vault UI adoption work that depends on the enriched inventory payload.
 - [x] `wt_core_inv_contract` also landed the box drop-curve changes because they share the authoritative `open_mystery_box(...)` RPC.
+- [x] `wt/nav_refactor` completed the home / navigation / gate / wallet workstream.
 - [ ] Auction cadence changes and Rocket Lab server-authority work remain for other branches.
 
 ## Implementation Decisions Locked For This Wave
@@ -30,7 +31,7 @@ Use this as the canonical progress tracker during implementation. Each worktree 
 This section is the shared contract reference for all branches before touching feature code.
 
 ### Public API / Schema Checklist
-- [ ] Add `gate` and `wallet` to the app `Page` union and routing.
+- [x] Add `gate` and `wallet` to the app `Page` union and routing.
 - [x] Add `variant_id`, `illustration_key`, `illustration_url`, and `illustration_alt` to the inventory payload returned by Supabase RPCs.
 - [x] Add `total_power` to `inventory_parts` and expose it to the client.
 - [x] Add `serial_number` to `inventory_parts` as a globally monotonic unique value.
@@ -138,28 +139,34 @@ Note: this branch implemented `serial_trait` as named display-grade labels (`Twi
 - `src/pages/WalletPage.tsx` (new)
 
 **Implementation Checklist**
-- [ ] Add `gate` and `wallet` routes to the hash-based router.
-- [ ] Extract the existing Gate interaction surface out of `Hero` into a dedicated page.
-- [ ] Reduce the home hero title scale.
-- [ ] Remove the embedded Gate card from home.
-- [ ] Keep home as a lighter overview and launch page.
-- [ ] Update `EntropyGateBanner` navigation to point to `#gate` instead of `#home`.
-- [ ] Remove `DOCS` from the home header.
-- [ ] Remove `JACKPOT` from the home header.
-- [ ] Preserve leaderboard access elsewhere in the app.
-- [ ] Turn the desktop FLUX pill into a labeled wallet navigation control.
-- [ ] Turn the mobile FLUX pill into the same wallet navigation control.
-- [ ] Add `WalletPage` listing `Flux`, `wETH`, `wBTC`, and `UVD`.
-- [ ] Show live `Flux` from `GameState.fluxBalance`.
-- [ ] Show non-FLUX currencies as scaffold rows with explicit placeholder status if no live balance source is added.
-- [ ] Update footer and quick-actions links so `Entropy Gate` navigates to the new route.
+- [x] Add `gate` and `wallet` routes to the hash-based router.
+- [x] Extract the existing Gate interaction surface out of `Hero` into a dedicated page.
+- [x] Reduce the home hero title scale.
+- [x] Remove the embedded Gate card from home.
+- [x] Keep home as a lighter overview and launch page.
+- [x] Update `EntropyGateBanner` navigation to point to `#gate` instead of `#home`.
+- [x] Remove `DOCS` from the home header.
+- [x] Remove `JACKPOT` from the home header.
+- [x] Preserve leaderboard access elsewhere in the app.
+- [x] Turn the desktop FLUX pill into a labeled wallet navigation control.
+- [x] Turn the mobile FLUX pill into the same wallet navigation control.
+- [x] Add `WalletPage` listing `Flux`, `wETH`, `wBTC`, and `UVD`.
+- [x] Show live `Flux` from `GameState.fluxBalance`.
+- [x] Show non-FLUX currencies as scaffold rows with explicit placeholder status if no live balance source is added.
+- [x] Update footer and quick-actions links so `Entropy Gate` navigates to the new route.
 
 **Validation Checklist**
-- [ ] Home no longer contains the full Gate claim/lock card.
-- [ ] Gate actions from other pages open the dedicated Gate page.
-- [ ] Header no longer shows `DOCS` or `JACKPOT`.
-- [ ] Clicking the balance control opens the wallet page.
-- [ ] Wallet page always lists all four currencies.
+- [x] Home no longer contains the full Gate claim/lock card.
+- [x] Gate actions from other pages open the dedicated Gate page.
+- [x] Header no longer shows `DOCS` or `JACKPOT`.
+- [x] Clicking the balance control opens the wallet page.
+- [x] Wallet page always lists all four currencies.
+
+**Resolved In This Worktree**
+- Dedicated `#gate` and `#wallet` routes are live, with the former home-embedded lock / claim flow moved into a standalone Gate page.
+- Home now acts as a lighter funnel surface, while leaderboard access remains available through normal navigation and footer links.
+- The wallet route includes live `FLUX` from `GameState.fluxBalance`, with `wETH`, `wBTC`, and `UVD` left as explicit scaffold rows rather than fake balances.
+- A follow-up build pass also split `web3Onboard.ts` into its own chunk cleanly; one entry chunk remains slightly above Vite's default warning threshold.
 
 **Dependency Notes**
 - This branch is independent of the backend contract branch.
@@ -287,8 +294,8 @@ Note: this branch implemented `serial_trait` as named display-grade labels (`Twi
 - [x] Broken item art falls back safely.
 - [x] Duplicate badge is removed.
 - [x] `Total Power` is the primary user-visible metric.
-- [ ] Home and Gate are separated.
-- [ ] Wallet page route works.
+- [x] Home and Gate are separated.
+- [x] Wallet page route works.
 - [ ] Hourly auction cadence works.
 - [ ] Auction selection uses `total_power`.
 - [ ] Eight equipped parts are required for launch.
@@ -314,8 +321,8 @@ Note: this branch implemented `serial_trait` as named display-grade labels (`Twi
 
 ### Overall Progress
 - [x] Backend contract complete
-- [ ] Star Vault UI polish complete
-- [ ] Home / navigation / wallet complete
+- [x] Star Vault UI polish complete
+- [x] Home / navigation / wallet complete
 - [ ] Drop curve and hourly auction complete
 - [ ] Rocket Lab backend authority complete
 - [ ] Rocket Lab UI authority complete

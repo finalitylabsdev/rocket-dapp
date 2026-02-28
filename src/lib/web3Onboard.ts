@@ -5,9 +5,7 @@ import type { WalletState } from '@web3-onboard/core';
 import type { Device, EIP1193Provider as OnboardEip1193Provider, Platform, WalletModule } from '@web3-onboard/common';
 import type { InjectedWalletModule } from '@web3-onboard/injected-wallets/dist/types';
 import { safeGetStorageItem } from './safeStorage';
-
-export const WEB3_ONBOARD_MAINNET_CHAIN_ID = '0x1' as const;
-export const WEB3_ONBOARD_MAINNET_CHAIN_DECIMAL = 1;
+import { WEB3_ONBOARD_MAINNET_CHAIN_ID } from './web3OnboardShared';
 const WALLET_COUNT_SUFFIX_PATTERN = /\s*\(\d+\)\s*$/;
 
 const mainnetRpcUrl = import.meta.env.VITE_MAINNET_RPC_URL?.trim() || 'https://ethereum-rpc.publicnode.com';
@@ -585,21 +583,6 @@ function installOnboardDomTweaks(): void {
 }
 
 installOnboardDomTweaks();
-
-export function dismissWeb3OnboardModal(): void {
-  if (typeof document === 'undefined') {
-    return;
-  }
-
-  const closeButton = document
-    .querySelector('onboard-v2')
-    ?.shadowRoot
-    ?.querySelector('.close-button');
-
-  if (closeButton instanceof HTMLElement) {
-    closeButton.click();
-  }
-}
 
 export function getWeb3OnboardPrimaryWallet(): WalletState | null {
   return web3Onboard.state.get().wallets[0] ?? null;

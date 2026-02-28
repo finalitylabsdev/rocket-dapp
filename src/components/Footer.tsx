@@ -20,7 +20,7 @@ export default function Footer({ onNavigate }: FooterProps) {
       { label: 'Audit Report', comingSoon: true },
     ],
     Apps: [
-      { label: 'Entropy Gate', action: () => onNavigate('home') },
+      { label: 'Entropy Gate', action: () => onNavigate('gate') },
       { label: 'Entropy Exchange', action: () => onNavigate('dex') },
       { label: 'Star Vault & Nebula Bids', action: () => onNavigate('mystery') },
       { label: 'Celestial Assembler', comingSoon: true },

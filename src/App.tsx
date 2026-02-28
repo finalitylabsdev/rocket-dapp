@@ -19,19 +19,23 @@ import {
 } from './config/flags';
 
 const DexPage = lazy(() => import('./pages/DexPage'));
+const GatePage = lazy(() => import('./pages/GatePage'));
 const MysteryPage = lazy(() => import('./pages/MysteryPage'));
 const RocketLabPage = lazy(() => import('./pages/RocketLabPage'));
 const LeaderboardPage = lazy(() => import('./pages/LeaderboardPage'));
+const WalletPage = lazy(() => import('./pages/WalletPage'));
 
-export type Page = 'home' | 'dex' | 'mystery' | 'lab' | 'leaderboard';
+export type Page = 'home' | 'gate' | 'wallet' | 'dex' | 'mystery' | 'lab' | 'leaderboard';
 
-const VALID_PAGES = new Set<Page>(['home', 'dex', 'mystery', 'lab', 'leaderboard']);
+const VALID_PAGES = new Set<Page>(['home', 'gate', 'wallet', 'dex', 'mystery', 'lab', 'leaderboard']);
 
 function PageFallback() {
   return <div className="min-h-screen bg-bg-base" />;
 }
 
 function getPageBoundaryLabel(page: Page): string {
+  if (page === 'gate') return 'Entropy Gate';
+  if (page === 'wallet') return 'Wallet';
   if (page === 'dex') return 'Entropy Exchange';
   if (page === 'mystery') return 'Star Vault & Nebula Bids';
   if (page === 'lab') return 'Rocket Lab';
@@ -59,6 +63,60 @@ export default function App() {
     return () => window.removeEventListener('hashchange', onHash);
   }, []);
 
+  const pageContent = (() => {
+    if (page === 'gate') {
+      return (
+        <GatePage
+          onOpenDex={() => navigate('dex')}
+          onOpenWallet={() => navigate('wallet')}
+        />
+      );
+    }
+
+    if (page === 'wallet') {
+      return <WalletPage />;
+    }
+
+    if (page === 'dex') {
+      return DEX_ENABLED
+        ? <DexPage />
+        : <ComingSoon title="Entropy Exchange" subtitle="The decentralized exchange is not yet available." />;
+    }
+
+    if (page === 'mystery') {
+      return STAR_VAULT_ENABLED || NEBULA_BIDS_ENABLED
+        ? <MysteryPage />
+        : <ComingSoon title="Star Vault & Nebula Bids" subtitle="Mystery boxes and auctions are not yet available." />;
+    }
+
+    if (page === 'lab') {
+      return ROCKET_LAB_ENABLED
+        ? <RocketLabPage />
+        : <ComingSoon title="Rocket Lab" subtitle="Rocket building and launches are not yet available." />;
+    }
+
+    if (page === 'leaderboard') {
+      return <LeaderboardPage />;
+    }
+
+    return (
+      <>
+        <Hero
+          onOpenDex={() => navigate('dex')}
+          onOpenGate={() => navigate('gate')}
+          onOpenWallet={() => navigate('wallet')}
+        />
+        <QuickActions
+          onOpenGate={() => navigate('gate')}
+          onOpenDex={() => navigate('dex')}
+          onOpenMystery={() => navigate('mystery')}
+          onOpenLab={() => navigate('lab')}
+          onOpenLeaderboard={() => navigate('leaderboard')}
+        />
+      </>
+    );
+  })();
+
   return (
     <WalletProvider>
       <EthLockStateProvider>
@@ -70,7 +128,8 @@ export default function App() {
               <ShellNav page={page} onNavigate={navigate} />
               <EntropyGateBanner
                 isHome={page === 'home'}
-                onNavigateHome={() => navigate('home')}
+                isGate={page === 'gate'}
+                onNavigateGate={page === 'home' || page === 'gate' ? undefined : () => navigate('gate')}
               />
               <main className="pt-12">
                 <Suspense fallback={<PageFallback />}>
@@ -79,20 +138,7 @@ export default function App() {
                     resetKey={page}
                     sectionLabel={getPageBoundaryLabel(page)}
                   >
-                    {page === 'dex' ? (
-                      DEX_ENABLED ? <DexPage /> : <ComingSoon title="Entropy Exchange" subtitle="The decentralized exchange is not yet available." />
-                    ) : page === 'mystery' ? (
-                      STAR_VAULT_ENABLED || NEBULA_BIDS_ENABLED ? <MysteryPage /> : <ComingSoon title="Star Vault & Nebula Bids" subtitle="Mystery boxes and auctions are not yet available." />
-                    ) : page === 'lab' ? (
-                      ROCKET_LAB_ENABLED ? <RocketLabPage /> : <ComingSoon title="Rocket Lab" subtitle="Rocket building and launches are not yet available." />
-                    ) : page === 'leaderboard' ? (
-                      <LeaderboardPage />
-                    ) : (
-                      <>
-                        <Hero onOpenDex={() => navigate('dex')} />
-                        <QuickActions onOpenDex={() => navigate('dex')} onOpenMystery={() => navigate('mystery')} onOpenLab={() => navigate('lab')} onOpenLeaderboard={() => navigate('leaderboard')} />
-                      </>
-                    )}
+                    {pageContent}
                   </RouteErrorBoundary>
                 </Suspense>
               </main>
