@@ -219,9 +219,9 @@ function PartRow({
           </div>
         </div>
 
-        <div className="mt-3 grid grid-cols-[56px_1fr] gap-3">
+        <div className="mt-3 grid grid-cols-[72px_1fr] gap-3">
           <div
-            className="flex items-center justify-center overflow-hidden"
+            className="flex aspect-square w-[72px] shrink-0 items-center justify-center overflow-hidden"
             style={{ background: 'var(--color-bg-base)', border: '1px solid var(--color-border-subtle)' }}
           >
             <SectionIllustration
@@ -229,7 +229,7 @@ function PartRow({
               equipped={Boolean(part.isEquipped)}
               rarity={part.rarity}
               variantId={part.variantId}
-              size={56}
+              size={64}
             />
           </div>
 
