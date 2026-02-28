@@ -1,10 +1,11 @@
 import { Gavel } from 'lucide-react';
 import BoxCard from './BoxCard';
 import JourneyCue from '../JourneyCue';
-import { useGameState } from '../../context/GameState';
 import { useBoxTiers } from '../../hooks/useBoxTiers';
 import { useRarityConfig } from '../../hooks/useRarityConfig';
 import { AUCTION_MIN_RARITY_TIER } from '../../config/spec';
+import { PREVIEW_BOX_REVEALS } from '../../lib/launchPreview';
+import type { InventoryPart } from '../../types/domain';
 import { APP3_INSET_STYLE, APP3_PANEL_STYLE } from './ui';
 
 function LoadingCard() {
@@ -59,14 +60,19 @@ function StatusBanner({
 }
 
 interface VaultTabProps {
+  inventory: InventoryPart[];
+  readOnly?: boolean;
   onNavigateBids?: () => void;
 }
 
-export default function VaultTab({ onNavigateBids }: VaultTabProps) {
-  const game = useGameState();
+export default function VaultTab({
+  inventory,
+  readOnly = false,
+  onNavigateBids,
+}: VaultTabProps) {
   const rarityConfig = useRarityConfig();
   const { boxTiers, isLoading, error, readState, refresh } = useBoxTiers();
-  const hasAuctionEligiblePart = game.inventory.some(
+  const hasAuctionEligiblePart = inventory.some(
     (p) => p.rarityTierId >= AUCTION_MIN_RARITY_TIER && !p.isLocked && !p.isEquipped,
   );
   const showRetry = (!isLoading && readState !== 'ready') || (!rarityConfig.isLoading && rarityConfig.readState !== 'catalog');
@@ -82,7 +88,9 @@ export default function VaultTab({ onNavigateBids }: VaultTabProps) {
           <span className="tag mb-2 inline-flex">Star Vault Boxes</span>
           <h2 className="section-title">Open a Star Vault Box</h2>
           <p className="text-sm mt-2 max-w-xl font-mono text-text-muted">
-            Server-generated drops, catalog-backed box metadata, and inventory snapshots after every open.
+            {readOnly
+              ? 'Preview reveals and sample inventory stay visible while box openings are blocked.'
+              : 'Server-generated drops, catalog-backed box metadata, and inventory snapshots after every open.'}
           </p>
         </div>
         {showRetry && (
@@ -152,7 +160,14 @@ export default function VaultTab({ onNavigateBids }: VaultTabProps) {
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
           {isLoading && boxTiers.length === 0
             ? Array.from({ length: 4 }, (_, index) => <LoadingCard key={index} />)
-            : boxTiers.map((tier) => <BoxCard key={tier.id} tier={tier} />)}
+            : boxTiers.map((tier, index) => (
+              <BoxCard
+                key={tier.id}
+                tier={tier}
+                readOnly={readOnly}
+                previewReward={readOnly ? PREVIEW_BOX_REVEALS[index] ?? null : null}
+              />
+            ))}
         </div>
       )}
 

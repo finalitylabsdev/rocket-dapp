@@ -18,10 +18,16 @@ import {
 interface AuctionDetailProps {
   activeAuction: AuctionRound | null;
   isPlacingBid: boolean;
+  readOnly?: boolean;
   onPlaceBid: (amount: number) => Promise<void>;
 }
 
-export default function AuctionDetail({ activeAuction, isPlacingBid, onPlaceBid }: AuctionDetailProps) {
+export default function AuctionDetail({
+  activeAuction,
+  isPlacingBid,
+  readOnly = false,
+  onPlaceBid,
+}: AuctionDetailProps) {
   if (!activeAuction) {
     return (
       <div className="p-5" style={APP3_PANEL_STYLE}>
@@ -119,6 +125,7 @@ export default function AuctionDetail({ activeAuction, isPlacingBid, onPlaceBid 
       <BidInput
         minBid={minBid}
         isSubmitting={isPlacingBid}
+        readOnly={readOnly}
         onSubmit={onPlaceBid}
       />
 

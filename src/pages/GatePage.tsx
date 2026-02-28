@@ -1,5 +1,7 @@
 import { ArrowLeftRight, Lock, Trophy, Wallet } from 'lucide-react';
 import EntropyGatePanel from '../components/EntropyGatePanel';
+import PreviewReadOnlyBanner from '../components/PreviewReadOnlyBanner';
+import { PREVIEW_READ_ONLY_ENABLED } from '../config/flags';
 
 interface GatePageProps {
   onOpenDex: () => void;
@@ -27,6 +29,12 @@ export default function GatePage({ onOpenDex, onOpenWallet }: GatePageProps) {
             This is the protocol entry point. Lock once, verify on-chain, then return here to claim
             FLUX on cadence before routing capital into the exchange and the rest of the testnet loop.
           </p>
+          {PREVIEW_READ_ONLY_ENABLED && (
+            <PreviewReadOnlyBanner
+              title="Preview Gate"
+              message="Wallet authentication is still live here. ETH lock and FLUX claim are click-denied until launch."
+            />
+          )}
         </div>
 
         <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1.4fr)_320px] gap-6 items-start">

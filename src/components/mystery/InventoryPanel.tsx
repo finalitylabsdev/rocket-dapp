@@ -6,6 +6,8 @@ import InventoryPartCard from './InventoryPartCard';
 import { APP3_CONTROL_STYLE, APP3_INSET_STYLE, APP3_PANEL_STYLE, APP3_TEXT_MUTED_STYLE, APP3_TEXT_PRIMARY_STYLE, APP3_TEXT_SECONDARY_STYLE } from './ui';
 
 interface InventoryPanelProps {
+  inventory?: InventoryPart[];
+  readOnly?: boolean;
   onSendToAuction?: (part: InventoryPart) => void;
 }
 
@@ -17,8 +19,13 @@ function compareValues(a: string | number, b: string | number, dir: InventorySor
   return dir === 'asc' ? base : base * -1;
 }
 
-export default function InventoryPanel({ onSendToAuction }: InventoryPanelProps) {
+export default function InventoryPanel({
+  inventory,
+  readOnly = false,
+  onSendToAuction,
+}: InventoryPanelProps) {
   const game = useGameState();
+  const displayInventory = inventory ?? game.inventory;
   const [sortKey, setSortKey] = useState<InventorySortKey>('power');
   const [sortDir, setSortDir] = useState<InventorySortDir>('desc');
   const [rarityFilter, setRarityFilter] = useState<RarityTier | 'all'>('all');
@@ -26,15 +33,15 @@ export default function InventoryPanel({ onSendToAuction }: InventoryPanelProps)
 
   const sectionOptions = useMemo(
     () =>
-      Array.from(new Set(game.inventory.map((part) => part.slot))).map((key) => ({
+      Array.from(new Set(displayInventory.map((part) => part.slot))).map((key) => ({
         key,
-        label: game.inventory.find((part) => part.slot === key)?.sectionName ?? key,
+        label: displayInventory.find((part) => part.slot === key)?.sectionName ?? key,
       })),
-    [game.inventory],
+    [displayInventory],
   );
 
   const filteredInventory = useMemo(() => {
-    const filtered = game.inventory.filter((part) => {
+    const filtered = displayInventory.filter((part) => {
       const matchesRarity = rarityFilter === 'all' || part.rarity === rarityFilter;
       const matchesSection = sectionFilter === 'all' || part.slot === sectionFilter;
       return matchesRarity && matchesSection;
@@ -55,7 +62,7 @@ export default function InventoryPanel({ onSendToAuction }: InventoryPanelProps)
           return compareValues(left.partValue, right.partValue, sortDir);
       }
     });
-  }, [game.inventory, rarityFilter, sectionFilter, sortDir, sortKey]);
+  }, [displayInventory, rarityFilter, sectionFilter, sortDir, sortKey]);
 
   return (
     <aside className="sticky top-24">
@@ -64,10 +71,10 @@ export default function InventoryPanel({ onSendToAuction }: InventoryPanelProps)
           <div className="flex items-center justify-between gap-3">
             <div>
               <p className="font-mono font-black text-sm uppercase tracking-wider" style={APP3_TEXT_PRIMARY_STYLE}>
-                My Inventory
+                {readOnly ? 'Preview Inventory' : 'My Inventory'}
               </p>
               <p className="text-[10px] mt-1 font-mono uppercase tracking-wider" style={APP3_TEXT_MUTED_STYLE}>
-                {game.inventory.length} parts {game.isInventorySyncing ? '· refreshing' : ''}
+                {displayInventory.length} parts {readOnly ? '· sample data' : game.isInventorySyncing ? '· refreshing' : ''}
               </p>
             </div>
             <div
@@ -141,13 +148,16 @@ export default function InventoryPanel({ onSendToAuction }: InventoryPanelProps)
         <div className="p-4 space-y-3 max-h-[70vh] overflow-y-auto">
           {filteredInventory.length === 0 ? (
             <div className="p-4 text-center font-mono text-sm" style={{ ...APP3_INSET_STYLE, ...APP3_TEXT_MUTED_STYLE }}>
-              Your hangar is empty. Open a Star Vault Box to get your first part.
+              {readOnly
+                ? 'Preview inventory is currently unavailable.'
+                : 'Your hangar is empty. Open a Star Vault Box to get your first part.'}
             </div>
           ) : (
             filteredInventory.map((part) => (
               <InventoryPartCard
                 key={part.id}
                 part={part}
+                readOnly={readOnly}
                 onSendToAuction={onSendToAuction}
               />
             ))

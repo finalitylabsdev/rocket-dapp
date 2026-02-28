@@ -4,6 +4,7 @@ import RocketPreview from '../components/lab/RocketPreview';
 import PartsGrid from '../components/lab/PartsGrid';
 import StatsPanel from '../components/lab/StatsPanel';
 import LaunchSequence from '../components/lab/LaunchSequence';
+import PreviewReadOnlyBanner from '../components/PreviewReadOnlyBanner';
 import { useGameState } from '../context/GameState';
 import { buildRocketLabSlots, computeRocketLabMetrics } from '../components/lab/rocketLabAdapter';
 import {
@@ -17,6 +18,8 @@ import {
   unequipInventoryPart,
 } from '../lib/rocketLab';
 import { useWallet } from '../hooks/useWallet';
+import { PREVIEW_READ_ONLY_ENABLED } from '../config/flags';
+import { getPreviewFluxBalance, getPreviewInventory, getPreviewLaunchHistory } from '../lib/launchPreview';
 import type { RocketSection } from '../types/domain';
 
 interface LaunchSequenceResult {
@@ -53,7 +56,10 @@ export default function RocketLabPage() {
 
   const launchPromiseRef = useRef<Promise<RocketLaunchResult> | null>(null);
 
-  const slots = buildRocketLabSlots(inventory);
+  const displayInventory = getPreviewInventory(inventory);
+  const displayHistory = getPreviewLaunchHistory(history);
+  const displayFluxBalance = getPreviewFluxBalance(fluxBalance);
+  const slots = buildRocketLabSlots(displayInventory);
   const metrics = computeRocketLabMetrics(slots);
 
   useEffect(() => {
@@ -83,6 +89,10 @@ export default function RocketLabPage() {
     nextActionKey: string,
     mutation: () => Promise<{ inventory: typeof inventory; balance?: RocketLaunchResult['balance'] }>,
   ) => {
+    if (PREVIEW_READ_ONLY_ENABLED) {
+      return;
+    }
+
     if (!wallet.address) {
       setLaunchError('Connect your wallet to manage the Rocket Lab.');
       return;
@@ -126,6 +136,10 @@ export default function RocketLabPage() {
   }, [runInventoryMutation, wallet.address]);
 
   const handleLaunch = useCallback(() => {
+    if (PREVIEW_READ_ONLY_ENABLED) {
+      return;
+    }
+
     if (launching || !metrics.canLaunch || !wallet.address) {
       return;
     }
@@ -186,10 +200,10 @@ export default function RocketLabPage() {
     setLaunchResult(null);
   }, []);
 
-  const bestScore = history.length > 0
-    ? Math.max(...history.map((entry) => entry.scoreBreakdown.total))
+  const bestScore = displayHistory.length > 0
+    ? Math.max(...displayHistory.map((entry) => entry.scoreBreakdown.total))
     : 0;
-  const latestLaunch = history[0] ?? null;
+  const latestLaunch = displayHistory[0] ?? null;
 
   return (
     <div className="relative overflow-hidden">
@@ -208,8 +222,14 @@ export default function RocketLabPage() {
             <p className="text-lg font-mono text-text-muted">
               Manage the equipped loadout, repair meteorite wear, and run server-authoritative launches.
             </p>
+            {PREVIEW_READ_ONLY_ENABLED && (
+              <PreviewReadOnlyBanner
+                title="Preview Hangar"
+                message="This branch shows a sample loadout and sample launch history. Equip, repair, and launch actions are click-denied until launch."
+              />
+            )}
 
-            {(bestScore > 0 || metrics.equippedSlots > 0 || history.length > 0) && (
+            {(bestScore > 0 || metrics.equippedSlots > 0 || displayHistory.length > 0) && (
               <div className="flex flex-wrap items-center justify-center gap-4 mt-4">
                 <div className="flex items-center gap-2 px-4 py-2" style={{ background: 'var(--color-bg-card)', border: '1px solid var(--color-border-subtle)' }}>
                   <Rocket size={14} style={{ color: '#F97316' }} />
@@ -218,7 +238,7 @@ export default function RocketLabPage() {
                 </div>
                 <div className="flex items-center gap-2 px-4 py-2" style={{ background: 'var(--color-bg-card)', border: '1px solid var(--color-border-subtle)' }}>
                   <ShieldCheck size={14} style={{ color: '#4ADE80' }} />
-                  <span className="font-mono font-bold text-sm text-text-primary">{history.length}</span>
+                  <span className="font-mono font-bold text-sm text-text-primary">{displayHistory.length}</span>
                   <span className="text-xs font-mono text-text-muted">LAUNCHES</span>
                 </div>
                 {bestScore > 0 && (
@@ -257,6 +277,7 @@ export default function RocketLabPage() {
               <PartsGrid
                 slots={slots}
                 isSyncing={isInventorySyncing}
+                readOnly={PREVIEW_READ_ONLY_ENABLED}
                 disabled={Boolean(actionKey) || launching}
                 actionKey={actionKey}
                 onEquip={handleEquip}
@@ -269,9 +290,10 @@ export default function RocketLabPage() {
               <StatsPanel
                 metrics={metrics}
                 model={selectedModel}
-                fluxBalance={fluxBalance}
+                fluxBalance={displayFluxBalance}
                 launching={launching}
                 walletConnected={Boolean(wallet.address)}
+                launchReadOnly={PREVIEW_READ_ONLY_ENABLED}
                 launchError={launchError}
                 latestLaunch={latestLaunch}
                 onLaunch={handleLaunch}
@@ -285,21 +307,23 @@ export default function RocketLabPage() {
                 <div>
                   <p className="font-mono font-bold text-sm uppercase tracking-wider text-text-primary">Launch History</p>
                   <p className="mt-1 text-xs font-mono text-text-muted">
-                    Recent server-recorded launches for the connected wallet.
+                    {PREVIEW_READ_ONLY_ENABLED
+                      ? 'Sample launch history stays visible while Rocket Lab remains read-only.'
+                      : 'Recent server-recorded launches for the connected wallet.'}
                   </p>
                 </div>
-                <span className="tag text-[10px]">{history.length} Entries</span>
+                <span className="tag text-[10px]">{displayHistory.length} Entries</span>
               </div>
             </div>
 
             <div className="p-5">
-              {history.length === 0 ? (
+              {displayHistory.length === 0 ? (
                 <p className="text-sm font-mono text-text-muted">
                   Launch history will appear here after the first successful Rocket Lab launch.
                 </p>
               ) : (
                 <div className="grid grid-cols-1 xl:grid-cols-2 gap-3">
-                  {history.slice(0, 6).map((entry) => (
+                  {displayHistory.slice(0, 6).map((entry) => (
                     <div
                       key={entry.launchId}
                       className="p-4"

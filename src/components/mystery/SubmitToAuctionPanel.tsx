@@ -3,6 +3,7 @@ import { Upload } from 'lucide-react';
 import RarityBadge from '../brand/RarityBadge';
 import type { InventoryPart } from '../../types/domain';
 import { AUCTION_MIN_RARITY_TIER } from '../../config/spec';
+import { getPreviewActionButtonProps, runPreviewGuardedAction } from '../../lib/launchPreview';
 import {
   APP3_CONTROL_STYLE,
   APP3_INSET_STYLE,
@@ -19,6 +20,7 @@ interface SubmitToAuctionPanelProps {
   inventory: InventoryPart[];
   preferredPartId?: string | null;
   isSubmitting: boolean;
+  readOnly?: boolean;
   onSubmit: (part: InventoryPart) => Promise<void>;
 }
 
@@ -26,6 +28,7 @@ export default function SubmitToAuctionPanel({
   inventory,
   preferredPartId,
   isSubmitting,
+  readOnly = false,
   onSubmit,
 }: SubmitToAuctionPanelProps) {
   const eligibleParts = useMemo(
@@ -51,6 +54,14 @@ export default function SubmitToAuctionPanel({
   }, [eligibleParts, preferredPartId, selectedPartId]);
 
   const selectedPart = eligibleParts.find((part) => part.id === selectedPartId) ?? null;
+  const submitAction = readOnly && selectedPart
+    ? getPreviewActionButtonProps('auctionSubmit')
+    : {
+        disabled: !selectedPart || isSubmitting,
+        'aria-disabled': !selectedPart || isSubmitting,
+        title: undefined,
+        'data-click-denied': undefined as 'true' | undefined,
+      };
 
   return (
     <div className="p-4" style={APP3_PANEL_STYLE}>
@@ -130,8 +141,15 @@ export default function SubmitToAuctionPanel({
           )}
 
           <button
-            onClick={() => selectedPart && void onSubmit(selectedPart)}
-            disabled={!selectedPart || isSubmitting}
+            onClick={runPreviewGuardedAction('auctionSubmit', () => {
+              if (selectedPart) {
+                void onSubmit(selectedPart);
+              }
+            })}
+            disabled={submitAction.disabled}
+            aria-disabled={submitAction['aria-disabled']}
+            title={submitAction.title}
+            data-click-denied={submitAction['data-click-denied']}
             className="w-full mt-3 py-3 text-xs font-mono font-semibold uppercase tracking-wider disabled:opacity-50 disabled:cursor-not-allowed"
             style={{ background: 'rgba(168,85,247,0.12)', border: '1px solid rgba(168,85,247,0.3)', color: '#C084FC' }}
           >

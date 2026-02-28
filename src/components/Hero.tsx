@@ -3,6 +3,7 @@ import { useEthLockState } from '../context/EthLockState';
 import { useGameState } from '../context/GameState';
 import { useWallet } from '../hooks/useWallet';
 import PhiSymbol from './brand/PhiSymbol';
+import LaunchCountdown from './LaunchCountdown';
 
 interface HeroProps {
   onOpenDex: () => void;
@@ -45,6 +46,8 @@ export default function Hero({ onOpenDex, onOpenGate, onOpenWallet }: HeroProps)
                 Overview Funnel
               </span>
             </div>
+
+            <LaunchCountdown />
 
             <div className="space-y-4">
               <h1 className="font-mono font-black text-3xl sm:text-4xl lg:text-5xl text-text-primary leading-[1.08] uppercase tracking-tight">

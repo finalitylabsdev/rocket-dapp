@@ -1,5 +1,6 @@
 import { AlertTriangle, Fuel, Rocket, ShieldCheck, Wrench } from 'lucide-react';
 import { ROCKET_MODELS, type RocketModelId } from './RocketModels';
+import { getPreviewActionButtonProps, runPreviewGuardedAction } from '../../lib/launchPreview';
 import type { RocketLabMetrics } from './rocketLabAdapter';
 import type { RocketLaunchHistoryEntry } from '../../lib/rocketLab';
 
@@ -9,6 +10,7 @@ interface StatsPanelProps {
   fluxBalance: number;
   launching: boolean;
   walletConnected: boolean;
+  launchReadOnly?: boolean;
   launchError: string | null;
   latestLaunch: RocketLaunchHistoryEntry | null;
   onLaunch: () => void;
@@ -27,15 +29,26 @@ export default function StatsPanel({
   fluxBalance,
   launching,
   walletConnected,
+  launchReadOnly = false,
   launchError,
   latestLaunch,
   onLaunch,
 }: StatsPanelProps) {
   const modelDef = ROCKET_MODELS.find((entry) => entry.id === model) ?? ROCKET_MODELS[0];
   const canAfford = fluxBalance >= metrics.fuelCost;
-  const buttonDisabled = !walletConnected || !metrics.canLaunch || launching || !canAfford;
+  const buttonDisabled = launchReadOnly ? false : !walletConnected || !metrics.canLaunch || launching || !canAfford;
+  const launchAction = launchReadOnly
+    ? getPreviewActionButtonProps('rocketLaunch')
+    : {
+        disabled: buttonDisabled,
+        'aria-disabled': buttonDisabled,
+        title: undefined,
+        'data-click-denied': undefined as 'true' | undefined,
+      };
 
-  const buttonLabel = !walletConnected
+  const buttonLabel = launchReadOnly
+    ? 'Launch Rocket'
+    : !walletConnected
     ? 'Connect Wallet'
     : launching
       ? 'Launching…'
@@ -176,8 +189,11 @@ export default function StatsPanel({
 
       <div className="p-5">
         <button
-          onClick={onLaunch}
-          disabled={buttonDisabled}
+          onClick={runPreviewGuardedAction('rocketLaunch', onLaunch)}
+          disabled={launchAction.disabled}
+          aria-disabled={launchAction['aria-disabled']}
+          title={launchAction.title}
+          data-click-denied={launchAction['data-click-denied']}
           className="relative w-full py-4 font-mono font-black text-base transition-all duration-200 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed overflow-hidden flex items-center justify-center gap-2.5 uppercase tracking-widest"
           style={buttonDisabled ? {
             background: 'var(--color-bg-card)',

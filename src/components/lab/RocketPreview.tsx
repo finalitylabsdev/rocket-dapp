@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import type { RocketModelId } from './RocketModels';
 import { useTheme } from '../../context/ThemeContext';
-import { ROCKET_SECTIONS } from '../../types/domain';
+import { ROCKET_SECTIONS, type RocketSection } from '../../types/domain';
 import type { RocketLabSlots } from './rocketLabAdapter';
 
 interface RocketPreviewProps {

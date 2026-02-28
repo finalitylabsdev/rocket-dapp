@@ -1,4 +1,5 @@
 import { ExternalLink, Lock, RefreshCw, Zap } from 'lucide-react';
+import { PREVIEW_READ_ONLY_ENABLED } from '../config/flags';
 import { useEthLockState } from '../context/EthLockState';
 import { useWallet } from '../hooks/useWallet';
 
@@ -54,7 +55,13 @@ export default function EntropyGateBanner({
     ? wallet.error
     : 'Connect a wallet to check your ETH lock status and unlock daily FLUX claims.';
 
-  if (wallet.isConnected) {
+  if (PREVIEW_READ_ONLY_ENABLED) {
+    tone = 'warning';
+    statusLabel = 'PREVIEW';
+    detail = wallet.isConnected
+      ? 'Wallet auth is live. ETH lock and FLUX claims are disabled in preview.'
+      : 'Browse freely or connect a wallet. ETH lock and FLUX claims are disabled in preview.';
+  } else if (wallet.isConnected) {
     const nextStep = isHome || isGate
       ? ''
       : ethLock.isLocked
@@ -113,7 +120,7 @@ export default function EntropyGateBanner({
             {detail}
           </p>
         </div>
-        {wallet.isConnected && (ethLock.isLoading || ethLock.isVerifying) && (
+        {wallet.isConnected && !PREVIEW_READ_ONLY_ENABLED && (ethLock.isLoading || ethLock.isVerifying) && (
           <div className="hidden md:flex items-center gap-1.5 text-[10px] font-mono font-semibold uppercase tracking-[0.14em] text-text-muted">
             <RefreshCw size={12} className="animate-spin" />
             {ethLock.isLoading ? 'Checking' : 'Live Verify'}

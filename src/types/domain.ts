@@ -45,7 +45,7 @@ export interface InventoryPart {
   attributeNames: [string, string, string];
   partValue: number;
   conditionPct?: number;
-  serialNumber?: string;
+  serialNumber?: number;
   serialTrait?: string;
   isShiny?: boolean;
   sectionName: string;

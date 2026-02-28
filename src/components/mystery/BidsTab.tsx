@@ -6,6 +6,7 @@ import { useWallet } from '../../hooks/useWallet';
 import { useAuctions } from '../../hooks/useAuctions';
 import { formatAuctionError, placeAuctionBid, submitAuctionItem } from '../../lib/nebulaBids';
 import type { AuctionHistoryEntry, InventoryPart } from '../../types/domain';
+import { shouldAllowAnonymousAuctionView } from '../../lib/launchPreview';
 import JourneyCue from '../JourneyCue';
 import AuctionDetail from './AuctionDetail';
 import AuctionGrid from './AuctionGrid';
@@ -27,12 +28,20 @@ import {
 import { NEBULA_BIDS_ENABLED } from '../../config/flags';
 
 interface BidsTabProps {
+  inventory: InventoryPart[];
+  readOnly?: boolean;
   preferredPartId?: string | null;
   onPreferredPartHandled?: () => void;
   onNavigateLab?: () => void;
 }
 
-export default function BidsTab({ preferredPartId, onPreferredPartHandled, onNavigateLab }: BidsTabProps) {
+export default function BidsTab({
+  inventory,
+  readOnly = false,
+  preferredPartId,
+  onPreferredPartHandled,
+  onNavigateLab,
+}: BidsTabProps) {
   const wallet = useWallet();
   const game = useGameState();
   const {
@@ -43,7 +52,7 @@ export default function BidsTab({ preferredPartId, onPreferredPartHandled, onNav
     realtimeState,
     realtimeIssue,
     refresh,
-  } = useAuctions(Boolean(wallet.address) && NEBULA_BIDS_ENABLED);
+  } = useAuctions(NEBULA_BIDS_ENABLED && shouldAllowAnonymousAuctionView(wallet.address));
   const [selectedRoundId, setSelectedRoundId] = useState<number | null>(null);
   const [isPlacingBid, setIsPlacingBid] = useState(false);
   const [isSubmittingItem, setIsSubmittingItem] = useState(false);
@@ -89,7 +98,7 @@ export default function BidsTab({ preferredPartId, onPreferredPartHandled, onNav
   }, [history]);
 
   const handleSubmitItem = async (part: InventoryPart) => {
-    if (!wallet.address) {
+    if (readOnly || !wallet.address) {
       return;
     }
 
@@ -115,15 +124,14 @@ export default function BidsTab({ preferredPartId, onPreferredPartHandled, onNav
   };
 
   const handlePlaceBid = async (amount: number) => {
-    if (!wallet.address || !activeAuction) {
+    if (readOnly || !wallet.address || !activeAuction) {
       return;
     }
 
     setIsPlacingBid(true);
 
     try {
-      const result = await placeAuctionBid(wallet.address, activeAuction.roundId, amount);
-      game.applyServerSnapshot({ balance: result.balance });
+      await placeAuctionBid(wallet.address, activeAuction.roundId, amount);
       await refresh();
       toast.success('Bid placed', {
         description: `${amount.toFixed(2).replace(/\.00$/, '')} FLUX bid submitted.`,
@@ -162,7 +170,7 @@ export default function BidsTab({ preferredPartId, onPreferredPartHandled, onNav
     );
   }
 
-  if (!wallet.address) {
+  if (!wallet.address && !readOnly) {
     return (
       <section className="space-y-6">
         <div className="p-6" style={APP3_PANEL_STYLE}>
@@ -190,6 +198,15 @@ export default function BidsTab({ preferredPartId, onPreferredPartHandled, onNav
   return (
     <>
       <section className="space-y-6">
+        {readOnly && (
+          <div
+            className="p-4 font-mono text-sm"
+            style={{ background: '#1C1307', border: '1px solid rgba(245,158,11,0.28)', color: '#FCD34D' }}
+          >
+            Preview mode is browse-only. Live auction rounds and bid traffic stay visible, but your submissions and bids are click-denied.
+          </div>
+        )}
+
         {error && (
           <div className="p-4 font-mono text-sm" style={{ background: '#120B0B', border: '1px solid rgba(239,68,68,0.35)', color: '#FCA5A5' }}>
             {error}
@@ -213,9 +230,10 @@ export default function BidsTab({ preferredPartId, onPreferredPartHandled, onNav
               onSelect={setSelectedRoundId}
             />
             <SubmitToAuctionPanel
-              inventory={game.inventory}
+              inventory={inventory}
               preferredPartId={preferredPartId}
               isSubmitting={isSubmittingItem}
+              readOnly={readOnly}
               onSubmit={handleSubmitItem}
             />
             <AuctionOpsPanel
@@ -229,6 +247,7 @@ export default function BidsTab({ preferredPartId, onPreferredPartHandled, onNav
           <AuctionDetail
             activeAuction={activeAuction}
             isPlacingBid={isPlacingBid}
+            readOnly={readOnly}
             onPlaceBid={handlePlaceBid}
           />
         </div>
@@ -324,7 +343,7 @@ export default function BidsTab({ preferredPartId, onPreferredPartHandled, onNav
           <TopContributors history={history} />
         </div>
 
-        {onNavigateLab && game.inventory.some((p) => p.isEquipped) && (
+        {onNavigateLab && inventory.some((p) => p.isEquipped) && (
           <JourneyCue
             icon={<Rocket size={16} />}
             message="You have parts equipped! Head to Rocket Lab to build and launch."

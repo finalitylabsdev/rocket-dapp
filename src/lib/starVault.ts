@@ -78,7 +78,7 @@ export interface InventoryPartPayload {
   total_power?: number | string;
   part_value?: number | string;
   condition_pct?: number | string;
-  serial_number?: string;
+  serial_number?: number | string;
   serial_trait?: string;
   is_shiny?: boolean;
   is_locked?: boolean;
@@ -264,7 +264,7 @@ export function normalizeInventoryPart(payload: InventoryPartPayload): Inventory
     ],
     partValue,
     conditionPct: payload.condition_pct === undefined ? undefined : toNumber(payload.condition_pct),
-    serialNumber: toOptionalText(payload.serial_number) ?? undefined,
+    serialNumber: payload.serial_number === undefined ? undefined : toNumber(payload.serial_number),
     serialTrait: toOptionalText(payload.serial_trait) ?? undefined,
     isShiny: payload.is_shiny === undefined ? undefined : Boolean(payload.is_shiny),
     variantIndex: payload.variant_index === undefined ? undefined : toNumber(payload.variant_index),

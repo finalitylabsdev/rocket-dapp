@@ -1,6 +1,7 @@
 import RarityBadge, { getRarityConfig } from '../brand/RarityBadge';
 import PhiSymbol from '../brand/PhiSymbol';
 import { SectionIllustration } from './PartIllustrations';
+import { getPreviewActionButtonProps, runPreviewGuardedAction } from '../../lib/launchPreview';
 import { type RocketLabSlotView, type RocketLabSlots } from './rocketLabAdapter';
 import { ROCKET_SECTIONS, type InventoryPart, type RocketSection } from '../../types/domain';
 import { estimateRepairCost, getEffectivePartPower, getPartConditionPct } from '../../lib/rocketLab';
@@ -8,6 +9,7 @@ import { estimateRepairCost, getEffectivePartPower, getPartConditionPct } from '
 interface PartsGridProps {
   slots: RocketLabSlots;
   isSyncing: boolean;
+  readOnly?: boolean;
   disabled: boolean;
   actionKey: string | null;
   onEquip: (partId: string, section: RocketSection) => void;
@@ -54,6 +56,7 @@ function getSlotSummary(slot: RocketLabSlotView) {
 function PartActions({
   part,
   section,
+  readOnly,
   disabled,
   actionKey,
   onEquip,
@@ -62,6 +65,7 @@ function PartActions({
 }: {
   part: InventoryPart;
   section: RocketSection;
+  readOnly: boolean;
   disabled: boolean;
   actionKey: string | null;
   onEquip: (partId: string, section: RocketSection) => void;
@@ -71,13 +75,40 @@ function PartActions({
   const conditionPct = getPartConditionPct(part);
   const repairCost = estimateRepairCost(part);
   const isBusy = (key: string) => disabled || actionKey === key;
+  const equipAction = readOnly && !part.isLocked && conditionPct > 0
+    ? getPreviewActionButtonProps('rocketEquip')
+    : {
+        disabled: part.isLocked || conditionPct <= 0 || isBusy(`equip:${part.id}`),
+        'aria-disabled': part.isLocked || conditionPct <= 0 || isBusy(`equip:${part.id}`),
+        title: undefined,
+        'data-click-denied': undefined as 'true' | undefined,
+      };
+  const unequipAction = readOnly
+    ? getPreviewActionButtonProps('rocketUnequip')
+    : {
+        disabled: isBusy(`unequip:${section}`),
+        'aria-disabled': isBusy(`unequip:${section}`),
+        title: undefined,
+        'data-click-denied': undefined as 'true' | undefined,
+      };
+  const repairAction = readOnly && !part.isLocked && repairCost > 0
+    ? getPreviewActionButtonProps('rocketRepair')
+    : {
+        disabled: part.isLocked || repairCost <= 0 || isBusy(`repair:${part.id}`),
+        'aria-disabled': part.isLocked || repairCost <= 0 || isBusy(`repair:${part.id}`),
+        title: undefined,
+        'data-click-denied': undefined as 'true' | undefined,
+      };
 
   return (
     <div className="mt-3 flex flex-wrap gap-2">
       {part.isEquipped ? (
         <button
-          onClick={() => onUnequip(section)}
-          disabled={isBusy(`unequip:${section}`)}
+          onClick={runPreviewGuardedAction('rocketUnequip', () => onUnequip(section))}
+          disabled={unequipAction.disabled}
+          aria-disabled={unequipAction['aria-disabled']}
+          title={unequipAction.title}
+          data-click-denied={unequipAction['data-click-denied']}
           className="px-2.5 py-1.5 text-[10px] font-mono font-bold uppercase tracking-[0.16em] disabled:opacity-50"
           style={{ background: 'var(--color-bg-card)', border: '1px solid var(--color-border-subtle)' }}
         >
@@ -85,8 +116,11 @@ function PartActions({
         </button>
       ) : (
         <button
-          onClick={() => onEquip(part.id, section)}
-          disabled={part.isLocked || conditionPct <= 0 || isBusy(`equip:${part.id}`)}
+          onClick={runPreviewGuardedAction('rocketEquip', () => onEquip(part.id, section))}
+          disabled={equipAction.disabled}
+          aria-disabled={equipAction['aria-disabled']}
+          title={equipAction.title}
+          data-click-denied={equipAction['data-click-denied']}
           className="px-2.5 py-1.5 text-[10px] font-mono font-bold uppercase tracking-[0.16em] disabled:opacity-50"
           style={{
             background: part.isLocked || conditionPct <= 0 ? 'var(--color-bg-card)' : 'rgba(249,115,22,0.12)',
@@ -100,8 +134,11 @@ function PartActions({
 
       {conditionPct < 100 && (
         <button
-          onClick={() => onRepair(part.id)}
-          disabled={part.isLocked || repairCost <= 0 || isBusy(`repair:${part.id}`)}
+          onClick={runPreviewGuardedAction('rocketRepair', () => onRepair(part.id))}
+          disabled={repairAction.disabled}
+          aria-disabled={repairAction['aria-disabled']}
+          title={repairAction.title}
+          data-click-denied={repairAction['data-click-denied']}
           className="px-2.5 py-1.5 text-[10px] font-mono font-bold uppercase tracking-[0.16em] disabled:opacity-50"
           style={{
             background: repairCost <= 0 ? 'var(--color-bg-card)' : 'rgba(34,197,94,0.10)',
@@ -119,6 +156,7 @@ function PartActions({
 function PartRow({
   part,
   section,
+  readOnly,
   disabled,
   actionKey,
   onEquip,
@@ -127,6 +165,7 @@ function PartRow({
 }: {
   part: InventoryPart;
   section: RocketSection;
+  readOnly: boolean;
   disabled: boolean;
   actionKey: string | null;
   onEquip: (partId: string, section: RocketSection) => void;
@@ -246,6 +285,7 @@ function PartRow({
         <PartActions
           part={part}
           section={section}
+          readOnly={readOnly}
           disabled={disabled}
           actionKey={actionKey}
           onEquip={onEquip}
@@ -259,6 +299,7 @@ function PartRow({
 
 function SlotCard({
   slot,
+  readOnly,
   disabled,
   actionKey,
   onEquip,
@@ -266,6 +307,7 @@ function SlotCard({
   onRepair,
 }: {
   slot: RocketLabSlotView;
+  readOnly: boolean;
   disabled: boolean;
   actionKey: string | null;
   onEquip: (partId: string, section: RocketSection) => void;
@@ -324,6 +366,7 @@ function SlotCard({
                 key={part.id}
                 part={part}
                 section={slot.section}
+                readOnly={readOnly}
                 disabled={disabled}
                 actionKey={actionKey}
                 onEquip={onEquip}
@@ -341,6 +384,7 @@ function SlotCard({
 export default function PartsGrid({
   slots,
   isSyncing,
+  readOnly = false,
   disabled,
   actionKey,
   onEquip,
@@ -360,12 +404,14 @@ export default function PartsGrid({
             Rocket Loadout
           </p>
           <p className="mt-0.5 text-xs font-mono text-text-muted">
-            {isSyncing
+            {readOnly
+              ? `${equippedCount}/${ROCKET_SECTIONS.length} sections equipped in the sample preview loadout`
+              : isSyncing
               ? 'Refreshing server inventory…'
               : `${equippedCount}/${ROCKET_SECTIONS.length} sections equipped and ready for launch management`}
           </p>
         </div>
-        <span className="tag text-[10px]">Server Loadout</span>
+        <span className="tag text-[10px]">{readOnly ? 'Sample Loadout' : 'Server Loadout'}</span>
       </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
@@ -373,6 +419,7 @@ export default function PartsGrid({
           <SlotCard
             key={section}
             slot={slots[section]}
+            readOnly={readOnly}
             disabled={disabled}
             actionKey={actionKey}
             onEquip={onEquip}

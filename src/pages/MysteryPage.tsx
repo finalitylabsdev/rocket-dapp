@@ -3,12 +3,17 @@ import { Gift, Gavel } from 'lucide-react';
 import VaultTab from '../components/mystery/VaultTab';
 import BidsTab from '../components/mystery/BidsTab';
 import InventoryPanel from '../components/mystery/InventoryPanel';
+import PreviewReadOnlyBanner from '../components/PreviewReadOnlyBanner';
+import { useGameState } from '../context/GameState';
 import type { InventoryPart } from '../types/domain';
-import { STAR_VAULT_ENABLED, NEBULA_BIDS_ENABLED } from '../config/flags';
+import { NEBULA_BIDS_ENABLED, PREVIEW_READ_ONLY_ENABLED, STAR_VAULT_ENABLED } from '../config/flags';
+import { getPreviewInventory } from '../lib/launchPreview';
 
 export default function MysteryPage() {
+  const game = useGameState();
   const [activeTab, setActiveTab] = useState<'vault' | 'bids'>(STAR_VAULT_ENABLED ? 'vault' : 'bids');
   const [preferredAuctionPartId, setPreferredAuctionPartId] = useState<string | null>(null);
+  const displayInventory = getPreviewInventory(game.inventory);
 
   const handleSendToAuction = (part: InventoryPart) => {
     setPreferredAuctionPartId(part.id);
@@ -31,6 +36,12 @@ export default function MysteryPage() {
           <p className="text-text-secondary text-lg font-mono">
             Unbox rare finds, place your bids, and build your cosmic collection.
           </p>
+          {PREVIEW_READ_ONLY_ENABLED && (
+            <PreviewReadOnlyBanner
+              title="Preview Vault"
+              message="Live auction activity stays visible. Box openings, bids, and submissions are click-denied while this branch remains read-only."
+            />
+          )}
         </div>
 
         <div className="mb-6 flex gap-0 border border-border-subtle overflow-hidden">
@@ -69,9 +80,15 @@ export default function MysteryPage() {
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6 items-start">
           <div>
             {activeTab === 'vault' ? (
-              <VaultTab onNavigateBids={() => setActiveTab('bids')} />
+              <VaultTab
+                inventory={displayInventory}
+                readOnly={PREVIEW_READ_ONLY_ENABLED}
+                onNavigateBids={() => setActiveTab('bids')}
+              />
             ) : (
               <BidsTab
+                inventory={displayInventory}
+                readOnly={PREVIEW_READ_ONLY_ENABLED}
                 preferredPartId={preferredAuctionPartId}
                 onPreferredPartHandled={() => setPreferredAuctionPartId(null)}
                 onNavigateLab={() => { window.location.hash = 'lab'; }}
@@ -79,7 +96,11 @@ export default function MysteryPage() {
             )}
           </div>
 
-          <InventoryPanel onSendToAuction={handleSendToAuction} />
+          <InventoryPanel
+            inventory={displayInventory}
+            readOnly={PREVIEW_READ_ONLY_ENABLED}
+            onSendToAuction={handleSendToAuction}
+          />
         </div>
       </div>
     </div>

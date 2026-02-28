@@ -4,6 +4,7 @@ import RarityBadge, { getRarityConfig } from '../brand/RarityBadge';
 import PhiSymbol from '../brand/PhiSymbol';
 import { AUCTION_MIN_RARITY_TIER } from '../../config/spec';
 import type { InventoryPart } from '../../types/domain';
+import { getPreviewActionButtonProps, runPreviewGuardedAction } from '../../lib/launchPreview';
 import { SectionGlyph } from './metadataVisuals';
 import {
   APP3_INSET_STYLE,
@@ -17,6 +18,7 @@ import {
 
 interface InventoryPartCardProps {
   part: InventoryPart;
+  readOnly?: boolean;
   onSendToAuction?: (part: InventoryPart) => void;
 }
 
@@ -58,9 +60,21 @@ function formatReceivedAt(value?: string): string | null {
   });
 }
 
-export default function InventoryPartCard({ part, onSendToAuction }: InventoryPartCardProps) {
+export default function InventoryPartCard({
+  part,
+  readOnly = false,
+  onSendToAuction,
+}: InventoryPartCardProps) {
   const [showMeta, setShowMeta] = useState(false);
   const canSendToAuction = Boolean(onSendToAuction) && !part.isLocked && !part.isEquipped && part.rarityTierId >= AUCTION_MIN_RARITY_TIER;
+  const submitAction = readOnly && canSendToAuction
+    ? getPreviewActionButtonProps('auctionSubmit')
+    : {
+        disabled: !canSendToAuction,
+        'aria-disabled': !canSendToAuction,
+        title: undefined,
+        'data-click-denied': undefined as 'true' | undefined,
+      };
   const rarityCfg = getRarityConfig(part.rarity);
   const receivedAt = formatReceivedAt(part.createdAt);
   const slotKeyLabel = formatMetadataKey(part.slot);
@@ -203,7 +217,7 @@ export default function InventoryPartCard({ part, onSendToAuction }: InventoryPa
           </div>
           <div className="mt-2 flex items-center justify-between gap-3">
             <span>Serial</span>
-            <span>#{part.serialNumber.toString().padStart(6, '0')}</span>
+            <span>#{(part.serialNumber ?? 0).toString().padStart(6, '0')}</span>
           </div>
           <div className="mt-2 flex items-center justify-between gap-3">
             <span>Serial Trait</span>
@@ -239,8 +253,11 @@ export default function InventoryPartCard({ part, onSendToAuction }: InventoryPa
           {showMeta ? 'Hide Intel' : 'View Intel'}
         </button>
         <button
-          onClick={() => onSendToAuction?.(part)}
-          disabled={!canSendToAuction}
+          onClick={runPreviewGuardedAction('auctionSubmit', () => onSendToAuction?.(part))}
+          disabled={submitAction.disabled}
+          aria-disabled={submitAction['aria-disabled']}
+          title={submitAction.title}
+          data-click-denied={submitAction['data-click-denied']}
           className="py-2 text-[10px] font-mono font-semibold uppercase tracking-wider disabled:opacity-40 disabled:cursor-not-allowed"
           style={{ background: 'rgba(168,85,247,0.08)', border: '1px solid rgba(168,85,247,0.22)', color: '#C084FC' }}
         >

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { AUCTION_MAX_BID_FLUX } from '../../config/spec';
+import { getPreviewActionButtonProps, runPreviewGuardedAction } from '../../lib/launchPreview';
 import { normalizeAuctionBidAmount } from '../../lib/nebulaBids';
 import PhiSymbol from '../brand/PhiSymbol';
 import { APP3_CONTROL_STYLE, APP3_TEXT_PRIMARY_STYLE, APP3_TEXT_SECONDARY_STYLE, formatFluxValue } from './ui';
@@ -9,12 +10,26 @@ const BID_INPUT_PATTERN = /^(?:\d+(?:\.\d{1,2})?|\.\d{1,2})$/;
 interface BidInputProps {
   minBid: number;
   isSubmitting: boolean;
+  readOnly?: boolean;
   onSubmit: (amount: number) => Promise<void>;
 }
 
-export default function BidInput({ minBid, isSubmitting, onSubmit }: BidInputProps) {
+export default function BidInput({
+  minBid,
+  isSubmitting,
+  readOnly = false,
+  onSubmit,
+}: BidInputProps) {
   const [amount, setAmount] = useState(() => formatFluxValue(minBid));
   const [error, setError] = useState<string | null>(null);
+  const bidAction = readOnly
+    ? getPreviewActionButtonProps('auctionBid')
+    : {
+        disabled: isSubmitting,
+        'aria-disabled': isSubmitting,
+        title: undefined,
+        'data-click-denied': undefined as 'true' | undefined,
+      };
 
   useEffect(() => {
     setAmount(formatFluxValue(minBid));
@@ -85,8 +100,11 @@ export default function BidInput({ minBid, isSubmitting, onSubmit }: BidInputPro
           />
         </div>
         <button
-          onClick={() => void handleSubmit()}
-          disabled={isSubmitting}
+          onClick={runPreviewGuardedAction('auctionBid', () => void handleSubmit())}
+          disabled={bidAction.disabled}
+          aria-disabled={bidAction['aria-disabled']}
+          title={bidAction.title}
+          data-click-denied={bidAction['data-click-denied']}
           className="px-4 py-3 text-xs font-mono font-semibold uppercase tracking-wider disabled:opacity-50 disabled:cursor-not-allowed"
           style={{ background: 'rgba(168,85,247,0.12)', border: '1px solid rgba(168,85,247,0.3)', color: '#C084FC' }}
         >

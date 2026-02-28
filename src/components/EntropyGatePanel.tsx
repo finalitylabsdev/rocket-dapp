@@ -11,6 +11,8 @@ import {
   FAUCET_INTERVAL_MS,
   FAUCET_INTERVAL_SECONDS,
 } from '../config/spec';
+import { PREVIEW_READ_ONLY_ENABLED } from '../config/flags';
+import { getPreviewActionButtonProps, runPreviewGuardedAction } from '../lib/launchPreview';
 
 interface EntropyGatePanelProps {
   onOpenDex?: () => void;
@@ -94,6 +96,10 @@ export default function EntropyGatePanel({ onOpenDex, onOpenWallet }: EntropyGat
     || game.isFluxSyncing;
 
   const handleSubmitLock = async () => {
+    if (PREVIEW_READ_ONLY_ENABLED) {
+      return;
+    }
+
     submittedLockRef.current = true;
     toast.loading('Transaction submitted', {
       id: ETH_LOCK_FLOW_TOAST_ID,
@@ -108,6 +114,10 @@ export default function EntropyGatePanel({ onOpenDex, onOpenWallet }: EntropyGat
   };
 
   const handleClaimFlux = async () => {
+    if (PREVIEW_READ_ONLY_ENABLED) {
+      return;
+    }
+
     const claimResult = await game.claimDailyFlux();
 
     if (claimResult.status === 'claimed') {
@@ -245,7 +255,45 @@ export default function EntropyGatePanel({ onOpenDex, onOpenWallet }: EntropyGat
     ethLock.submission?.txHash,
   ]);
 
-  const primaryAction = !wallet.isConnected ? (
+  const lockPreviewAction = getPreviewActionButtonProps('gateLock', lockCallToActionDisabled);
+  const claimPreviewAction = getPreviewActionButtonProps('gateClaim', claimCallToActionDisabled);
+
+  const primaryAction = PREVIEW_READ_ONLY_ENABLED ? (
+    <>
+      {!wallet.isConnected && (
+        <button
+          onClick={() => void wallet.connect()}
+          disabled={wallet.isConnecting}
+          className="btn-primary w-full sm:w-auto justify-center text-sm sm:text-base px-6 py-3.5 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          <Zap size={16} />
+          {wallet.isConnecting ? 'Connecting...' : 'Connect Wallet'}
+        </button>
+      )}
+      <button
+        onClick={runPreviewGuardedAction('gateLock', () => void handleSubmitLock())}
+        disabled={lockPreviewAction.disabled}
+        aria-disabled={lockPreviewAction['aria-disabled']}
+        title={lockPreviewAction.title}
+        data-click-denied={lockPreviewAction['data-click-denied']}
+        className="btn-primary w-full sm:w-auto justify-center text-sm sm:text-base px-6 py-3.5"
+      >
+        <Lock size={16} />
+        {`Lock ${ethLock.lockAmountLabel} ETH`}
+      </button>
+      <button
+        onClick={runPreviewGuardedAction('gateClaim', () => void handleClaimFlux())}
+        disabled={claimPreviewAction.disabled}
+        aria-disabled={claimPreviewAction['aria-disabled']}
+        title={claimPreviewAction.title}
+        data-click-denied={claimPreviewAction['data-click-denied']}
+        className="btn-primary w-full sm:w-auto justify-center text-sm sm:text-base px-6 py-3.5"
+      >
+        <Zap size={16} />
+        {`Claim ${EFFECTIVE_DAILY_CLAIM_FLUX} Flux`}
+      </button>
+    </>
+  ) : !wallet.isConnected ? (
     <button
       onClick={() => void wallet.connect()}
       disabled={wallet.isConnecting}
@@ -319,9 +367,15 @@ export default function EntropyGatePanel({ onOpenDex, onOpenWallet }: EntropyGat
           Unlock the Entropy Gate
         </h2>
         <p className="text-text-muted leading-relaxed max-w-2xl">
-          Lock {ethLock.lockAmountLabel} ETH once to whitelist this wallet. After the lock confirms,
-          you can return every {formatClaimWindow(FAUCET_INTERVAL_SECONDS).toLowerCase()} to claim{' '}
-          {EFFECTIVE_DAILY_CLAIM_FLUX} FLUX and push deeper into the network.
+          {PREVIEW_READ_ONLY_ENABLED
+            ? `Wallet authentication is live here, but ETH lock and FLUX claim stay blocked in preview. The controls remain visible so the launch flow is still legible before March 3, 2026 at 23:11 UTC.`
+            : (
+              <>
+                Lock {ethLock.lockAmountLabel} ETH once to whitelist this wallet. After the lock confirms,
+                you can return every {formatClaimWindow(FAUCET_INTERVAL_SECONDS).toLowerCase()} to claim{' '}
+                {EFFECTIVE_DAILY_CLAIM_FLUX} FLUX and push deeper into the network.
+              </>
+            )}
         </p>
       </div>
 
@@ -340,7 +394,25 @@ export default function EntropyGatePanel({ onOpenDex, onOpenWallet }: EntropyGat
         </div>
       </div>
 
-      {ethLock.isLocked ? (
+      {PREVIEW_READ_ONLY_ENABLED ? (
+        <div
+          className="p-3 border flex flex-wrap items-center gap-2"
+          style={{
+            background: 'rgba(245,158,11,0.08)',
+            borderColor: 'rgba(245,158,11,0.22)',
+          }}
+        >
+          <Lock size={14} style={{ color: '#FCD34D' }} />
+          <span className="text-sm font-mono font-bold" style={{ color: '#FCD34D' }}>
+            PREVIEW READ ONLY
+          </span>
+          <span className="text-xs text-text-muted font-mono sm:ml-auto">
+            {wallet.isConnected
+              ? 'Authenticated wallets can browse, but lock and claim stay disabled here.'
+              : 'Browse freely or connect a wallet. Lock and claim stay disabled until launch.'}
+          </span>
+        </div>
+      ) : ethLock.isLocked ? (
         <div
           className="flex flex-wrap items-center gap-2 p-3 border"
           style={{ background: 'rgba(74,222,128,0.06)', borderColor: 'rgba(74,222,128,0.2)' }}
@@ -397,7 +469,7 @@ export default function EntropyGatePanel({ onOpenDex, onOpenWallet }: EntropyGat
         )}
       </div>
 
-      {wallet.isConnected && !ethLock.isLocked && !ethLock.lockRecipient && (
+      {!PREVIEW_READ_ONLY_ENABLED && wallet.isConnected && !ethLock.isLocked && !ethLock.lockRecipient && (
         <p className="text-xs font-mono text-amber-300">
           Configure <code>VITE_ETH_LOCK_RECIPIENT</code> to enable ETH lock submissions.
         </p>
@@ -436,7 +508,7 @@ export default function EntropyGatePanel({ onOpenDex, onOpenWallet }: EntropyGat
         </div>
       </div>
 
-      {ethLock.isLocked && canClaim && game.fluxBalance === 0 && (
+      {!PREVIEW_READ_ONLY_ENABLED && ethLock.isLocked && canClaim && game.fluxBalance === 0 && (
         <JourneyCue
           icon={<Zap size={16} />}
           message="ETH locked. Claim your first FLUX to open the rest of the app economy."

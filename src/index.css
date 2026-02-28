@@ -156,6 +156,10 @@
     -moz-osx-font-smoothing: grayscale;
     overflow-x: hidden;
   }
+
+  [data-click-denied='true'] {
+    cursor: not-allowed !important;
+  }
 }
 
 @layer components {

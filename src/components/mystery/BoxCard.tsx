@@ -1,9 +1,10 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { RotateCcw } from 'lucide-react';
 import RarityBadge, { getRarityConfig } from '../brand/RarityBadge';
 import PhiSymbol from '../brand/PhiSymbol';
 import { useGameState } from '../../context/GameState';
 import { useWallet } from '../../hooks/useWallet';
+import { getPreviewActionButtonProps, runPreviewGuardedAction } from '../../lib/launchPreview';
 import { formatStarVaultError, openMysteryBox } from '../../lib/starVault';
 import type { BoxTierConfig, InventoryPart } from '../../types/domain';
 import BoxIllustration, { type BoxAnimationState } from './BoxIllustration';
@@ -59,19 +60,47 @@ function AttributeBars({ part }: { part: InventoryPart }) {
   );
 }
 
-export default function BoxCard({ tier }: { tier: BoxTierConfig }) {
+interface BoxCardProps {
+  tier: BoxTierConfig;
+  readOnly?: boolean;
+  previewReward?: InventoryPart | null;
+}
+
+export default function BoxCard({
+  tier,
+  readOnly = false,
+  previewReward = null,
+}: BoxCardProps) {
   const wallet = useWallet();
   const game = useGameState();
-  const [state, setState] = useState<BoxAnimationState>('idle');
-  const [reward, setReward] = useState<InventoryPart | null>(null);
+  const [state, setState] = useState<BoxAnimationState>(() => (readOnly && previewReward ? 'revealed' : 'idle'));
+  const [reward, setReward] = useState<InventoryPart | null>(() => previewReward);
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const cfg = getRarityConfig(tier.rarity);
   const revealCfg = reward ? getRarityConfig(reward.rarity) : cfg;
   const canOpenAnother = Boolean(wallet.address) && game.fluxBalance >= tier.price && !wallet.isConnecting && !isSubmitting;
+  const openAction = readOnly
+    ? getPreviewActionButtonProps('boxOpen')
+    : {
+        disabled: isSubmitting || wallet.isConnecting,
+        'aria-disabled': isSubmitting || wallet.isConnecting,
+        title: undefined,
+        'data-click-denied': undefined as 'true' | undefined,
+      };
+
+  useEffect(() => {
+    if (!readOnly) {
+      return;
+    }
+
+    setReward(previewReward);
+    setState(previewReward ? 'revealed' : 'idle');
+    setError(null);
+  }, [previewReward, readOnly]);
 
   const handleOpen = async () => {
-    if (isSubmitting || wallet.isConnecting) {
+    if (readOnly || isSubmitting || wallet.isConnecting) {
       return;
     }
 
@@ -188,7 +217,7 @@ export default function BoxCard({ tier }: { tier: BoxTierConfig }) {
             }}
           >
             <p className="text-[10px] font-mono font-semibold uppercase tracking-wider text-text-muted">
-              You Received
+              {readOnly ? 'Preview Reveal' : 'You Received'}
             </p>
             <div className="mt-3 flex items-start gap-3">
               <SectionGlyph asset={reward.illustration} fallbackKey={reward.slot} size="sm" />
@@ -214,7 +243,7 @@ export default function BoxCard({ tier }: { tier: BoxTierConfig }) {
                     className="inline-flex items-center rounded-full px-2 py-0.5 text-[9px] font-mono font-semibold uppercase tracking-[0.16em]"
                     style={{ background: 'rgba(15,23,42,0.58)', color: '#E2E8F0', border: '1px solid rgba(148,163,184,0.18)' }}
                   >
-                    #{reward.serialNumber.toString().padStart(6, '0')}
+                    #{(reward.serialNumber ?? 0).toString().padStart(6, '0')}
                   </span>
                   {reward.isShiny && (
                     <span
@@ -287,7 +316,19 @@ export default function BoxCard({ tier }: { tier: BoxTierConfig }) {
           </div>
         )}
 
-        {reward ? (
+        {readOnly ? (
+          <button
+            onClick={runPreviewGuardedAction('boxOpen', () => void handleOpen())}
+            disabled={openAction.disabled}
+            aria-disabled={openAction['aria-disabled']}
+            title={openAction.title}
+            data-click-denied={openAction['data-click-denied']}
+            className="w-full py-3 font-mono font-bold text-sm flex items-center justify-center gap-2 uppercase tracking-wider"
+            style={APP3_SECONDARY_BUTTON_STYLE}
+          >
+            {reward ? 'Preview Locked' : 'Open Box'}
+          </button>
+        ) : reward ? (
           <button
             onClick={canOpenAnother ? () => void handleOpen() : handleReset}
             className="w-full py-3 font-mono font-bold text-sm flex items-center justify-center gap-2 uppercase tracking-wider"
