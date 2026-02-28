@@ -387,7 +387,7 @@ function SlotCard({
 
   return (
     <div
-      className="relative self-start overflow-hidden"
+      className="relative mb-4 break-inside-avoid overflow-hidden"
       style={{
         background: 'var(--color-bg-base)',
         border: `1px solid ${summary.border}`,
@@ -483,7 +483,7 @@ export default function PartsGrid({
         <span className="tag text-[10px]">{readOnly ? 'Sample Loadout' : 'Server Loadout'}</span>
       </div>
 
-      <div className="grid grid-cols-1 xl:grid-cols-2 items-start gap-4">
+      <div className="columns-1 xl:columns-2 gap-4">
         {ROCKET_SECTIONS.map((section) => (
           <SlotCard
             key={section}
