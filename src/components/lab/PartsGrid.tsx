@@ -249,9 +249,14 @@ function PartRow({
               )}
             </div>
 
-            <p className="mt-1 text-[10px] font-mono uppercase tracking-[0.16em] text-text-muted">
-              Serial {part.serialNumber ?? 'Pending'} · {part.serialTrait ?? 'Standard'}
-            </p>
+            <div className="mt-1.5 flex items-center gap-1.5">
+              <span className="inline-flex items-center px-1 py-px text-[8px] font-mono font-bold uppercase tracking-[0.12em] text-text-secondary bg-bg-base border border-border-subtle rounded-full">
+                #{part.serialNumber ?? '—'}
+              </span>
+              <span className="text-[10px] font-mono uppercase tracking-[0.16em] text-text-muted">
+                {part.serialTrait ?? 'Standard'}
+              </span>
+            </div>
           </div>
         </div>
 

@@ -111,7 +111,7 @@ export default function WalletPage() {
                             </p>
                             <span
                               className={`text-[10px] font-mono font-bold px-2 py-0.5 uppercase tracking-wider ${
-                                row.live ? 'bg-dot-green text-black' : 'bg-bg-inset text-text-muted'
+                                row.live ? 'bg-dot-green text-black' : 'bg-text-muted text-bg-base'
                               }`}
                             >
                               {row.live ? 'Live' : 'Pending'}
