@@ -333,14 +333,9 @@ function PartRow({
                 className="px-2 py-1.5"
                 style={{ background: 'var(--color-bg-base)', border: '1px solid var(--color-border-subtle)' }}
               >
-                <div className="flex items-center gap-1.5">
-                  <div
-                    className="flex h-4 w-4 shrink-0 items-center justify-center"
-                    style={{ background: `${rarityConfig.color}14`, border: `1px solid ${rarityConfig.border}` }}
-                  >
-                    <AttributeIcon size={9} style={{ color: rarityConfig.color }} />
-                  </div>
-                  <p className="truncate font-mono text-[9px] uppercase tracking-[0.12em] text-text-muted">{label}</p>
+                <div className="flex items-center gap-1">
+                  <AttributeIcon size={9} className="shrink-0" style={{ color: rarityConfig.color, opacity: 0.7 }} />
+                  <p className="font-mono text-[8px] uppercase tracking-[0.08em] text-text-muted">{label}</p>
                 </div>
                 <p className="mt-1 font-mono text-xs font-bold text-text-primary">{value}</p>
                 <div className="mt-1 h-1 overflow-hidden" style={{ background: 'var(--color-border-subtle)' }}>
