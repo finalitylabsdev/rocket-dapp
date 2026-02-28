@@ -1,4 +1,5 @@
 import type { AuctionHistoryEntry } from '../../types/domain';
+import { formatPhiAmount } from '../../lib/tokenDisplay';
 import { APP3_INSET_STYLE, APP3_PANEL_STYLE, APP3_TEXT_MUTED_STYLE, APP3_TEXT_PRIMARY_STYLE, APP3_TEXT_SECONDARY_STYLE, formatFluxValue } from './ui';
 
 interface TopContributorsProps {
@@ -46,7 +47,7 @@ export default function TopContributors({ history }: TopContributorsProps) {
                 </p>
               </div>
               <span className="text-xs font-mono" style={{ color: '#C084FC' }}>
-                {formatFluxValue(total)} Φ
+                {formatPhiAmount(formatFluxValue(total))}
               </span>
             </div>
           ))

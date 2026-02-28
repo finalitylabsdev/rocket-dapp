@@ -113,7 +113,7 @@ export default function Footer({ onNavigate }: FooterProps) {
           </p>
           <div className="flex items-center gap-1.5">
             <div className="glow-dot" />
-            <span className="text-xs font-semibold text-text-secondary uppercase tracking-[0.04em]" style={{ fontFamily: "'IBM Plex Mono', 'JetBrains Mono', monospace" }}>
+            <span className="text-xs font-medium text-text-secondary uppercase tracking-[0.04em]" style={{ fontFamily: "'IBM Plex Mono', 'JetBrains Mono', monospace" }}>
               Testnet Closed Alpha
             </span>
           </div>

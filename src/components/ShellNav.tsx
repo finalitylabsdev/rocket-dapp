@@ -138,7 +138,7 @@ export default function ShellNav({ page, onNavigate }: ShellNavProps) {
           {/* Right side — desktop */}
           <div className="hidden md:flex items-center gap-1">
             <a
-              href="https://o.day/testnet"
+              href="https://explorer.o.day/"
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-2 font-mono font-medium text-sm px-3 py-2 border mr-1 transition-all duration-200 bg-bg-card/50 border-border-subtle text-text-secondary hover:bg-bg-card hover:text-text-primary"
@@ -203,7 +203,7 @@ export default function ShellNav({ page, onNavigate }: ShellNavProps) {
         {mobileOpen && (
           <div className="md:hidden pb-4 space-y-1 border-t border-border-subtle pt-4">
             <a
-              href="https://o.day/testnet"
+              href="https://explorer.o.day/"
               target="_blank"
               rel="noopener noreferrer"
               className="w-full flex items-center gap-2 text-text-secondary font-mono font-medium text-sm px-4 py-3 hover:bg-bg-card"

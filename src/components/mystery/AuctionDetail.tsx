@@ -1,6 +1,7 @@
 import RarityBadge from '../brand/RarityBadge';
 import { AUCTION_SUBMISSION_WINDOW_SECONDS } from '../../config/spec';
 import { computeMinNextBid } from '../../lib/nebulaBids';
+import { formatPhiAmount } from '../../lib/tokenDisplay';
 import type { AuctionRound } from '../../types/domain';
 import BidInput from './BidInput';
 import {
@@ -149,7 +150,7 @@ export default function AuctionDetail({
                   {bid.wallet.slice(0, 6)}...{bid.wallet.slice(-4)}
                 </span>
                 <span className="font-mono font-semibold text-xs" style={APP3_TEXT_PRIMARY_STYLE}>
-                  {formatFluxValue(bid.amount)} Φ
+                  {formatPhiAmount(formatFluxValue(bid.amount))}
                 </span>
               </div>
             ))

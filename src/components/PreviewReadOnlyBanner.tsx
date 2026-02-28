@@ -17,9 +17,9 @@ export default function PreviewReadOnlyBanner({
         borderColor: 'rgba(245,158,11,0.22)',
       }}
     >
-      <AlertTriangle size={16} className="mt-0.5 text-amber-300" />
+      <AlertTriangle size={16} className="mt-0.5 text-text-primary" />
       <div>
-        <p className="font-mono text-[11px] font-bold uppercase tracking-[0.18em] text-amber-200">
+        <p className="font-mono text-[11px] font-bold uppercase tracking-[0.18em] text-text-primary">
           {title}
         </p>
         <p className="mt-1 text-sm text-text-secondary">

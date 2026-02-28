@@ -13,6 +13,7 @@ import {
 } from '../config/spec';
 import { PREVIEW_READ_ONLY_ENABLED } from '../config/flags';
 import { getPreviewActionButtonProps, runPreviewGuardedAction } from '../lib/launchPreview';
+import { formatPhiAmount } from '../lib/tokenDisplay';
 
 const ETH_LOCK_FLOW_TOAST_ID = 'eth-lock-flow';
 const WALLET_ERROR_TOAST_ID = 'wallet-error';
@@ -117,7 +118,7 @@ export default function EntropyGatePanel() {
 
     if (claimResult.status === 'claimed') {
       toast.success('Claim successful', {
-        description: `Added ${claimResult.creditedAmount} Φ to your balance.`,
+        description: `Added ${formatPhiAmount(claimResult.creditedAmount)} to your balance.`,
       });
       return;
     }
@@ -285,7 +286,7 @@ export default function EntropyGatePanel() {
         className="btn-primary w-full sm:w-auto justify-center text-sm sm:text-base px-6 py-3.5"
       >
         <Zap size={16} />
-        {`Claim ${EFFECTIVE_DAILY_CLAIM_FLUX} Φ`}
+        {`Claim ${formatPhiAmount(EFFECTIVE_DAILY_CLAIM_FLUX)}`}
       </button>
     )
   ) : !wallet.isConnected ? (
@@ -330,7 +331,7 @@ export default function EntropyGatePanel() {
       ) : canClaim ? (
         <>
           <Zap size={16} />
-          {`Claim ${EFFECTIVE_DAILY_CLAIM_FLUX} Φ`}
+          {`Claim ${formatPhiAmount(EFFECTIVE_DAILY_CLAIM_FLUX)}`}
         </>
       ) : (
         <>
@@ -368,7 +369,7 @@ export default function EntropyGatePanel() {
               <>
                 Lock {ethLock.lockAmountLabel} ETH once to whitelist this wallet. After the lock confirms,
                 you can return every {formatClaimWindow(FAUCET_INTERVAL_SECONDS).toLowerCase()} to claim{' '}
-                {EFFECTIVE_DAILY_CLAIM_FLUX} Φ and push deeper into the network.
+                {formatPhiAmount(EFFECTIVE_DAILY_CLAIM_FLUX)} and push deeper into the network.
               </>
             )}
         </p>

@@ -7,3 +7,7 @@ export function isPhiTokenSymbol(symbol: string): boolean {
 export function formatTokenSymbol(symbol: string): string {
   return isPhiTokenSymbol(symbol) ? PHI_SYMBOL : symbol;
 }
+
+export function formatPhiAmount(value: string | number): string {
+  return `${value} ${PHI_SYMBOL}`;
+}

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { AUCTION_MAX_BID_FLUX } from '../../config/spec';
 import { getPreviewActionButtonProps, runPreviewGuardedAction } from '../../lib/launchPreview';
 import { normalizeAuctionBidAmount } from '../../lib/nebulaBids';
+import { formatPhiAmount } from '../../lib/tokenDisplay';
 import PhiSymbol from '../brand/PhiSymbol';
 import { APP3_CONTROL_STYLE, APP3_TEXT_PRIMARY_STYLE, APP3_TEXT_SECONDARY_STYLE, formatFluxValue } from './ui';
 
@@ -55,7 +56,7 @@ export default function BidInput({
     }
 
     if (raw > AUCTION_MAX_BID_FLUX) {
-      setError(`Bid cannot exceed ${formatFluxValue(AUCTION_MAX_BID_FLUX)} Φ.`);
+      setError(`Bid cannot exceed ${formatPhiAmount(formatFluxValue(AUCTION_MAX_BID_FLUX))}.`);
       return;
     }
 
@@ -69,7 +70,7 @@ export default function BidInput({
     }
 
     if (parsed < minBid) {
-      setError(`Bid must be at least ${formatFluxValue(minBid)} Φ.`);
+      setError(`Bid must be at least ${formatPhiAmount(formatFluxValue(minBid))}.`);
       return;
     }
 
@@ -81,7 +82,7 @@ export default function BidInput({
     <div className="mt-4">
       <div className="flex items-center justify-between text-[10px] font-mono uppercase tracking-wider mb-2">
         <span style={APP3_TEXT_SECONDARY_STYLE}>Minimum Valid Bid</span>
-        <span style={APP3_TEXT_PRIMARY_STYLE}>{formatFluxValue(minBid)} Φ</span>
+        <span style={APP3_TEXT_PRIMARY_STYLE}>{formatPhiAmount(formatFluxValue(minBid))}</span>
       </div>
 
       <div className="grid grid-cols-[1fr_auto] gap-2">

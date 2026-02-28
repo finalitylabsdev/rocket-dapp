@@ -5,6 +5,7 @@ import { useGameState } from '../../context/GameState';
 import { useWallet } from '../../hooks/useWallet';
 import { useAuctions } from '../../hooks/useAuctions';
 import { formatAuctionError, placeAuctionBid, submitAuctionItem } from '../../lib/nebulaBids';
+import { formatPhiAmount } from '../../lib/tokenDisplay';
 import type { AuctionHistoryEntry, InventoryPart } from '../../types/domain';
 import { shouldAllowAnonymousAuctionView } from '../../lib/launchPreview';
 import JourneyCue from '../JourneyCue';
@@ -134,7 +135,7 @@ export default function BidsTab({
       await placeAuctionBid(wallet.address, activeAuction.roundId, amount);
       await refresh();
       toast.success('Bid placed', {
-        description: `${amount.toFixed(2).replace(/\.00$/, '')} Φ bid submitted.`,
+        description: `${formatPhiAmount(amount.toFixed(2).replace(/\.00$/, ''))} bid submitted.`,
       });
     } catch (nextError) {
       toast.error('Bid failed', {
@@ -332,7 +333,7 @@ export default function BidsTab({
                       )}
                     </div>
                     <span className="text-xs font-mono" style={{ color: '#C084FC' }}>
-                      {formatFluxValue(entry.finalPrice)} Φ
+                      {formatPhiAmount(formatFluxValue(entry.finalPrice))}
                     </span>
                   </div>
                 ))

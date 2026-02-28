@@ -1,4 +1,5 @@
 import type { AuctionHistoryEntry } from '../../types/domain';
+import { formatPhiAmount } from '../../lib/tokenDisplay';
 import {
   APP3_INSET_STYLE,
   APP3_META_CHIP_STYLE,
@@ -66,7 +67,7 @@ export default function AuctionResultModal({ result, onClose }: AuctionResultMod
             </div>
           )}
           <p className="mt-3 text-xs font-mono" style={{ color: '#C084FC' }}>
-            Final price: {formatFluxValue(result.finalPrice)} Φ
+            Final price: {formatPhiAmount(formatFluxValue(result.finalPrice))}
           </p>
         </div>
 

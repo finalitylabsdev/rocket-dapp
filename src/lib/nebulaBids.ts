@@ -5,6 +5,7 @@ import type {
   AuctionPartInfo,
   AuctionRound,
 } from '../types/domain';
+import { formatPhiAmount } from './tokenDisplay';
 import type { FluxBalance } from './flux';
 import type { FluxBalancePayload } from './fluxBalance';
 import { normalizeFluxBalance } from './fluxBalance';
@@ -124,7 +125,7 @@ export function normalizeAuctionBidAmount(amount: number): number {
   }
 
   if (normalizedAmount > AUCTION_MAX_BID_FLUX) {
-    throw new Error(`Bid must be ${formatBidAmount(AUCTION_MAX_BID_FLUX)} Φ or less.`);
+    throw new Error(`Bid must be ${formatPhiAmount(formatBidAmount(AUCTION_MAX_BID_FLUX))} or less.`);
   }
 
   return normalizedAmount;

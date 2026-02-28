@@ -1,6 +1,7 @@
 import { AlertTriangle, Fuel, Rocket, ShieldCheck, Wrench } from 'lucide-react';
 import { ROCKET_MODELS, type RocketModelId } from './RocketModels';
 import { getPreviewActionButtonProps, runPreviewGuardedAction } from '../../lib/launchPreview';
+import { formatPhiAmount } from '../../lib/tokenDisplay';
 import type { RocketLabMetrics } from './rocketLabAdapter';
 import type { RocketLaunchHistoryEntry } from '../../lib/rocketLab';
 
@@ -89,11 +90,11 @@ export default function StatsPanel({
             },
             {
               label: 'Fuel Cost',
-              value: `${formatFlux(metrics.fuelCost)} Φ`,
+              value: formatPhiAmount(formatFlux(metrics.fuelCost)),
             },
             {
               label: 'Balance',
-              value: `${formatFlux(fluxBalance)} Φ`,
+              value: formatPhiAmount(formatFlux(fluxBalance)),
             },
             {
               label: 'Damaged',

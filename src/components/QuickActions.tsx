@@ -3,6 +3,7 @@ import { ArrowLeftRight, Gift, Rocket, Trophy, Lock, ChevronRight } from 'lucide
 import { useIntersectionObserver } from '../hooks/useCountUp';
 import { WHITELIST_ETH } from '../config/spec';
 import { formatEthAmount } from '../lib/ethLock';
+import { formatPhiAmount } from '../lib/tokenDisplay';
 import {
   FAUCET_ENABLED,
   DEX_ENABLED,
@@ -29,10 +30,10 @@ const cards: ActionCard[] = [
     badge: 'Start Here',
     title: 'Entropy Gate',
     tagline: 'Lock ETH → Claim Φ',
-    description: `Lock ${formatEthAmount(WHITELIST_ETH)} ETH once to whitelist your wallet. Claim 1 Φ every 24 hours. Funds the ETH prize pool forever.`,
+    description: `Lock ${formatEthAmount(WHITELIST_ETH)} ETH once to whitelist your wallet. Claim ${formatPhiAmount(1)} every 24 hours. Funds the ETH prize pool forever.`,
     buttonLabel: 'Open Entropy Gate',
     stats: [
-      { label: 'Daily Claim', value: '1 Φ' },
+      { label: 'Daily Claim', value: formatPhiAmount(1) },
       { label: 'Lock Amount', value: `${formatEthAmount(WHITELIST_ETH)} ETH` },
     ],
   },
