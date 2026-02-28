@@ -89,7 +89,7 @@ export default function ShellNav({ page, onNavigate }: ShellNavProps) {
     <nav
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
         isHome
-          ? scrolled
+          ? scrolled || mobileOpen
             ? 'bg-bg-base/95 backdrop-blur-md border-b border-border-subtle'
             : 'bg-transparent'
           : 'bg-bg-base/95 backdrop-blur-md border-b border-border-subtle'
@@ -218,7 +218,7 @@ export default function ShellNav({ page, onNavigate }: ShellNavProps) {
 
         {/* Mobile menu */}
         {mobileOpen && (
-          <div className="md:hidden pb-4 space-y-1 border-t border-border-subtle pt-4">
+          <div className="md:hidden pb-4 space-y-1 border-t border-border-subtle pt-4 bg-bg-base/95 backdrop-blur-md">
             <a
               href="https://explorer.o.day/"
               target="_blank"

@@ -47,17 +47,17 @@ export default function LaunchCountdown() {
             </p>
           </div>
 
-          <div className="grid grid-cols-4 gap-2 sm:gap-3">
+          <div className="grid grid-cols-4 gap-1.5 sm:gap-3">
             {segments.map((segment) => (
               <div
                 key={segment.label}
-                className="min-w-[72px] border px-3 py-3 text-center"
+                className="min-w-[52px] sm:min-w-[72px] border px-2 py-2 sm:px-3 sm:py-3 text-center"
                 style={{ background: 'transparent', borderColor: 'var(--color-border-subtle)' }}
               >
-                <p className="font-mono font-black text-lg text-text-primary sm:text-xl">
+                <p className="font-mono font-black text-base text-text-primary sm:text-xl">
                   {segment.value}
                 </p>
-                <p className="mt-1 font-mono text-[10px] uppercase tracking-[0.18em] text-text-muted">
+                <p className="mt-0.5 sm:mt-1 font-mono text-[8px] sm:text-[10px] uppercase tracking-[0.18em] text-text-muted">
                   {segment.label}
                 </p>
               </div>
