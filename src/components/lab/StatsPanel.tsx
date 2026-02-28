@@ -209,11 +209,11 @@ export default function StatsPanel({
           {launching ? (
             <div className="w-4 h-4 border-2 border-white/30 border-t-white animate-spin" />
           ) : (
-            <Rocket size={18} style={{ color: buttonDisabled ? 'var(--color-text-muted)' : '#F97316' }} />
+            <Rocket size={24} style={{ color: buttonDisabled ? 'var(--color-text-muted)' : '#F97316' }} />
           )}
           {buttonLabel}
           {!buttonDisabled && (
-            <span className="flex items-center gap-1 text-xs font-mono font-bold ml-auto" style={{ color: '#F97316' }}>
+            <span className="flex items-center gap-1 text-sm font-mono font-black ml-auto" style={{ color: '#F97316' }}>
               <Fuel size={12} />
               {formatFlux(metrics.fuelCost)}
             </span>
