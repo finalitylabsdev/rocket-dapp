@@ -27,13 +27,7 @@ export default function MysteryPage({ initialTab }: MysteryPageProps) {
   return (
     <div className="relative z-10 pt-20 md:pt-24 pb-16">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-10">
-          <div className="flex justify-center mb-4">
-            <span className="tag">
-              <Gift size={11} />
-              Crack open the cosmos. Bid on destiny.
-            </span>
-          </div>
+        <div className="mb-10">
           <h1 className="font-mono font-black text-3xl md:text-5xl lg:text-6xl text-text-primary mb-4 leading-[1.08] uppercase tracking-wider">
             Star Vault &amp; Nebula Bids
           </h1>

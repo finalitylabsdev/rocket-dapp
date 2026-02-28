@@ -195,7 +195,7 @@ export default function StatsPanel({
           aria-disabled={launchAction['aria-disabled']}
           title={launchAction.title}
           data-click-denied={launchAction['data-click-denied']}
-          className="relative w-full py-4 font-mono font-black text-base transition-all duration-200 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed overflow-hidden flex items-center justify-center gap-2.5 uppercase tracking-widest"
+          className="relative w-full px-5 py-4 font-mono font-black text-base transition-all duration-200 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed overflow-hidden flex items-center justify-center gap-2.5 uppercase tracking-widest"
           style={buttonDisabled ? {
             background: 'var(--color-bg-card)',
             color: 'var(--color-text-muted)',
@@ -213,7 +213,7 @@ export default function StatsPanel({
           )}
           {buttonLabel}
           {!buttonDisabled && (
-            <span className="absolute right-4 flex items-center gap-1 text-xs font-mono font-bold" style={{ color: '#F97316' }}>
+            <span className="flex items-center gap-1 text-xs font-mono font-bold ml-auto" style={{ color: '#F97316' }}>
               <Fuel size={12} />
               {formatFlux(metrics.fuelCost)}
             </span>

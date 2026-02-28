@@ -1,4 +1,4 @@
-import { AlertTriangle } from 'lucide-react';
+import { Lock } from 'lucide-react';
 
 interface PreviewReadOnlyBannerProps {
   title: string;
@@ -11,21 +11,21 @@ export default function PreviewReadOnlyBanner({
 }: PreviewReadOnlyBannerProps) {
   return (
     <div
-      className="mt-5 flex items-start gap-3 border px-4 py-3"
+      className="mt-5 flex items-center gap-4 border px-5 py-3"
       style={{
-        background: 'rgba(245,158,11,0.08)',
-        borderColor: 'rgba(245,158,11,0.22)',
+        background: 'rgba(245,158,11,0.06)',
+        borderColor: 'rgba(245,158,11,0.18)',
       }}
     >
-      <AlertTriangle size={16} className="mt-0.5 text-text-primary" />
-      <div>
-        <p className="font-mono text-[11px] font-bold uppercase tracking-[0.18em] text-text-primary">
+      <div className="shrink-0 flex items-center gap-2.5">
+        <Lock size={15} className="text-text-primary" />
+        <span className="font-mono text-[11px] font-black uppercase tracking-[0.2em] text-text-primary whitespace-nowrap">
           {title}
-        </p>
-        <p className="mt-1 text-sm text-text-secondary">
-          {message}
-        </p>
+        </span>
       </div>
+      <p className="text-sm font-mono text-text-muted truncate">
+        {message}
+      </p>
     </div>
   );
 }

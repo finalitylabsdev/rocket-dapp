@@ -24,7 +24,7 @@ export default function BoxIllustration({
   const isShaking = state === 'shaking';
   const isCracking = state === 'cracking';
   const isRevealed = state === 'revealed';
-  const { recipe, url, alt, usesExplicitFallback } = getBoxVisualRecipe(asset, fallbackKey ?? rarity.toLowerCase());
+  const { recipe, url, alt } = getBoxVisualRecipe(asset, fallbackKey ?? rarity.toLowerCase());
 
   return (
     <div className="relative h-28 w-28 flex items-center justify-center">
@@ -125,12 +125,7 @@ export default function BoxIllustration({
               border: '1px dashed rgba(148,163,184,0.38)',
             }}
           >
-            <div className="text-center">
-              <PhiSymbol size={20} color="rgba(226,232,240,0.8)" />
-              <p className="mt-1 font-mono text-[8px] font-semibold uppercase tracking-[0.16em] text-slate-300">
-                Fallback
-              </p>
-            </div>
+            <PhiSymbol size={20} color="rgba(226,232,240,0.8)" />
           </div>
         )}
 
@@ -163,32 +158,6 @@ export default function BoxIllustration({
         )}
       </div>
 
-      {usesExplicitFallback && (
-        <div
-          className="absolute bottom-0 rounded-md px-1.5 py-0.5 font-mono font-semibold uppercase tracking-[0.18em]"
-          style={{
-            fontSize: '8px',
-            color: '#CBD5E1',
-            background: 'rgba(15,23,42,0.84)',
-            border: '1px solid rgba(148,163,184,0.22)',
-          }}
-        >
-          Degraded Visual
-        </div>
-      )}
-      {url && (
-        <div
-          className="absolute bottom-0 rounded-md px-1.5 py-0.5 font-mono font-semibold uppercase tracking-[0.18em]"
-          style={{
-            fontSize: '8px',
-            color: cfg.color,
-            background: 'rgba(15,23,42,0.84)',
-            border: `1px solid ${cfg.border}`,
-          }}
-        >
-          Live Asset
-        </div>
-      )}
     </div>
   );
 }

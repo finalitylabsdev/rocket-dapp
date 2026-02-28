@@ -25,7 +25,7 @@ const PAGE_META: Record<Exclude<Page, 'home'>, { title: string; subtitle: string
   gate:        { title: 'Entropy Gate',             subtitle: 'Lock ETH · Claim Φ',            icon: Zap },
   wallet:      { title: 'Wallet Overview',          subtitle: 'Live Φ · Token Scaffold',       icon: Wallet },
   dex:         { title: 'Entropy Exchange',         subtitle: 'Constant-Product AMM · ɸ-net', icon: ArrowLeftRight },
-  mystery:     { title: 'Star Vault & Nebula Bids', subtitle: 'App 3 · ɸ-net Testnet',        icon: Gift },
+  mystery:     { title: 'Star Vault & Nebula Bids', subtitle: 'Unbox · Bid · Collect',         icon: Gift },
   lab:         { title: 'Rocket Lab',               subtitle: 'Build & Launch',                icon: FlaskConical },
   leaderboard: { title: 'Cosmic Jackpot',           subtitle: 'Season 1 · Rankings',           icon: Trophy },
 };

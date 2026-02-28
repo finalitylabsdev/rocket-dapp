@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { FlaskConical, Rocket, ShieldCheck, Star } from 'lucide-react';
+import { Rocket, ShieldCheck, Star } from 'lucide-react';
 import RocketPreview from '../components/lab/RocketPreview';
 import PartsGrid from '../components/lab/PartsGrid';
 import StatsPanel from '../components/lab/StatsPanel';
@@ -210,13 +210,7 @@ export default function RocketLabPage() {
     <div className="relative overflow-hidden">
       <div className="relative z-10 pt-20 md:pt-24 pb-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-10">
-            <div className="flex justify-center mb-3">
-              <span className="tag">
-                <FlaskConical size={11} />
-                Launch Authority
-              </span>
-            </div>
+          <div className="mb-10">
             <h1 className="font-mono font-black text-3xl md:text-5xl lg:text-6xl mb-3 leading-[1.08] uppercase tracking-wider text-text-primary">
               Rocket Lab
             </h1>
@@ -231,7 +225,7 @@ export default function RocketLabPage() {
             )}
 
             {(bestScore > 0 || metrics.equippedSlots > 0 || displayHistory.length > 0) && (
-              <div className="flex flex-wrap items-center justify-center gap-4 mt-4">
+              <div className="flex flex-wrap items-center gap-4 mt-4">
                 <div className="flex items-center gap-2 px-4 py-2" style={{ background: 'var(--color-bg-card)', border: '1px solid var(--color-border-subtle)' }}>
                   <Rocket size={14} style={{ color: '#F97316' }} />
                   <span className="font-mono font-bold text-sm text-text-primary">{metrics.equippedSlots}/{metrics.totalSlots}</span>

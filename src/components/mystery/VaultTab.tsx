@@ -157,7 +157,7 @@ export default function VaultTab({
           </div>
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {isLoading && boxTiers.length === 0
             ? Array.from({ length: 4 }, (_, index) => <LoadingCard key={index} />)
             : boxTiers.map((tier, index) => (

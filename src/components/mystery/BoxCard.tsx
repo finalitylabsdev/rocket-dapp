@@ -220,7 +220,9 @@ export default function BoxCard({
               {readOnly ? 'Preview Reveal' : 'You Received'}
             </p>
             <div className="mt-3 flex items-start gap-3">
-              <SectionGlyph asset={reward.illustration} fallbackKey={reward.slot} size="sm" />
+              {reward.illustration?.url && (
+                <SectionGlyph asset={reward.illustration} fallbackKey={reward.slot} size="sm" />
+              )}
               <div className="min-w-0 flex-1">
                 <p className="font-mono font-black text-lg uppercase" style={{ color: getRarityConfig(reward.rarity).color }}>
                   {reward.name}
@@ -232,12 +234,6 @@ export default function BoxCard({
                     style={{ background: 'rgba(15,23,42,0.65)', color: '#E2E8F0', border: '1px solid rgba(148,163,184,0.2)' }}
                   >
                     {reward.sectionName}
-                  </span>
-                  <span
-                    className="inline-flex items-center rounded-full px-2 py-0.5 text-[9px] font-mono font-semibold uppercase tracking-[0.16em]"
-                    style={{ background: 'rgba(15,23,42,0.52)', color: '#94A3B8', border: '1px solid rgba(148,163,184,0.16)' }}
-                  >
-                    {formatMetadataKey(reward.illustration?.key ?? reward.slot)}
                   </span>
                   <span
                     className="inline-flex items-center rounded-full px-2 py-0.5 text-[9px] font-mono font-semibold uppercase tracking-[0.16em]"
@@ -258,15 +254,15 @@ export default function BoxCard({
             </div>
             <AttributeBars part={reward} />
             <div className="mt-3 grid grid-cols-2 gap-2 text-xs font-mono">
-              <div className="rounded-xl px-3 py-2" style={APP3_INSET_STYLE}>
+              <div className="rounded-xl px-3 py-2 min-w-0" style={APP3_INSET_STYLE}>
                 <span style={APP3_TEXT_SECONDARY_STYLE}>Total Power</span>
                 <p className="mt-1 font-mono font-black text-sm" style={APP3_TEXT_PRIMARY_STYLE}>
                   {reward.totalPower}
                 </p>
               </div>
-              <div className="rounded-xl px-3 py-2" style={APP3_INSET_STYLE}>
+              <div className="rounded-xl px-3 py-2 min-w-0" style={APP3_INSET_STYLE}>
                 <span style={APP3_TEXT_SECONDARY_STYLE}>Serial Trait</span>
-                <p className="mt-1 font-mono font-black text-sm" style={APP3_TEXT_PRIMARY_STYLE}>
+                <p className="mt-1 font-mono font-black text-sm truncate" style={APP3_TEXT_PRIMARY_STYLE}>
                   {reward.serialTrait}
                 </p>
               </div>

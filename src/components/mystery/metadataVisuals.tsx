@@ -9,13 +9,12 @@ interface SectionGlyphProps {
 }
 
 export function SectionGlyph({ asset, fallbackKey, size = 'md' }: SectionGlyphProps) {
-  const { recipe, url, alt, usesExplicitFallback } = getSectionVisualRecipe(asset, fallbackKey ?? null);
+  const { recipe, url, alt } = getSectionVisualRecipe(asset, fallbackKey ?? null);
   const dimension = size === 'sm' ? 42 : 54;
   const fontSize = size === 'sm' ? '10px' : '11px';
   const [hasAssetError, setHasAssetError] = useState(false);
   const showImage = Boolean(url) && !hasAssetError;
   const showRecipe = Boolean(recipe) && !showImage;
-  const showFallbackBadge = usesExplicitFallback || (hasAssetError && Boolean(recipe));
   const activeRecipe = showRecipe ? recipe : null;
 
   useEffect(() => {
@@ -90,19 +89,6 @@ export function SectionGlyph({ asset, fallbackKey, size = 'md' }: SectionGlyphPr
         </div>
       )}
 
-      {showFallbackBadge && (
-        <div
-          className="absolute inset-x-1.5 bottom-1.5 rounded-md px-1 py-0.5 text-center font-mono font-semibold uppercase tracking-[0.18em]"
-          style={{
-            fontSize: '8px',
-            color: '#CBD5E1',
-            background: 'rgba(15,23,42,0.8)',
-            border: '1px solid rgba(148,163,184,0.2)',
-          }}
-        >
-          Fallback
-        </div>
-      )}
     </div>
   );
 }
