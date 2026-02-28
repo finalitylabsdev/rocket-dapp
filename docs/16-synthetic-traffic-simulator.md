@@ -18,50 +18,137 @@ The simulator is a headless Node worker that:
   - `get_active_auction`
   - `place_auction_bid`
 
-This is intentionally closer to real player behavior than a service-role SQL script.
+This remains intentionally closer to real player behavior than a service-role SQL script.
+
+## Wallet Source Modes
+
+The simulator now supports two wallet-source modes.
+
+### Mode 1: `env` (existing behavior)
+
+- Set `SIM_WALLET_SOURCE=env` or leave it unset.
+- Provide `SIM_WALLET_PRIVATE_KEYS`.
+- The worker derives wallets directly from `.env`.
+
+This is still the simplest path for one-off runs.
+
+### Mode 2: `supabase` (managed wallet pool)
+
+- Set `SIM_WALLET_SOURCE=supabase`.
+- The worker reads encrypted simulator wallets from `public.sim_wallet_keys`.
+- It can optionally import any `SIM_WALLET_PRIVATE_KEYS` into that pool on startup.
+- It can generate additional wallets over time and store them durably in Supabase.
+- It can pseudo-seed a confirmed ETH lock row for those generated wallets so they can immediately participate in the simulator loop.
+
+This is the preferred path when you want the synthetic actor base to persist and grow.
 
 ## Important Limitation
 
-The simulator does **not** perform the live ETH lock transaction step.
+The simulator still does **not** perform a real `eth_sendTransaction` browser wallet flow.
 
-That step in the real UI requires `eth_sendTransaction` from a connected browser wallet, then triggers the `verify-eth-lock` edge function. For synthetic load, the expected path is:
+Instead, in managed-wallet mode, it can now pseudo-seed a confirmed ETH lock row server-side for synthetic wallets:
 
-- use wallets that already have `eth_lock_submissions.status = 'confirmed'`
-- and `is_lock_active = true`
+- this is still simulated
+- no real on-chain ETH transaction is sent
+- the resulting wallet is treated as an already-confirmed lock user for gameplay
 
-That matches the scenario where you already seeded pseudo lock transactions in the database.
+That allows newly generated synthetic wallets to move through the rest of the gameplay loop without a browser.
 
 ## Required Environment
 
-Add these to `.env` before starting the simulator:
+### Core
+
+- `VITE_SUPABASE_URL`
+- `VITE_SUPABASE_PUBLISHABLE_KEY` or `VITE_SUPABASE_ANON_KEY`
+- `VITE_SIWE_URI`
+- `VITE_SIWE_DOMAIN`
+
+### `env` Wallet Mode
 
 - `SIM_WALLET_PRIVATE_KEYS`
   - Comma-separated or newline-separated Ethereum private keys.
-  - Use 5-10 wallets that already exist as confirmed ETH-lock users in the production database.
-- `VITE_SUPABASE_URL`
-- `VITE_SUPABASE_PUBLISHABLE_KEY` or `VITE_SUPABASE_ANON_KEY`
 
-Recommended:
+### `supabase` Wallet Mode
 
-- `VITE_SPEC_WHITELIST_BONUS_FLUX`
-- `VITE_SPEC_DAILY_CLAIM_FLUX`
-- `VITE_SPEC_FAUCET_INTERVAL_SECONDS`
+- `SIM_WALLET_SOURCE=supabase`
+- `SIM_SUPABASE_SERVICE_ROLE_KEY` or `SUPABASE_SERVICE_ROLE_KEY`
+  - Required so the worker can read/write the managed wallet tables.
+- `SIM_MANAGED_WALLETS_ENCRYPTION_KEY`
+  - Required.
+  - Must be either:
+    - 64 hex chars (32 bytes), or
+    - base64 that decodes to 32 bytes
 
-Optional simulator tuning:
+### Recommended For Managed Wallet Mode
+
+- `SIM_MANAGED_WALLET_TARGET_COUNT`
+  - Desired active synthetic actor count.
+  - If the stored pool is smaller than this target, the worker generates more wallets over randomized intervals.
+- `SIM_IMPORT_ENV_WALLETS_TO_SUPABASE=true`
+  - Imports any `SIM_WALLET_PRIVATE_KEYS` into `sim_wallet_keys` on startup.
+- `SIM_AUTO_CONFIRM_ETH_LOCK=true`
+  - Pseudo-seeds a confirmed ETH lock row for managed wallets after auth.
+
+### Optional Simulator Tuning
 
 - `SIM_CHAIN_ID` (default `1`)
 - `SIM_SIWE_URI`
   - If unset, the worker falls back to `VITE_SIWE_URI`, then `https://o.finality.dev/`.
-  - For this production setup, use the real frontend origin `https://o.finality.dev/`.
-- `SIM_SIWE_DOMAIN` (defaults from the SIWE URI)
-- `SIM_BOX_TIER_IDS` (comma-separated list; if omitted, the worker loads `box_tiers` from Supabase)
+- `SIM_SIWE_DOMAIN`
+- `SIM_BOX_TIER_IDS`
 - `SIM_LOOP_INTERVAL_MS` (default `45000`)
 - `SIM_INITIAL_SPREAD_MS` (default `15000`)
 - `SIM_MAX_BOX_OPENS_PER_CYCLE` (default `1`)
 - `SIM_DRY_RUN` (`true` or `false`)
-  - When `true`, the worker runs the full staggered loop and emits normal gameplay events without calling Supabase.
+  - `SIM_DRY_RUN=true` only supports `SIM_WALLET_SOURCE=env` so the worker stays fully offline.
 - `SIM_RUN_ONCE` (`true` or `false`)
+- `SIM_BOOTSTRAP_ONLY` (`true` or `false`)
+  - In `supabase` mode, seeds/imports the managed pool and exits without running gameplay loops.
 - `SIM_USER_AGENT` (default `entropy-sim/1.0`)
+- `SIM_MANAGED_WALLET_KID` (default `sim-local-v1`)
+- `SIM_MANAGED_WALLET_GENERATION_MIN_INTERVAL_MS` (default `120000`)
+- `SIM_MANAGED_WALLET_GENERATION_MAX_INTERVAL_MS` (default `420000`)
+- `SIM_ETH_LOCK_TO_ADDRESS`
+  - Falls back to `VITE_ETH_LOCK_RECIPIENT`, then a valid placeholder address.
+- `SIM_ETH_LOCK_AMOUNT_WEI`
+  - Falls back to the current whitelist lock amount.
+
+## Managed Wallet Storage
+
+Managed-wallet mode uses these service-role-only tables:
+
+- `public.sim_wallet_keys`
+  - encrypted private keys
+  - wallet status
+  - key id metadata
+  - last-used tracking
+- `public.sim_wallet_profiles`
+  - behavior tuning metadata
+- `public.sim_activity_schedule`
+  - reserved for queued / future scheduled simulator actions
+
+Private keys are stored encrypted at rest using AES-256-GCM before the worker writes them into Supabase.
+
+The encryption key is never written to the database.
+
+## First-Time Managed Wallet Setup
+
+Before you use `SIM_WALLET_SOURCE=supabase` in a real run:
+
+1. Apply the pending simulator migration to the linked Supabase project.
+   - The required schema is in `supabase/migrations/20260228193000_add_managed_synthetic_wallet_pool.sql`.
+2. Set the managed-wallet env flags in `.env`.
+   - At minimum: `SUPABASE_SERVICE_ROLE_KEY`, `SIM_WALLET_SOURCE=supabase`, and `SIM_MANAGED_WALLETS_ENCRYPTION_KEY`.
+   - Recommended: `SIM_IMPORT_ENV_WALLETS_TO_SUPABASE=true`, `SIM_AUTO_CONFIRM_ETH_LOCK=true`, and `SIM_MANAGED_WALLET_TARGET_COUNT`.
+3. Bootstrap the pool once.
+
+```bash
+make sim-bootstrap
+```
+
+That one-shot bootstrap imports any `SIM_WALLET_PRIVATE_KEYS` into `public.sim_wallet_keys`, seeds the managed pool, and exits.
+
+Bootstrap-only does not authenticate wallets, so `SIM_AUTO_CONFIRM_ETH_LOCK` is applied when those wallets first authenticate during a normal managed-wallet run.
 
 ## Start It
 
@@ -77,22 +164,57 @@ Or directly:
 docker compose --profile sim up -d --build rocket-sim
 ```
 
-The normal web container is unchanged. The simulator is opt-in and does not start under the default `make up`.
+The normal web container is unchanged. The simulator is still opt-in.
 
-## Quick Checks
+## Useful Run Patterns
 
-Use these for fast verification before you point the worker at production:
+### 1. Existing `.env` wallets only
 
 ```bash
-# Offline one-shot using the wallets in .env
-zsh -lc 'set -a; source .env; SIM_DRY_RUN=true SIM_RUN_ONCE=true node scripts/synthetic-traffic.mjs'
-
-# Offline crypto self-test only
-SIM_SELF_TEST=true node scripts/synthetic-traffic.mjs
-
-# Real production traffic
-make sim-up
+zsh -lc 'set -a; source .env; SIM_WALLET_SOURCE=env SIM_RUN_ONCE=true node scripts/synthetic-traffic.mjs'
 ```
+
+### 2. Bootstrap the managed wallet pool only
+
+```bash
+make sim-bootstrap
+```
+
+Equivalent direct invocation:
+
+```bash
+zsh -lc 'set -a; source .env; SIM_WALLET_SOURCE=supabase SIM_BOOTSTRAP_ONLY=true node scripts/synthetic-traffic.mjs'
+```
+
+### 3. Run with the managed wallet pool
+
+```bash
+zsh -lc 'set -a; source .env; SIM_WALLET_SOURCE=supabase node scripts/synthetic-traffic.mjs'
+```
+
+### 4. Offline one-shot self-test
+
+```bash
+SIM_SELF_TEST=true node scripts/synthetic-traffic.mjs
+```
+
+### 5. Offline dry-run loop
+
+```bash
+zsh -lc 'set -a; source .env; SIM_DRY_RUN=true SIM_RUN_ONCE=true SIM_WALLET_SOURCE=env node scripts/synthetic-traffic.mjs'
+```
+
+## What Happens In Managed Wallet Mode
+
+On startup the worker:
+
+1. Optionally imports any `SIM_WALLET_PRIVATE_KEYS` into `sim_wallet_keys`.
+2. Loads the active managed wallet pool from Supabase.
+3. If the pool is empty and `SIM_MANAGED_WALLET_TARGET_COUNT > 0`, generates the first wallet immediately.
+4. Authenticates those wallets through the normal web3 auth path.
+5. Optionally pseudo-seeds a confirmed ETH lock row for each managed wallet.
+6. Starts the normal gameplay loop for the active managed wallets.
+7. If the active count is below `SIM_MANAGED_WALLET_TARGET_COUNT`, generates and starts more wallets over randomized intervals.
 
 ## Monitor It
 
@@ -105,6 +227,9 @@ make sim-logs-follow
 The worker emits JSON lines such as:
 
 - `wallet_authenticated`
+- `managed_wallet_pool_ready`
+- `managed_wallet_generated`
+- `synthetic_eth_lock_seeded`
 - `faucet_claimed`
 - `box_opened`
 - `auction_submitted`
@@ -119,6 +244,7 @@ You should also watch production state directly:
 - `flux_ledger_entries`
 - `auction_submissions`
 - `auction_bids`
+- `eth_lock_submissions`
 
 ## Stop It
 
@@ -128,27 +254,24 @@ make sim-down
 
 ## Why This Path
 
-Most launch-critical gameplay RPCs in this repo require a real authenticated Supabase session tied to a wallet identity. A simple service-role container would not exercise the same codepath.
+Most launch-critical gameplay RPCs in this repo require a real authenticated Supabase session tied to a wallet identity. A simple service-role SQL-only worker would not exercise the same codepath.
 
-This simulator uses real wallet signatures and web3 auth, so it exercises the same normal player path after the ETH lock is already in place.
+The simulator still uses real wallet signatures and normal web3 auth. The new managed-wallet mode only changes where those keys come from and how the actor pool is maintained.
 
 ## Operational Notes
 
-- The simulator no longer needs `npm install` inside the `rocket-sim` image.
-  - The worker uses built-in Node APIs only, so `docker compose --profile sim up --build rocket-sim` does not depend on registry access.
-- `SIM_SELF_TEST=true node scripts/synthetic-traffic.mjs` runs an offline crypto self-test.
-  - This validates the local Keccak-256, address derivation, and Ethereum personal-sign path without touching the network.
-- `SIM_DRY_RUN=true` runs the worker in a fully offline loop.
-  - This is useful for checking the container lifecycle, stagger timing, and JSON event stream before you point it at production.
-- The current production RPC surface is mixed.
-  - `place_auction_bid` uses the idempotent signature and the simulator sends `p_idempotency_key` explicitly for bids.
-  - Other simulator RPCs still target the older production-compatible signatures until their idempotency migrations are applied.
-- If live logs show `column "idempotency_key" does not exist` during `auction_bid`, the DB function has outpaced the schema.
-  - Apply [20260228174500_repair_flux_ledger_idempotency_key.sql](/Users/mblk/Code/finality/rocket/supabase/migrations/20260228174500_repair_flux_ledger_idempotency_key.sql) to add `public.flux_ledger_entries.idempotency_key` and its unique partial index.
+- The worker still uses built-in Node APIs only.
+- `SIM_SELF_TEST=true` remains fully offline.
+- `SIM_DRY_RUN=true` remains fully offline and intentionally stays limited to `SIM_WALLET_SOURCE=env`.
+- Managed-wallet mode requires the service-role key because the managed wallet tables are service-role-only.
+- The current gameplay RPC surface is still mixed:
+  - `place_auction_bid` uses the idempotent bid signature.
+  - Other gameplay RPCs remain aligned with the current production-compatible signatures.
+- If live logs show `column "idempotency_key" does not exist` during `auction_bid`, apply [20260228174500_repair_flux_ledger_idempotency_key.sql](/Users/mblk/Code/finality/rocket/supabase/migrations/20260228174500_repair_flux_ledger_idempotency_key.sql).
 
 ## Future Fallback
 
-If you later want persistent synthetic activity without relying on a local container, a DB-side synthetic loop is a viable fallback.
+If you later want persistent synthetic activity without relying on a local container, a DB-side synthetic loop is still a viable fallback.
 
-- It is not required for the current on-demand workflow.
+- It is not required for the current workflow.
 - The preferred operating model remains: start `rocket-sim` when you want load, stop it when you do not.

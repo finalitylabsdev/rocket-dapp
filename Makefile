@@ -5,7 +5,7 @@ SERVICE ?= rocket-web
 
 .DEFAULT_GOAL := help
 
-.PHONY: help pull refresh up down restart redeploy logs logs-follow ps sim-up sim-down sim-logs sim-logs-follow
+.PHONY: help pull refresh up down restart redeploy logs logs-follow ps sim-up sim-bootstrap sim-down sim-logs sim-logs-follow
 
 help: ## Show available commands with short descriptions.
 	@printf "\nUsage: make <target>\n\n"
@@ -41,8 +41,11 @@ logs-follow: ## Follow live logs (use SERVICE=<name> to override).
 ps: ## List compose service status.
 	$(COMPOSE) ps
 
-sim-up: ## Build and start the synthetic traffic simulator (requires SIM_WALLET_PRIVATE_KEYS in .env).
+sim-up: ## Build and start the synthetic traffic simulator (env wallets or SIM_WALLET_SOURCE=supabase).
 	$(COMPOSE) --profile sim up -d --build rocket-sim
+
+sim-bootstrap: ## Seed/import the managed-wallet simulator pool once and exit.
+	set -a; . ./.env; set +a; SIM_WALLET_SOURCE=supabase SIM_BOOTSTRAP_ONLY=true node scripts/synthetic-traffic.mjs
 
 sim-down: ## Stop and remove the synthetic traffic simulator container.
 	$(COMPOSE) --profile sim rm -sf rocket-sim

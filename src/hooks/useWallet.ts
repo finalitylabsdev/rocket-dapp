@@ -131,6 +131,7 @@ function useProvideWallet(): WalletContextValue {
 
   const failedAuthAddressRef = useRef<string | null>(null);
   const manualDisconnectRef = useRef(false);
+  const hasOnboardConnectedRef = useRef(false);
 
   const clearWalletSession = useCallback(async (message: string) => {
     clearActiveEthereumWalletContext();
@@ -245,6 +246,7 @@ function useProvideWallet(): WalletContextValue {
   useEffect(() => {
     if (onboardState.walletProvider && onboardState.address && onboardState.isConnected) {
       setActiveEthereumWalletContext(onboardState.walletProvider, onboardState.address);
+      hasOnboardConnectedRef.current = true;
       return;
     }
 
@@ -268,7 +270,7 @@ function useProvideWallet(): WalletContextValue {
     }
 
     if (!onboardState.isConnected || !onboardState.address || !onboardState.walletProvider) {
-      if (address && !manualDisconnectRef.current) {
+      if (address && !manualDisconnectRef.current && hasOnboardConnectedRef.current) {
         void clearWalletSession('Wallet disconnected. Reconnect to continue.');
       }
       return;
@@ -376,6 +378,7 @@ function useProvideWallet(): WalletContextValue {
 
       await disconnectConnectedWallet();
       clearActiveEthereumWalletContext();
+      hasOnboardConnectedRef.current = false;
       failedAuthAddressRef.current = null;
       setAddress(null);
     } catch (disconnectError) {

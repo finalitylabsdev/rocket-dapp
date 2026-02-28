@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { APP_VERSION } from '../config/app';
 import {
   Menu, X, Trophy, Zap, LogOut, Sun, Moon, ArrowLeft, Wallet,
   ArrowLeftRight, Gift, FlaskConical,
@@ -83,7 +84,7 @@ export default function ShellNav({ page, onNavigate }: ShellNavProps) {
               <div>
                 <span className="font-mono font-bold text-lg leading-none uppercase tracking-wider text-text-primary">Entropy</span>
                 <div className="mt-0.5 text-[10px] font-medium leading-none font-mono tracking-wider text-text-muted">
-                  ɸ-net · PROOF-OF-INFINITY
+                  {`TESTNET v${APP_VERSION}`}
                 </div>
               </div>
             </div>
@@ -155,15 +156,6 @@ export default function ShellNav({ page, onNavigate }: ShellNavProps) {
                 </>
               )}
             </button>
-            {isHome && (
-              <button
-                onClick={() => onNavigate('leaderboard')}
-                className="flex items-center gap-1.5 text-text-secondary hover:text-text-primary font-mono font-medium text-sm px-4 py-2 hover:bg-bg-card transition-all duration-200"
-              >
-                <Trophy size={15} />
-                LEADERBOARD
-              </button>
-            )}
             <button
               onClick={toggleTheme}
               className="flex items-center justify-center w-9 h-9 text-text-secondary hover:text-text-primary hover:bg-bg-card transition-all duration-200"
@@ -224,15 +216,6 @@ export default function ShellNav({ page, onNavigate }: ShellNavProps) {
                 </>
               )}
             </button>
-            {isHome && (
-              <button
-                onClick={() => { onNavigate('leaderboard'); setMobileOpen(false); }}
-                className="w-full flex items-center gap-2 text-text-secondary font-mono font-medium text-sm px-4 py-3 hover:bg-bg-card"
-              >
-                <Trophy size={15} />
-                LEADERBOARD
-              </button>
-            )}
             <button
               onClick={toggleTheme}
               className="w-full flex items-center gap-2 text-text-secondary font-mono font-medium text-sm px-4 py-3 hover:bg-bg-card"

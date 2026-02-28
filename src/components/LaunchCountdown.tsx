@@ -38,15 +38,15 @@ export default function LaunchCountdown() {
             Launch Window Countdown
           </div>
           <p className="mt-3 font-mono text-xs uppercase tracking-[0.22em] text-text-secondary">
-            Fixed Target
+            Alpha Goes Live
           </p>
           <p className="mt-1 font-mono font-bold text-sm text-text-primary">
             {TARGET_LABEL}
           </p>
           <p className="mt-2 text-sm text-text-muted">
             {countdown.isExpired
-              ? 'The scheduled launch window is live.'
-              : 'This timer is pinned to UTC and stays consistent across browser timezones.'}
+              ? 'Alpha is live — start collecting your parts now.'
+              : 'Alpha opens and part collection begins. Gather what you need before competition launch later that week.'}
           </p>
         </div>
 

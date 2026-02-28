@@ -4,6 +4,12 @@ const SIWE_STATEMENT = 'Sign in to Entropy Network.';
 const DEFAULT_LOOP_INTERVAL_MS = 45_000;
 const DEFAULT_INITIAL_SPREAD_MS = 15_000;
 const DEFAULT_MAX_BOX_OPENS_PER_CYCLE = 1;
+const DEFAULT_MANAGED_WALLET_GENERATION_MIN_INTERVAL_MS = 120_000;
+const DEFAULT_MANAGED_WALLET_GENERATION_MAX_INTERVAL_MS = 420_000;
+const DEFAULT_WHITELIST_ETH = '0.001';
+const DEFAULT_SIM_ETH_LOCK_AMOUNT_WEI = '1000000000000000';
+const DEFAULT_SIM_ETH_LOCK_TO_ADDRESS = '0x1111111111111111111111111111111111111111';
+const DEFAULT_MANAGED_WALLET_KID = 'sim-local-v1';
 const DRY_RUN_BIDDING_DELAY_MS = 90_000;
 const DRY_RUN_ROUND_LENGTH_MS = 5 * 60_000;
 const KECCAK_RATE_BYTES = 136;
@@ -131,6 +137,67 @@ function parseList(value) {
     .split(/[\n,]/)
     .map((entry) => entry.trim())
     .filter(Boolean);
+}
+
+function parseWalletSource(value) {
+  const normalized = String(value ?? '').trim().toLowerCase();
+  return normalized === 'supabase' ? 'supabase' : 'env';
+}
+
+function normalizePostgrestText(value) {
+  if (typeof value !== 'string') {
+    return '';
+  }
+
+  return value.trim();
+}
+
+function parseEncryptionKey(value) {
+  const normalized = normalizePostgrestText(value);
+  if (!normalized) {
+    return null;
+  }
+
+  const stripped = normalized.startsWith('0x') ? normalized.slice(2) : normalized;
+  if (/^[0-9a-fA-F]{64}$/.test(stripped)) {
+    return Buffer.from(stripped, 'hex');
+  }
+
+  try {
+    const decoded = Buffer.from(normalized, 'base64');
+    if (decoded.length === 32) {
+      return decoded;
+    }
+  } catch {
+    return null;
+  }
+
+  return null;
+}
+
+function randomBetween(min, max) {
+  const floorMin = Math.max(0, Math.floor(min));
+  const floorMax = Math.max(floorMin, Math.floor(max));
+  if (floorMax <= floorMin) {
+    return floorMin;
+  }
+
+  return floorMin + Math.floor(Math.random() * (floorMax - floorMin + 1));
+}
+
+function parseEthToWei(value) {
+  const raw = normalizePostgrestText(value);
+  if (!raw || !/^\d+(?:\.\d{1,18})?$/.test(raw)) {
+    return null;
+  }
+
+  const [whole = '0', fractional = ''] = raw.split('.');
+  const paddedFractional = `${fractional}000000000000000000`.slice(0, 18);
+
+  return (
+    (BigInt(whole) * 1000000000000000000n)
+    + BigInt(paddedFractional || '0')
+  ).toString();
 }
 
 function normalizeWalletAddress(value) {
@@ -632,6 +699,16 @@ function extractWalletAddressFromUser(user) {
   return null;
 }
 
+function extractAuthUserIdFromUser(user) {
+  if (!user || typeof user !== 'object') {
+    return null;
+  }
+
+  return typeof user.id === 'string' && user.id.trim().length > 0
+    ? user.id.trim()
+    : null;
+}
+
 function createConfig() {
   const supabaseUrl = requiredEnv('VITE_SUPABASE_URL');
   const supabasePublishableKey = optionalEnv('VITE_SUPABASE_PUBLISHABLE_KEY', 'VITE_SUPABASE_ANON_KEY');
@@ -639,32 +716,81 @@ function createConfig() {
     throw new Error('Missing VITE_SUPABASE_PUBLISHABLE_KEY or VITE_SUPABASE_ANON_KEY');
   }
 
+  const walletSource = parseWalletSource(process.env.SIM_WALLET_SOURCE);
   const privateKeys = parseList(process.env.SIM_WALLET_PRIVATE_KEYS);
-  if (privateKeys.length === 0) {
+  const dryRun = parseBoolean(process.env.SIM_DRY_RUN, false);
+
+  if (walletSource === 'env' && privateKeys.length === 0) {
     throw new Error('Missing SIM_WALLET_PRIVATE_KEYS. Provide a comma- or newline-separated list of Ethereum private keys.');
+  }
+
+  if (dryRun && walletSource !== 'env') {
+    throw new Error('SIM_DRY_RUN=true only supports SIM_WALLET_SOURCE=env so the worker stays fully offline.');
   }
 
   const siweUriValue = optionalEnv('SIM_SIWE_URI', 'VITE_SIWE_URI') || 'https://o.finality.dev/';
   const siweUri = new URL(siweUriValue).toString();
   const siweDomain = optionalEnv('SIM_SIWE_DOMAIN', 'VITE_SIWE_DOMAIN') || new URL(siweUri).host;
+  const serviceRoleKey = optionalEnv('SIM_SUPABASE_SERVICE_ROLE_KEY', 'SUPABASE_SERVICE_ROLE_KEY');
+  const managedWalletEncryptionKey = parseEncryptionKey(process.env.SIM_MANAGED_WALLETS_ENCRYPTION_KEY);
+  const whitelistEth = normalizePostgrestText(process.env.VITE_SPEC_WHITELIST_ETH) || DEFAULT_WHITELIST_ETH;
+  const defaultEthLockAmountWei = parseEthToWei(whitelistEth) ?? DEFAULT_SIM_ETH_LOCK_AMOUNT_WEI;
+  const managedWalletTargetCount = Math.max(0, parseInteger(process.env.SIM_MANAGED_WALLET_TARGET_COUNT, 0));
+  const managedWalletGenerationMinIntervalMs = Math.max(
+    0,
+    parseInteger(
+      process.env.SIM_MANAGED_WALLET_GENERATION_MIN_INTERVAL_MS,
+      DEFAULT_MANAGED_WALLET_GENERATION_MIN_INTERVAL_MS,
+    ),
+  );
+  const managedWalletGenerationMaxIntervalMs = Math.max(
+    managedWalletGenerationMinIntervalMs,
+    parseInteger(
+      process.env.SIM_MANAGED_WALLET_GENERATION_MAX_INTERVAL_MS,
+      DEFAULT_MANAGED_WALLET_GENERATION_MAX_INTERVAL_MS,
+    ),
+  );
+
+  if (walletSource === 'supabase') {
+    if (!serviceRoleKey) {
+      throw new Error('SIM_WALLET_SOURCE=supabase requires SIM_SUPABASE_SERVICE_ROLE_KEY or SUPABASE_SERVICE_ROLE_KEY.');
+    }
+
+    if (!managedWalletEncryptionKey) {
+      throw new Error('SIM_WALLET_SOURCE=supabase requires SIM_MANAGED_WALLETS_ENCRYPTION_KEY (32-byte hex or base64).');
+    }
+  }
 
   return {
     supabaseUrl,
     supabasePublishableKey,
+    serviceRoleKey,
+    walletSource,
     privateKeys,
     chainId: parseInteger(process.env.SIM_CHAIN_ID, 1),
     siweUri,
     siweDomain,
-    dryRun: parseBoolean(process.env.SIM_DRY_RUN, false),
+    dryRun,
     loopIntervalMs: parseInteger(process.env.SIM_LOOP_INTERVAL_MS, DEFAULT_LOOP_INTERVAL_MS),
     initialSpreadMs: parseInteger(process.env.SIM_INITIAL_SPREAD_MS, DEFAULT_INITIAL_SPREAD_MS),
     maxBoxOpensPerCycle: parseInteger(process.env.SIM_MAX_BOX_OPENS_PER_CYCLE, DEFAULT_MAX_BOX_OPENS_PER_CYCLE),
     runOnce: parseBoolean(process.env.SIM_RUN_ONCE, false),
+    bootstrapOnly: parseBoolean(process.env.SIM_BOOTSTRAP_ONLY, false),
     whitelistBonusFlux: parseNumber(process.env.VITE_SPEC_WHITELIST_BONUS_FLUX, 0),
     dailyClaimFlux: parseNumber(process.env.VITE_SPEC_DAILY_CLAIM_FLUX, 1),
     faucetIntervalSeconds: parseInteger(process.env.VITE_SPEC_FAUCET_INTERVAL_SECONDS, 86400),
     userAgent: optionalEnv('SIM_USER_AGENT') || 'entropy-sim/1.0',
     configuredBoxTierIds: parseList(process.env.SIM_BOX_TIER_IDS).map((entry) => entry.toLowerCase()),
+    importEnvWalletsToSupabase: parseBoolean(process.env.SIM_IMPORT_ENV_WALLETS_TO_SUPABASE, true),
+    managedWalletTargetCount,
+    managedWalletGenerationMinIntervalMs,
+    managedWalletGenerationMaxIntervalMs,
+    managedWalletKid: optionalEnv('SIM_MANAGED_WALLET_KID') || DEFAULT_MANAGED_WALLET_KID,
+    managedWalletEncryptionKey,
+    autoConfirmEthLock: parseBoolean(process.env.SIM_AUTO_CONFIRM_ETH_LOCK, true),
+    ethLockToAddress: normalizeWalletAddress(optionalEnv('SIM_ETH_LOCK_TO_ADDRESS', 'VITE_ETH_LOCK_RECIPIENT'))
+      ?? DEFAULT_SIM_ETH_LOCK_TO_ADDRESS,
+    ethLockAmountWei: normalizePostgrestText(process.env.SIM_ETH_LOCK_AMOUNT_WEI) || defaultEthLockAmountWei,
   };
 }
 
@@ -701,6 +827,27 @@ function createPublicHeaders(config) {
     apikey: config.supabasePublishableKey,
     'content-type': 'application/json',
   };
+}
+
+function createServiceHeaders(config, includeJsonContentType = true, prefer = '') {
+  if (!config.serviceRoleKey) {
+    throw new Error('Missing service-role key for managed simulator wallet operations.');
+  }
+
+  const headers = {
+    apikey: config.serviceRoleKey,
+    authorization: `Bearer ${config.serviceRoleKey}`,
+  };
+
+  if (includeJsonContentType) {
+    headers['content-type'] = 'application/json';
+  }
+
+  if (prefer) {
+    headers.Prefer = prefer;
+  }
+
+  return headers;
 }
 
 function createAuthHeaders(config, simUser, includeJsonContentType = true) {
@@ -769,6 +916,242 @@ async function selectRows(simUser, config, pathWithQuery) {
   return Array.isArray(payload) ? payload : [];
 }
 
+async function selectRowsAsServiceRole(config, pathWithQuery) {
+  const payload = await requestJson(`${config.supabaseUrl}/rest/v1/${pathWithQuery}`, {
+    method: 'GET',
+    headers: createServiceHeaders(config, false),
+  });
+
+  return Array.isArray(payload) ? payload : [];
+}
+
+async function upsertRowsAsServiceRole(config, tableName, rows, onConflict) {
+  if (!Array.isArray(rows) || rows.length === 0) {
+    return;
+  }
+
+  const conflictQuery = onConflict ? `?on_conflict=${encodeURIComponent(onConflict)}` : '';
+
+  await requestJson(`${config.supabaseUrl}/rest/v1/${tableName}${conflictQuery}`, {
+    method: 'POST',
+    headers: createServiceHeaders(config, true, 'resolution=merge-duplicates,return=minimal'),
+    body: JSON.stringify(rows),
+  });
+}
+
+async function patchRowsAsServiceRole(config, tableQuery, payload) {
+  await requestJson(`${config.supabaseUrl}/rest/v1/${tableQuery}`, {
+    method: 'PATCH',
+    headers: createServiceHeaders(config, true, 'return=minimal'),
+    body: JSON.stringify(payload),
+  });
+}
+
+function generatePrivateKeyHex() {
+  while (true) {
+    const candidate = `0x${crypto.randomBytes(32).toString('hex')}`;
+    const normalized = normalizePrivateKey(candidate);
+    if (normalized) {
+      return normalized;
+    }
+  }
+}
+
+function encryptPrivateKeyForStorage(privateKey, config) {
+  if (!config.managedWalletEncryptionKey) {
+    throw new Error('Missing managed wallet encryption key.');
+  }
+
+  const iv = crypto.randomBytes(12);
+  const cipher = crypto.createCipheriv('aes-256-gcm', config.managedWalletEncryptionKey, iv);
+  const ciphertext = Buffer.concat([
+    cipher.update(privateKey, 'utf8'),
+    cipher.final(),
+  ]);
+  const authTag = cipher.getAuthTag();
+
+  return {
+    private_key_ciphertext: ciphertext.toString('base64'),
+    private_key_iv: iv.toString('base64'),
+    private_key_auth_tag: authTag.toString('base64'),
+  };
+}
+
+function decryptPrivateKeyFromStorage(row, config) {
+  if (!config.managedWalletEncryptionKey) {
+    throw new Error('Missing managed wallet encryption key.');
+  }
+
+  const decipher = crypto.createDecipheriv(
+    'aes-256-gcm',
+    config.managedWalletEncryptionKey,
+    Buffer.from(row.private_key_iv, 'base64'),
+  );
+  decipher.setAuthTag(Buffer.from(row.private_key_auth_tag, 'base64'));
+
+  const privateKey = Buffer.concat([
+    decipher.update(Buffer.from(row.private_key_ciphertext, 'base64')),
+    decipher.final(),
+  ]).toString('utf8');
+
+  const normalized = normalizePrivateKey(privateKey);
+  if (!normalized) {
+    throw new Error(`Managed wallet ${row.wallet_address} decrypted to an invalid private key.`);
+  }
+
+  return normalized;
+}
+
+function buildManagedWalletRow(privateKey, config, source = 'simulator_generated') {
+  const normalizedKey = normalizePrivateKey(privateKey);
+  if (!normalizedKey) {
+    throw new Error('Managed wallet import attempted to store an invalid private key.');
+  }
+
+  const walletAddress = privateKeyToAddress(normalizedKey);
+  if (!walletAddress) {
+    throw new Error('Failed to derive a managed wallet address from the provided private key.');
+  }
+
+  return {
+    wallet_address: walletAddress,
+    ...encryptPrivateKeyForStorage(normalizedKey, config),
+    private_key_kid: config.managedWalletKid,
+    source,
+    status: 'active',
+    last_used_at: null,
+  };
+}
+
+async function ensureManagedWalletProfile(config, walletAddress) {
+  const shortAddress = `${walletAddress.slice(0, 6)}${walletAddress.slice(-4)}`;
+
+  await upsertRowsAsServiceRole(config, 'sim_wallet_profiles', [{
+    wallet_address: walletAddress,
+    persona_name: `SIM-${shortAddress.toUpperCase()}`,
+    aggression_score: 52,
+    box_open_bias: 58,
+    auction_bid_bias: 61,
+    launch_bias: 44,
+    active: true,
+  }], 'wallet_address');
+}
+
+async function importEnvWalletsIntoManagedPool(config) {
+  if (!config.importEnvWalletsToSupabase || config.privateKeys.length === 0) {
+    return 0;
+  }
+
+  const rows = config.privateKeys.map((privateKey) => buildManagedWalletRow(privateKey, config, 'env_import'));
+  await upsertRowsAsServiceRole(config, 'sim_wallet_keys', rows, 'wallet_address');
+  await Promise.all(rows.map((row) => ensureManagedWalletProfile(config, row.wallet_address)));
+  return rows.length;
+}
+
+async function createManagedWallet(config, source = 'simulator_generated') {
+  const row = buildManagedWalletRow(generatePrivateKeyHex(), config, source);
+  await upsertRowsAsServiceRole(config, 'sim_wallet_keys', [row], 'wallet_address');
+  await ensureManagedWalletProfile(config, row.wallet_address);
+  log('managed_wallet_generated', {
+    wallet: row.wallet_address,
+    source,
+    keyKid: row.private_key_kid,
+  });
+  return row;
+}
+
+async function loadManagedWalletRows(config) {
+  const rows = await selectRowsAsServiceRole(
+    config,
+    'sim_wallet_keys?select=wallet_address,private_key_ciphertext,private_key_iv,private_key_auth_tag,private_key_kid,status,created_at&status=eq.active&order=created_at.asc',
+  );
+
+  return rows
+    .filter((row) => (
+      typeof row.wallet_address === 'string'
+      && typeof row.private_key_ciphertext === 'string'
+      && typeof row.private_key_iv === 'string'
+      && typeof row.private_key_auth_tag === 'string'
+    ))
+    .map((row) => ({
+      wallet_address: normalizeWalletAddress(row.wallet_address),
+      private_key_ciphertext: row.private_key_ciphertext,
+      private_key_iv: row.private_key_iv,
+      private_key_auth_tag: row.private_key_auth_tag,
+      private_key_kid: typeof row.private_key_kid === 'string' ? row.private_key_kid : config.managedWalletKid,
+      status: typeof row.status === 'string' ? row.status : 'active',
+      created_at: typeof row.created_at === 'string' ? row.created_at : null,
+    }))
+    .filter((row) => row.wallet_address !== null);
+}
+
+async function touchManagedWalletUsage(config, walletAddress) {
+  await patchRowsAsServiceRole(
+    config,
+    `sim_wallet_keys?wallet_address=eq.${walletAddress}`,
+    { last_used_at: toIsoNow() },
+  );
+}
+
+async function ensureWalletRegistryRow(config, walletAddress) {
+  await upsertRowsAsServiceRole(config, 'wallet_registry', [{
+    wallet_address: walletAddress,
+    first_seen_at: toIsoNow(),
+    last_seen_at: toIsoNow(),
+  }], 'wallet_address');
+}
+
+function createSyntheticTxHash(walletAddress) {
+  return `0x${crypto
+    .createHash('sha256')
+    .update(`synthetic-eth-lock:${walletAddress}:${Date.now()}:${getRandomHex(8)}`)
+    .digest('hex')}`;
+}
+
+async function ensureSyntheticEthLock(config, simUser) {
+  if (!config.autoConfirmEthLock) {
+    return;
+  }
+
+  if (!simUser.authUserId) {
+    throw new Error(`Cannot create a synthetic ETH lock without an auth user id for ${simUser.walletAddress}.`);
+  }
+
+  await ensureWalletRegistryRow(config, simUser.walletAddress);
+
+  const timestamp = toIsoNow();
+
+  await upsertRowsAsServiceRole(config, 'eth_lock_submissions', [{
+    wallet_address: simUser.walletAddress,
+    auth_user_id: simUser.authUserId,
+    tx_hash: createSyntheticTxHash(simUser.walletAddress),
+    chain_id: config.chainId,
+    block_number: 0,
+    from_address: simUser.walletAddress,
+    to_address: config.ethLockToAddress,
+    amount_wei: config.ethLockAmountWei,
+    receipt: {
+      simulated: true,
+      source: 'rocket-sim',
+      kind: 'pseudo_commit',
+    },
+    status: 'confirmed',
+    is_lock_active: true,
+    last_error: null,
+    tx_submitted_at: timestamp,
+    verifying_started_at: timestamp,
+    confirmed_at: timestamp,
+    verification_attempts: 1,
+    client_timestamp: timestamp,
+    user_agent: `${config.userAgent} managed-wallet-bootstrap`,
+  }], 'wallet_address');
+
+  log('synthetic_eth_lock_seeded', {
+    wallet: simUser.walletAddress,
+    to: config.ethLockToAddress,
+  });
+}
+
 async function createSimUser(config, privateKey, index) {
   const normalizedKey = normalizePrivateKey(privateKey);
   if (!normalizedKey) {
@@ -785,11 +1168,30 @@ async function createSimUser(config, privateKey, index) {
     walletAddress,
     accessToken: '',
     refreshToken: '',
+    authUserId: null,
     nextClaimAt: 0,
     lastSubmittedRoundId: null,
   };
 
   await authenticateSimUserSession(simUser, config);
+  return simUser;
+}
+
+async function createSimUserFromManagedWallet(config, managedWalletRow) {
+  const privateKey = decryptPrivateKeyFromStorage(managedWalletRow, config);
+  const simUser = {
+    privateKey,
+    walletAddress: managedWalletRow.wallet_address,
+    accessToken: '',
+    refreshToken: '',
+    authUserId: null,
+    nextClaimAt: 0,
+    lastSubmittedRoundId: null,
+  };
+
+  await authenticateSimUserSession(simUser, config);
+  await ensureSyntheticEthLock(config, simUser);
+  await touchManagedWalletUsage(config, simUser.walletAddress);
   return simUser;
 }
 
@@ -809,6 +1211,7 @@ function createDryRunUser(config, privateKey, index) {
     walletAddress,
     accessToken: '',
     refreshToken: '',
+    authUserId: null,
     nextClaimAt: 0,
     lastSubmittedRoundId: null,
     dryRunBalance: Math.max(0, config.whitelistBonusFlux),
@@ -1028,6 +1431,8 @@ async function authenticateSimUserSession(simUser, config) {
   if (sessionWallet && sessionWallet !== simUser.walletAddress) {
     throw new Error(`Authenticated wallet mismatch for ${simUser.walletAddress}.`);
   }
+
+  simUser.authUserId = extractAuthUserIdFromUser(user);
 }
 
 async function resolveBoxTierIds(simUser, config) {
@@ -1299,11 +1704,11 @@ async function runCycle(simUser, config, boxTierIds) {
   await maybePlaceBid(simUser, config, activeAuction);
 }
 
-async function runUserLoop(simUser, config, boxTierIds, index, sharedState = null) {
+async function runUserLoop(simUser, config, boxTierIds, index, sharedState = null, totalUserCount = config.privateKeys.length) {
   if (config.initialSpreadMs > 0) {
     const delayMs = Math.min(
       config.initialSpreadMs,
-      Math.floor((index / Math.max(1, config.privateKeys.length - 1)) * config.initialSpreadMs) + randomDelay(1000),
+      Math.floor((index / Math.max(1, totalUserCount - 1)) * config.initialSpreadMs) + randomDelay(1000),
     );
     if (delayMs > 0) {
       await sleep(delayMs);
@@ -1346,6 +1751,88 @@ async function runUserLoop(simUser, config, boxTierIds, index, sharedState = nul
   }
 }
 
+async function bootstrapManagedWalletPool(config) {
+  const importedCount = await importEnvWalletsIntoManagedPool(config);
+
+  let managedRows = await loadManagedWalletRows(config);
+  const shouldEagerFillTarget = config.bootstrapOnly || config.runOnce;
+
+  if (shouldEagerFillTarget && config.managedWalletTargetCount > managedRows.length) {
+    const missingCount = config.managedWalletTargetCount - managedRows.length;
+    for (let index = 0; index < missingCount; index += 1) {
+      await createManagedWallet(config);
+    }
+    managedRows = await loadManagedWalletRows(config);
+  } else if (managedRows.length === 0 && config.managedWalletTargetCount > 0) {
+    await createManagedWallet(config);
+    managedRows = await loadManagedWalletRows(config);
+  }
+
+  return {
+    importedCount,
+    managedRows,
+  };
+}
+
+async function runManagedWalletGrowthLoop(config, runtime) {
+  if (config.runOnce || config.managedWalletTargetCount <= 0) {
+    return;
+  }
+
+  while (true) {
+    if (runtime.users.length >= config.managedWalletTargetCount) {
+      await sleep(config.managedWalletGenerationMinIntervalMs || DEFAULT_MANAGED_WALLET_GENERATION_MIN_INTERVAL_MS);
+      continue;
+    }
+
+    const delayMs = randomBetween(
+      config.managedWalletGenerationMinIntervalMs,
+      config.managedWalletGenerationMaxIntervalMs,
+    );
+
+    if (delayMs > 0) {
+      await sleep(delayMs);
+    }
+
+    if (runtime.users.length >= config.managedWalletTargetCount) {
+      continue;
+    }
+
+    try {
+      const managedWalletRow = await createManagedWallet(config);
+      const simUser = await createSimUserFromManagedWallet(config, managedWalletRow);
+      runtime.users.push(simUser);
+      log('wallet_authenticated', { wallet: simUser.walletAddress, source: 'supabase' });
+
+      if (runtime.boxTierIds.length === 0) {
+        try {
+          const nextBoxTierIds = await resolveBoxTierIds(simUser, config);
+          runtime.boxTierIds.splice(0, runtime.boxTierIds.length, ...nextBoxTierIds);
+          log('box_tiers_loaded', { boxTierIds: runtime.boxTierIds, source: 'supabase_growth' });
+        } catch (error) {
+          log('box_tiers_unavailable', {
+            message: error instanceof Error ? error.message : String(error),
+            source: 'supabase_growth',
+          });
+        }
+      }
+
+      void runUserLoop(
+        simUser,
+        config,
+        runtime.boxTierIds,
+        runtime.users.length - 1,
+        null,
+        Math.max(runtime.users.length, config.managedWalletTargetCount || runtime.users.length),
+      );
+    } catch (error) {
+      log('managed_wallet_generation_failed', {
+        message: error instanceof Error ? error.message : String(error),
+      });
+    }
+  }
+}
+
 function runSelfTest() {
   const emptyDigest = bytesToHex(keccak256(new Uint8Array()));
   if (emptyDigest !== 'c5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470') {
@@ -1379,13 +1866,16 @@ async function main() {
   const config = createConfig();
 
   log('simulator_starting', {
-    walletCount: config.privateKeys.length,
+    configuredEnvWalletCount: config.privateKeys.length,
+    walletSource: config.walletSource,
     dryRun: config.dryRun,
     runOnce: config.runOnce,
+    bootstrapOnly: config.bootstrapOnly,
     loopIntervalMs: config.loopIntervalMs,
     whitelistBonusFlux: config.whitelistBonusFlux,
     dailyClaimFlux: config.dailyClaimFlux,
     faucetIntervalSeconds: config.faucetIntervalSeconds,
+    managedWalletTargetCount: config.managedWalletTargetCount,
   });
 
   if (config.dryRun) {
@@ -1402,8 +1892,87 @@ async function main() {
     }
 
     log('box_tiers_loaded', { boxTierIds, mode: 'dry_run' });
-    await Promise.all(users.map((simUser, index) => runUserLoop(simUser, config, boxTierIds, index, sharedState)));
+    await Promise.all(users.map((simUser, index) => runUserLoop(
+      simUser,
+      config,
+      boxTierIds,
+      index,
+      sharedState,
+      users.length,
+    )));
     return;
+  }
+
+  if (config.walletSource === 'supabase') {
+    const { importedCount, managedRows } = await bootstrapManagedWalletPool(config);
+    const selectedManagedRows = config.managedWalletTargetCount > 0
+      ? managedRows.slice(0, config.managedWalletTargetCount)
+      : managedRows;
+
+    log('managed_wallet_pool_ready', {
+      importedCount,
+      availableWalletCount: managedRows.length,
+      selectedWalletCount: selectedManagedRows.length,
+      targetCount: config.managedWalletTargetCount,
+      autoConfirmEthLock: config.autoConfirmEthLock,
+    });
+
+    if (config.bootstrapOnly) {
+      log('managed_wallet_bootstrap_complete', {
+        availableWalletCount: managedRows.length,
+      });
+      return;
+    }
+
+    if (selectedManagedRows.length === 0) {
+      throw new Error('No active managed simulator wallets are available. Seed SIM_WALLET_PRIVATE_KEYS or set SIM_MANAGED_WALLET_TARGET_COUNT.');
+    }
+
+    const users = [];
+    for (let index = 0; index < selectedManagedRows.length; index += 1) {
+      const simUser = await createSimUserFromManagedWallet(config, selectedManagedRows[index]);
+      users.push(simUser);
+      log('wallet_authenticated', { wallet: simUser.walletAddress, source: 'supabase' });
+    }
+
+    let boxTierIds = [];
+    try {
+      boxTierIds = await resolveBoxTierIds(users[0], config);
+      log('box_tiers_loaded', { boxTierIds, source: 'supabase' });
+    } catch (error) {
+      log('box_tiers_unavailable', {
+        message: error instanceof Error ? error.message : String(error),
+        source: 'supabase',
+      });
+    }
+
+    if (config.runOnce) {
+      await Promise.all(users.map((simUser, index) => runUserLoop(
+        simUser,
+        config,
+        boxTierIds,
+        index,
+        null,
+        users.length,
+      )));
+      return;
+    }
+
+    const runtime = {
+      users,
+      boxTierIds,
+    };
+
+    users.forEach((simUser, index) => {
+      void runUserLoop(simUser, config, runtime.boxTierIds, index, null, users.length);
+    });
+
+    await runManagedWalletGrowthLoop(config, runtime);
+    return;
+  }
+
+  if (config.bootstrapOnly) {
+    throw new Error('SIM_BOOTSTRAP_ONLY=true requires SIM_WALLET_SOURCE=supabase.');
   }
 
   const users = [];
@@ -1423,7 +1992,14 @@ async function main() {
     });
   }
 
-  await Promise.all(users.map((simUser, index) => runUserLoop(simUser, config, boxTierIds, index)));
+  await Promise.all(users.map((simUser, index) => runUserLoop(
+    simUser,
+    config,
+    boxTierIds,
+    index,
+    null,
+    users.length,
+  )));
 }
 
 main().catch((error) => {

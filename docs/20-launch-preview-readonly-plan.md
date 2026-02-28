@@ -204,6 +204,6 @@ When the live cutover is approved:
 
 ## 9. Immediate Next Steps
 
-1. Add the Supabase schema and server executor for synthetic wallets and encrypted key storage.
-2. Wire the synthetic activity scheduler to the existing traffic simulation cadence.
+1. Use the managed-wallet mode documented in [16-synthetic-traffic-simulator.md](/Users/mblk/Code/finality/rocket/docs/16-synthetic-traffic-simulator.md) to seed and grow the synthetic actor pool.
+2. Tune the managed-wallet target count and generation interval so preview traffic looks active without distorting the leaderboard too aggressively.
 3. Add a small operator-only status panel so you can confirm preview flags and synthetic traffic health at a glance.

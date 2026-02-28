@@ -1,5 +1,4 @@
 import { Suspense, lazy, useState, useEffect, useCallback } from 'react';
-import EntropyGateBanner from './components/EntropyGateBanner';
 import { GameStateProvider } from './context/GameState';
 import { EthLockStateProvider } from './context/EthLockState';
 import { WalletProvider } from './hooks/useWallet';
@@ -126,12 +125,7 @@ export default function App() {
             {page === 'home' && <StarField />}
             <div className="relative z-10">
               <ShellNav page={page} onNavigate={navigate} />
-              <EntropyGateBanner
-                isHome={page === 'home'}
-                isGate={page === 'gate'}
-                onNavigateGate={page === 'home' || page === 'gate' ? undefined : () => navigate('gate')}
-              />
-              <main className="pt-12">
+              <main>
                 <Suspense fallback={<PageFallback />}>
                   <RouteErrorBoundary
                     onNavigateHome={page === 'home' ? undefined : () => navigate('home')}

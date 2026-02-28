@@ -12,7 +12,7 @@ export default function WalletPage() {
   const game = useGameState();
   const wallet = useWallet();
 
-  const rows = TOKEN_SYMBOLS.map((symbol) => {
+  const allRows = TOKEN_SYMBOLS.map((symbol) => {
     if (symbol === 'Flux') {
       return {
         symbol,
@@ -33,6 +33,9 @@ export default function WalletPage() {
       live: false,
     };
   });
+
+  const entropyRows = allRows.filter((r) => r.symbol === 'Flux' || r.symbol === 'UVD');
+  const wrappedRows = allRows.filter((r) => r.symbol === 'wBTC' || r.symbol === 'wETH');
 
   return (
     <div className="pt-20 md:pt-24 pb-16">
@@ -88,30 +91,45 @@ export default function WalletPage() {
               )}
             </div>
 
-            <div className="divide-y divide-border-subtle">
-              {rows.map((row) => (
-                <div key={row.symbol} className="px-5 py-4 flex items-center gap-4">
-                  <TokenIcon symbol={getDisplaySymbol(row.symbol)} size="md" />
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2">
-                      <p className="font-mono font-semibold text-text-primary uppercase tracking-wider">
-                        {getDisplaySymbol(row.symbol)}
-                      </p>
-                      <span
-                        className={`text-[10px] font-mono font-bold px-2 py-0.5 uppercase tracking-wider ${
-                          row.live ? 'bg-dot-green text-black' : 'bg-bg-inset text-text-muted'
-                        }`}
+            <div className="p-5 space-y-5">
+              {[
+                { label: 'Entropy Network', rows: entropyRows },
+                { label: 'Legacy Assets', rows: wrappedRows },
+              ].map((group) => (
+                <div key={group.label}>
+                  <p className="text-[10px] font-mono font-semibold text-text-muted uppercase tracking-[0.18em] mb-2">
+                    {group.label}
+                  </p>
+                  <div className="space-y-2">
+                    {group.rows.map((row) => (
+                      <div
+                        key={row.symbol}
+                        className="flex items-center gap-3 p-3 bg-bg-inset border border-border-subtle"
                       >
-                        {row.live ? 'Live' : 'Pending'}
-                      </span>
-                    </div>
-                    <p className="mt-1 text-sm text-text-muted">{row.status}</p>
-                  </div>
-                  <div className="text-right">
-                    <p className="font-mono font-bold text-text-primary text-lg">{row.value}</p>
-                    <p className="text-[11px] font-mono text-text-muted uppercase tracking-wider">
-                      {getDisplaySymbol(row.symbol)}
-                    </p>
+                        <TokenIcon symbol={getDisplaySymbol(row.symbol)} size="lg" />
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center gap-2">
+                            <p className="font-mono font-bold text-text-primary text-sm leading-none">
+                              {getDisplaySymbol(row.symbol)}
+                            </p>
+                            <span
+                              className={`text-[10px] font-mono font-bold px-2 py-0.5 uppercase tracking-wider ${
+                                row.live ? 'bg-dot-green text-black' : 'bg-bg-inset text-text-muted'
+                              }`}
+                            >
+                              {row.live ? 'Live' : 'Pending'}
+                            </span>
+                          </div>
+                          <p className="text-text-muted text-[10px] mt-0.5">{row.status}</p>
+                        </div>
+                        <div className="text-right">
+                          <p className="font-mono font-bold text-text-primary text-sm leading-none">{row.value}</p>
+                          <p className="text-[10px] font-mono text-text-muted uppercase tracking-wider mt-0.5">
+                            {getDisplaySymbol(row.symbol)}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </div>
               ))}

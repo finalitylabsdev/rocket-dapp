@@ -36,14 +36,14 @@ export default function Hero({ onOpenDex, onOpenGate, onOpenWallet }: HeroProps)
             <div className="flex flex-wrap justify-center gap-2">
               <span className="tag">
                 <div className="glow-dot" />
-                Testnet Live
+                Closed Alpha
               </span>
               <span className="tag">
                 <Lock size={11} />
-                Gate + Wallet Split
+                Locked Functionality
               </span>
               <span className="tag">
-                Overview Funnel
+                Alpha Preparation
               </span>
             </div>
 
