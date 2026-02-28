@@ -1,4 +1,5 @@
 import { Activity, AlertTriangle, CheckCircle, Clock } from 'lucide-react';
+import { AUCTION_BIDDING_WINDOW_SECONDS, AUCTION_SUBMISSION_WINDOW_SECONDS } from '../../config/spec';
 import { useCountdown } from '../../hooks/useCountdown';
 import type { AuctionRound, AuctionHistoryEntry } from '../../types/domain';
 import {
@@ -7,6 +8,8 @@ import {
   APP3_TEXT_MUTED_STYLE,
   APP3_TEXT_PRIMARY_STYLE,
   APP3_TEXT_SECONDARY_STYLE,
+  formatAuctionDurationLabel,
+  formatAuctionSerialNumber,
   formatFluxValue,
 } from './ui';
 
@@ -54,13 +57,13 @@ function PhaseTimeline({ round }: { round: AuctionRound }) {
 
   const phases = [
     {
-      label: 'Submissions',
+      label: `Submissions (${formatAuctionDurationLabel(AUCTION_SUBMISSION_WINDOW_SECONDS)})`,
       active: round.status === 'accepting_submissions',
       done: round.status !== 'accepting_submissions',
       countdown: submissionCountdown,
     },
     {
-      label: 'Bidding',
+      label: `Bidding (${formatAuctionDurationLabel(AUCTION_BIDDING_WINDOW_SECONDS)})`,
       active: round.status === 'bidding',
       done: round.status === 'completed' || round.status === 'no_submissions',
       countdown: biddingCountdown,
@@ -105,8 +108,15 @@ function PhaseTimeline({ round }: { round: AuctionRound }) {
 }
 
 function RoundStats({ round }: { round: AuctionRound }) {
+  const powerLabel = round.part && round.part.totalPower > 0
+    ? round.part.totalPower.toLocaleString()
+    : '--';
+  const serialLabel = round.part
+    ? formatAuctionSerialNumber(round.part.serialNumber)
+    : '--';
+
   return (
-    <div className="grid grid-cols-3 gap-2">
+    <div className="grid grid-cols-2 gap-2">
       <div className="p-2 text-center" style={APP3_INSET_STYLE}>
         <p className="font-mono font-bold text-xs" style={APP3_TEXT_PRIMARY_STYLE}>
           {round.bidCount}
@@ -121,9 +131,15 @@ function RoundStats({ round }: { round: AuctionRound }) {
       </div>
       <div className="p-2 text-center" style={APP3_INSET_STYLE}>
         <p className="font-mono font-bold text-xs" style={APP3_TEXT_PRIMARY_STYLE}>
-          {round.part ? '1' : '0'}
+          {powerLabel}
         </p>
-        <p className="text-[9px] font-mono uppercase" style={APP3_TEXT_MUTED_STYLE}>Selected</p>
+        <p className="text-[9px] font-mono uppercase" style={APP3_TEXT_MUTED_STYLE}>Power</p>
+      </div>
+      <div className="p-2 text-center" style={APP3_INSET_STYLE}>
+        <p className="font-mono font-bold text-xs" style={APP3_TEXT_PRIMARY_STYLE}>
+          {serialLabel}
+        </p>
+        <p className="text-[9px] font-mono uppercase" style={APP3_TEXT_MUTED_STYLE}>Serial</p>
       </div>
     </div>
   );

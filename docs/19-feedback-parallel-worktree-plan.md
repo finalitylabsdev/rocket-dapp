@@ -15,7 +15,8 @@ Use this as the canonical progress tracker during implementation. Each worktree 
 - [x] `wt_core_inv_contract` completed the immediate Star Vault UI adoption work that depends on the enriched inventory payload.
 - [x] `wt_core_inv_contract` also landed the box drop-curve changes because they share the authoritative `open_mystery_box(...)` RPC.
 - [x] `wt/nav_refactor` completed the home / navigation / gate / wallet workstream.
-- [ ] Auction cadence changes and Rocket Lab server-authority work remain for other branches.
+- [x] `wt/nebula` completed auction cadence migration and UI surfaces for serial/shiny/totalPower.
+- [ ] Rocket Lab server-authority work remains for other branches.
 
 ## Implementation Decisions Locked For This Wave
 - [x] Backend changes are in scope.
@@ -185,18 +186,18 @@ Note: this branch implemented `serial_trait` as named display-grade labels (`Twi
 - [x] Add bounded per-open randomization to the effective weight calculation.
 - [x] Enforce an `Uncommon -> Rare` floor of at least `12%`.
 - [x] Reduce overall higher-rarity outcomes versus the current distribution.
-- [ ] Update auction round duration from `4h` to `1h`.
-- [ ] Update submission window from `30m` to `15m`.
-- [ ] Update remaining bid phase timing accordingly.
-- [ ] Update any frontend countdown assumptions to match the new timing.
-- [ ] Change selected-part ranking from `rarity DESC, part_value DESC` to `total_power DESC, rarity DESC, created_at ASC`.
-- [ ] Surface serial number and shiny state anywhere the selected or historical part is shown.
+- [x] Update auction round duration from `4h` to `1h`.
+- [x] Update submission window from `30m` to `15m`.
+- [x] Update remaining bid phase timing accordingly.
+- [x] Update any frontend countdown assumptions to match the new timing.
+- [x] Change selected-part ranking from `rarity DESC, part_value DESC` to `total_power DESC, rarity DESC, created_at ASC`.
+- [x] Surface serial number and shiny state anywhere the selected or historical part is shown.
 
 **Validation Checklist**
 - [ ] Statistical simulation confirms `Rare` from `Uncommon` is at or above `12%`.
 - [ ] Hourly rounds start and transition with the new timing.
-- [ ] The selected part is now chosen by `total_power`.
-- [ ] Auction UI labels and timers reflect the new cadence.
+- [x] The selected part is now chosen by `total_power`.
+- [x] Auction UI labels and timers reflect the new cadence.
 
 **Dependency Notes**
 - Rebase onto `wt-backend-inventory-contract` before merge.
@@ -296,8 +297,8 @@ Note: this branch implemented `serial_trait` as named display-grade labels (`Twi
 - [x] `Total Power` is the primary user-visible metric.
 - [x] Home and Gate are separated.
 - [x] Wallet page route works.
-- [ ] Hourly auction cadence works.
-- [ ] Auction selection uses `total_power`.
+- [x] Hourly auction cadence works.
+- [x] Auction selection uses `total_power`.
 - [ ] Eight equipped parts are required for launch.
 - [ ] Launch burns FLUX.
 - [ ] Meteorite damage persists.
@@ -318,6 +319,14 @@ Note: this branch implemented `serial_trait` as named display-grade labels (`Twi
 - [ ] Re-launch with the repaired loadout.
 
 ## Progress Rollup
+
+### `wt_nebula` Branch Update (2026-02-28)
+- [x] Added and applied a live inventory metadata sync migration for `serial_number`, `serial_trait`, `is_shiny`, `total_power`, and `condition_pct`.
+- [x] Updated `open_mystery_box()` and `get_user_inventory()` to match the live inventory metadata contract used in this worktree.
+- [x] Added and applied the hourly Nebula auction migration plus a safe reconciliation for untouched legacy-format active rounds.
+- [x] Updated auction UI surfaces to show `Total Power`, serial number, and shiny / inverted state for active and historical items.
+- [x] Drop-curve rarity-roll changes landed via `wt_core_inv_contract`.
+- [ ] Full client adoption of `variantId`, `serialTrait`, and `conditionPct` remains outstanding.
 
 ### Overall Progress
 - [x] Backend contract complete

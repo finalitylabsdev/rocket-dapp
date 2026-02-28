@@ -111,6 +111,9 @@ export interface AuctionPartInfo {
   attributes: [number, number, number];
   attributeNames: [string, string, string];
   partValue: number;
+  totalPower: NonNullable<InventoryPart['totalPower']>;
+  serialNumber: NonNullable<InventoryPart['serialNumber']>;
+  isShiny: NonNullable<InventoryPart['isShiny']>;
   submittedBy: string;
 }
 
@@ -144,6 +147,9 @@ export interface AuctionHistoryEntry {
   partName: string | null;
   rarity: RarityTier | null;
   partValue: number;
+  totalPower: NonNullable<InventoryPart['totalPower']>;
+  serialNumber: NonNullable<InventoryPart['serialNumber']>;
+  isShiny: NonNullable<InventoryPart['isShiny']>;
   sectionName: string | null;
   sellerWallet: string | null;
 }

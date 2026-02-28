@@ -75,6 +75,7 @@ interface InventoryPartPayload {
   attr3_name?: string;
   total_power?: number | string;
   part_value?: number | string;
+  total_power?: number | string | null;
   serial_number?: number | string;
   serial_trait?: string;
   is_shiny?: boolean;

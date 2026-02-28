@@ -1,6 +1,18 @@
+import { AUCTION_BIDDING_WINDOW_SECONDS, AUCTION_SUBMISSION_WINDOW_SECONDS } from '../../config/spec';
 import type { AuctionRound } from '../../types/domain';
 import { useCountdown } from '../../hooks/useCountdown';
-import { APP3_INSET_STYLE, APP3_PANEL_STYLE, APP3_TEXT_MUTED_STYLE, APP3_TEXT_PRIMARY_STYLE, APP3_TEXT_SECONDARY_STYLE, formatFluxValue } from './ui';
+import {
+  APP3_INSET_STYLE,
+  APP3_META_CHIP_STYLE,
+  APP3_PANEL_STYLE,
+  APP3_SHINY_BADGE_STYLE,
+  APP3_TEXT_MUTED_STYLE,
+  APP3_TEXT_PRIMARY_STYLE,
+  APP3_TEXT_SECONDARY_STYLE,
+  formatAuctionDurationLabel,
+  formatAuctionSerialNumber,
+  formatFluxValue,
+} from './ui';
 
 interface AuctionGridProps {
   activeAuction: AuctionRound | null;
@@ -16,7 +28,7 @@ export default function AuctionGrid({ activeAuction, selectedRoundId, onSelect }
           No Auctions Active
         </p>
         <p className="mt-2 text-sm font-mono" style={APP3_TEXT_MUTED_STYLE}>
-          The next round will begin as soon as the scheduler starts a new cycle.
+          The next hourly round will begin as soon as the scheduler starts a new cycle.
         </p>
       </div>
     );
@@ -42,6 +54,9 @@ function AuctionRoundCard({
 }) {
   const targetTime = round.status === 'accepting_submissions' ? round.submissionEndsAt : round.endsAt;
   const countdown = useCountdown(targetTime);
+  const statusLabel = round.status === 'accepting_submissions'
+    ? `Accepting submissions - ${formatAuctionDurationLabel(AUCTION_SUBMISSION_WINDOW_SECONDS)} window`
+    : `Bidding live - ${formatAuctionDurationLabel(AUCTION_BIDDING_WINDOW_SECONDS)} phase`;
 
   return (
     <button
@@ -58,7 +73,7 @@ function AuctionRoundCard({
             Round #{round.roundId}
           </p>
           <p className="text-[10px] mt-1 font-mono uppercase tracking-wider" style={APP3_TEXT_SECONDARY_STYLE}>
-            {round.status === 'accepting_submissions' ? 'Accepting submissions' : 'Bidding live'}
+            {statusLabel}
           </p>
         </div>
         <span className="text-xs font-mono" style={{ color: '#C084FC' }}>
@@ -80,6 +95,44 @@ function AuctionRoundCard({
           <p className="text-[9px] font-mono uppercase" style={APP3_TEXT_MUTED_STYLE}>Top FLUX</p>
         </div>
       </div>
+
+      {round.part && (
+        <div className="mt-3 p-3 space-y-2" style={APP3_INSET_STYLE}>
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <p className="font-mono font-semibold text-xs" style={APP3_TEXT_PRIMARY_STYLE}>
+                {round.part.name}
+              </p>
+              <p className="mt-1 text-[9px] font-mono uppercase tracking-wider" style={APP3_TEXT_SECONDARY_STYLE}>
+                {round.part.sectionName}
+              </p>
+            </div>
+            {round.part.isShiny && (
+              <span
+                className="px-2 py-1 text-[9px] font-mono font-semibold uppercase tracking-wider"
+                style={APP3_SHINY_BADGE_STYLE}
+              >
+                Shiny / Inverted
+              </span>
+            )}
+          </div>
+
+          <div className="flex flex-wrap gap-2">
+            <span
+              className="px-2 py-1 text-[9px] font-mono uppercase tracking-wider"
+              style={APP3_META_CHIP_STYLE}
+            >
+              Power {round.part.totalPower > 0 ? round.part.totalPower.toLocaleString() : 'Pending'}
+            </span>
+            <span
+              className="px-2 py-1 text-[9px] font-mono uppercase tracking-wider"
+              style={APP3_META_CHIP_STYLE}
+            >
+              Serial {formatAuctionSerialNumber(round.part.serialNumber)}
+            </span>
+          </div>
+        </div>
+      )}
     </button>
   );
 }

@@ -1,5 +1,14 @@
 import type { AuctionHistoryEntry } from '../../types/domain';
-import { APP3_INSET_STYLE, APP3_PANEL_STYLE, APP3_TEXT_PRIMARY_STYLE, APP3_TEXT_SECONDARY_STYLE, formatFluxValue } from './ui';
+import {
+  APP3_INSET_STYLE,
+  APP3_META_CHIP_STYLE,
+  APP3_PANEL_STYLE,
+  APP3_SHINY_BADGE_STYLE,
+  APP3_TEXT_PRIMARY_STYLE,
+  APP3_TEXT_SECONDARY_STYLE,
+  formatAuctionSerialNumber,
+  formatFluxValue,
+} from './ui';
 
 interface AuctionResultModalProps {
   result: AuctionHistoryEntry | null;
@@ -28,6 +37,34 @@ export default function AuctionResultModal({ result, onClose }: AuctionResultMod
           <p className="mt-1 text-[10px] font-mono uppercase tracking-wider" style={APP3_TEXT_SECONDARY_STYLE}>
             {result.sectionName ?? 'Nebula Bids'}
           </p>
+          {(result.totalPower > 0 || result.serialNumber > 0 || result.isShiny) && (
+            <div className="mt-3 flex flex-wrap gap-2">
+              {result.totalPower > 0 && (
+                <span
+                  className="px-2 py-1 text-[9px] font-mono uppercase tracking-wider"
+                  style={APP3_META_CHIP_STYLE}
+                >
+                  Power {result.totalPower.toLocaleString()}
+                </span>
+              )}
+              {result.serialNumber > 0 && (
+                <span
+                  className="px-2 py-1 text-[9px] font-mono uppercase tracking-wider"
+                  style={APP3_META_CHIP_STYLE}
+                >
+                  Serial {formatAuctionSerialNumber(result.serialNumber)}
+                </span>
+              )}
+              {result.isShiny && (
+                <span
+                  className="px-2 py-1 text-[9px] font-mono font-semibold uppercase tracking-wider"
+                  style={APP3_SHINY_BADGE_STYLE}
+                >
+                  Shiny / Inverted
+                </span>
+              )}
+            </div>
+          )}
           <p className="mt-3 text-xs font-mono" style={{ color: '#C084FC' }}>
             Final price: {formatFluxValue(result.finalPrice)} FLUX
           </p>

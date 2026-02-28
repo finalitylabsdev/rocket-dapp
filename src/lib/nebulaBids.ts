@@ -37,6 +37,9 @@ interface AuctionPartPayload {
   attr2_name?: string;
   attr3_name?: string;
   part_value?: number | string;
+  total_power?: number | string | null;
+  serial_number?: number | string | null;
+  is_shiny?: boolean | null;
   submitted_by?: string;
 }
 
@@ -63,6 +66,9 @@ interface AuctionHistoryPayload {
   part_name?: string | null;
   rarity?: string | null;
   part_value?: number | string | null;
+  total_power?: number | string | null;
+  serial_number?: number | string | null;
+  is_shiny?: boolean | null;
   section_name?: string | null;
   seller_wallet?: string | null;
 }
@@ -161,6 +167,9 @@ function normalizeAuctionPart(payload: AuctionPartPayload): AuctionPartInfo {
       payload.attr3_name ?? 'Attribute 3',
     ],
     partValue: toNumber(payload.part_value),
+    totalPower: toNumber(payload.total_power),
+    serialNumber: toNumber(payload.serial_number),
+    isShiny: Boolean(payload.is_shiny),
     submittedBy: typeof payload.submitted_by === 'string' ? payload.submitted_by : 'unknown',
   };
 }
@@ -205,6 +214,9 @@ function normalizeAuctionHistory(payload: AuctionHistoryPayload): AuctionHistory
     partName: typeof payload.part_name === 'string' ? payload.part_name : null,
     rarity: typeof payload.rarity === 'string' && isRarityTier(payload.rarity) ? payload.rarity : null,
     partValue: toNumber(payload.part_value),
+    totalPower: toNumber(payload.total_power),
+    serialNumber: toNumber(payload.serial_number),
+    isShiny: Boolean(payload.is_shiny),
     sectionName: typeof payload.section_name === 'string' ? payload.section_name : null,
     sellerWallet: typeof payload.seller_wallet === 'string' ? payload.seller_wallet : null,
   };

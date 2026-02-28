@@ -1,6 +1,6 @@
 # Auction-Tick Deployment Runbook
 
-> Last updated: 2026-02-27
+> Last updated: 2026-02-28
 > Scope: production deployment and operation of `supabase/functions/auction-tick/index.ts`
 
 This is the operational runbook for the scheduler primitive that advances Nebula Bids rounds. The repo contains the function source and the local Supabase function config entry, but production deployment, secret provisioning, cron registration, and alert wiring are still manual steps.
@@ -47,9 +47,9 @@ The cron cadence does not define the phase windows. The database timestamps do. 
 
 | Phase | Duration | Timestamp field |
 |-------|----------|-----------------|
-| Submission window | 30 minutes | `submission_ends_at` |
-| Bidding window | 3.5 hours | `ends_at` |
-| Total round | 4 hours | Derived from `starts_at` + `ends_at` |
+| Submission window | 15 minutes | `submission_ends_at` |
+| Bidding window | 45 minutes | `ends_at` |
+| Total round | 1 hour | Derived from `starts_at` + `ends_at` |
 
 ## Required Secrets
 
@@ -165,7 +165,7 @@ Recommended cadence:
 |---------|--------------------|
 | Every 1 minute | Best |
 | Every 5 minutes | Acceptable |
-| Every 15 minutes | Too slow for the 30-minute submission window |
+| Every 15 minutes | Too slow for the 15-minute submission window |
 
 The function returns `429` if invoked within 30 seconds of the previous warm invocation.
 
