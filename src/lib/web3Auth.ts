@@ -1,6 +1,5 @@
 import type { User } from '@supabase/supabase-js';
 import { getWalletAuthConfigErrorMessage } from './startupConfig';
-import { getWeb3OnboardPrimaryWallet } from './web3Onboard';
 import { SUPABASE_PUBLISHABLE_KEY, SUPABASE_URL, supabase } from './supabase';
 
 const SIWE_STATEMENT = 'Sign in to Entropy Network.';
@@ -180,7 +179,8 @@ async function readConnectedAccount(
   return primaryAccount === expectedAddress ? primaryAccount : null;
 }
 
-function syncActiveWalletFromOnboard(): void {
+async function syncActiveWalletFromOnboard(): Promise<void> {
+  const { getWeb3OnboardPrimaryWallet } = await import('./web3Onboard');
   const wallet = getWeb3OnboardPrimaryWallet();
   if (!wallet) {
     return;
@@ -202,7 +202,7 @@ export async function getConnectedEthereumWalletContext(
   const normalizedExpectedAddress = normalizeWalletAddress(expectedAddress);
 
   if (!activeWalletProvider) {
-    syncActiveWalletFromOnboard();
+    await syncActiveWalletFromOnboard();
   }
 
   if (!activeWalletProvider) {

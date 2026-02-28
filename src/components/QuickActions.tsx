@@ -30,7 +30,7 @@ const cards: ActionCard[] = [
     title: 'Entropy Gate',
     tagline: 'Lock ETH → Claim Flux',
     description: `Lock ${formatEthAmount(WHITELIST_ETH)} ETH once to whitelist your wallet. Claim 1 Flux every 24 hours. Funds the ETH prize pool forever.`,
-    buttonLabel: 'Claim Your Flux',
+    buttonLabel: 'Open Entropy Gate',
     stats: [
       { label: 'Daily Claim', value: '1 Flux' },
       { label: 'Lock Amount', value: `${formatEthAmount(WHITELIST_ETH)} ETH` },
@@ -97,18 +97,25 @@ const cardEnabled: Record<string, boolean> = {
 };
 
 interface QuickActionsProps {
+  onOpenGate: () => void;
   onOpenDex: () => void;
   onOpenMystery: () => void;
   onOpenLab: () => void;
   onOpenLeaderboard: () => void;
 }
 
-export default function QuickActions({ onOpenDex, onOpenMystery, onOpenLab, onOpenLeaderboard }: QuickActionsProps) {
+export default function QuickActions({
+  onOpenGate,
+  onOpenDex,
+  onOpenMystery,
+  onOpenLab,
+  onOpenLeaderboard,
+}: QuickActionsProps) {
   const { ref, isVisible } = useIntersectionObserver(0.1);
   const [hovered, setHovered] = useState<string | null>(null);
 
   return (
-    <section className="py-20 px-4 sm:px-6 lg:px-8">
+    <section id="status" className="py-20 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
         <div
           ref={ref}
@@ -181,7 +188,7 @@ export default function QuickActions({ onOpenDex, onOpenMystery, onOpenLab, onOp
                     : card.id === 'mystery' ? onOpenMystery
                     : card.id === 'lab' ? onOpenLab
                     : card.id === 'leaderboard' ? onOpenLeaderboard
-                    : card.id === 'faucet' ? () => window.scrollTo({ top: 0, behavior: 'smooth' })
+                    : card.id === 'faucet' ? onOpenGate
                     : undefined
                   ) : undefined}
                   disabled={!enabled}

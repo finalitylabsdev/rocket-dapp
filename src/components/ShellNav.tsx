@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import {
-  Menu, X, Trophy, FileText, Zap, LogOut, Sun, Moon, ArrowLeft,
+  Menu, X, Trophy, Zap, LogOut, Sun, Moon, ArrowLeft, Wallet,
   ArrowLeftRight, Gift, FlaskConical,
 } from 'lucide-react';
 import PhiSymbol from './brand/PhiSymbol';
@@ -21,6 +21,8 @@ interface ShellNavProps {
 }
 
 const PAGE_META: Record<Exclude<Page, 'home'>, { title: string; subtitle: string; icon: typeof Zap }> = {
+  gate:        { title: 'Entropy Gate',             subtitle: 'Lock ETH · Claim FLUX',         icon: Zap },
+  wallet:      { title: 'Wallet Overview',          subtitle: 'Live FLUX · Token Scaffold',    icon: Wallet },
   dex:         { title: 'Entropy Exchange',         subtitle: 'Constant-Product AMM · ɸ-net', icon: ArrowLeftRight },
   mystery:     { title: 'Star Vault & Nebula Bids', subtitle: 'App 3 · ɸ-net Testnet',        icon: Gift },
   lab:         { title: 'Rocket Lab',               subtitle: 'Build & Launch',                icon: FlaskConical },
@@ -28,6 +30,8 @@ const PAGE_META: Record<Exclude<Page, 'home'>, { title: string; subtitle: string
 };
 
 const pageEnabled: Record<Exclude<Page, 'home'>, boolean> = {
+  gate: true,
+  wallet: true,
   dex: DEX_ENABLED,
   mystery: STAR_VAULT_ENABLED || NEBULA_BIDS_ENABLED,
   lab: ROCKET_LAB_ENABLED,
@@ -133,29 +137,32 @@ export default function ShellNav({ page, onNavigate }: ShellNavProps) {
 
           {/* Right side — desktop */}
           <div className="hidden md:flex items-center gap-1">
-            {wallet.isConnected && (
-              <div className="flex items-center gap-1.5 text-text-secondary font-mono font-medium text-sm px-3 py-2 bg-bg-card/50 border border-border-subtle mr-1">
-                <PhiSymbol size={13} color="var(--color-text-primary)" />
-                <span className="font-bold text-text-primary">{game.fluxBalance}</span>
-              </div>
-            )}
+            <button
+              onClick={() => onNavigate('wallet')}
+              className={`flex items-center gap-2 font-mono font-medium text-sm px-3 py-2 border mr-1 transition-all duration-200 ${
+                page === 'wallet'
+                  ? 'bg-bg-card border-border-strong text-text-primary'
+                  : 'bg-bg-card/50 border-border-subtle text-text-secondary hover:bg-bg-card hover:text-text-primary'
+              }`}
+            >
+              <Wallet size={14} />
+              <span className="uppercase tracking-wider">Wallet</span>
+              {wallet.isConnected && (
+                <>
+                  <span className="text-text-muted">/</span>
+                  <PhiSymbol size={13} color="var(--color-text-primary)" />
+                  <span className="font-bold text-text-primary">{game.fluxBalance}</span>
+                </>
+              )}
+            </button>
             {isHome && (
-              <>
-                <span
-                  className="flex items-center gap-1.5 text-text-muted/50 font-mono font-medium text-sm px-4 py-2 cursor-default"
-                  title="Documentation coming soon"
-                >
-                  <FileText size={15} />
-                  DOCS <span className="text-[10px] tracking-wider">(SOON)</span>
-                </span>
-                <button
-                  onClick={() => onNavigate('leaderboard')}
-                  className="flex items-center gap-1.5 text-text-secondary hover:text-text-primary font-mono font-medium text-sm px-4 py-2 hover:bg-bg-card transition-all duration-200"
-                >
-                  <Trophy size={15} />
-                  JACKPOT
-                </button>
-              </>
+              <button
+                onClick={() => onNavigate('leaderboard')}
+                className="flex items-center gap-1.5 text-text-secondary hover:text-text-primary font-mono font-medium text-sm px-4 py-2 hover:bg-bg-card transition-all duration-200"
+              >
+                <Trophy size={15} />
+                LEADERBOARD
+              </button>
             )}
             <button
               onClick={toggleTheme}
@@ -202,29 +209,29 @@ export default function ShellNav({ page, onNavigate }: ShellNavProps) {
         {/* Mobile menu */}
         {mobileOpen && (
           <div className="md:hidden pb-4 space-y-1 border-t border-border-subtle pt-4">
-            {wallet.isConnected && (
-              <div className="flex items-center gap-2 px-4 py-2">
-                <PhiSymbol size={13} color="var(--color-text-primary)" />
-                <span className="font-bold text-text-primary text-sm font-mono">{game.fluxBalance}</span>
-                <span className="text-xs text-text-muted font-mono">FLUX</span>
-              </div>
-            )}
+            <button
+              onClick={() => { onNavigate('wallet'); setMobileOpen(false); }}
+              className="w-full flex items-center gap-2 text-text-secondary font-mono font-medium text-sm px-4 py-3 hover:bg-bg-card"
+            >
+              <Wallet size={15} />
+              <span className="uppercase tracking-wider">Wallet</span>
+              {wallet.isConnected && (
+                <>
+                  <span className="text-text-muted">/</span>
+                  <PhiSymbol size={13} color="var(--color-text-primary)" />
+                  <span className="font-bold text-text-primary">{game.fluxBalance}</span>
+                  <span className="text-xs text-text-muted font-mono">FLUX</span>
+                </>
+              )}
+            </button>
             {isHome && (
-              <>
-                <span
-                  className="w-full flex items-center gap-2 text-text-muted/50 font-mono font-medium text-sm px-4 py-3 cursor-default"
-                >
-                  <FileText size={15} />
-                  DOCS <span className="text-[10px] tracking-wider">(SOON)</span>
-                </span>
-                <button
-                  onClick={() => { onNavigate('leaderboard'); setMobileOpen(false); }}
-                  className="w-full flex items-center gap-2 text-text-secondary font-mono font-medium text-sm px-4 py-3 hover:bg-bg-card"
-                >
-                  <Trophy size={15} />
-                  JACKPOT
-                </button>
-              </>
+              <button
+                onClick={() => { onNavigate('leaderboard'); setMobileOpen(false); }}
+                className="w-full flex items-center gap-2 text-text-secondary font-mono font-medium text-sm px-4 py-3 hover:bg-bg-card"
+              >
+                <Trophy size={15} />
+                LEADERBOARD
+              </button>
             )}
             <button
               onClick={toggleTheme}

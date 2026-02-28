@@ -4,7 +4,8 @@ import { useWallet } from '../hooks/useWallet';
 
 interface EntropyGateBannerProps {
   isHome: boolean;
-  onNavigateHome: () => void;
+  isGate?: boolean;
+  onNavigateGate?: () => void;
 }
 
 type BannerTone = 'neutral' | 'warning' | 'danger' | 'success';
@@ -38,7 +39,11 @@ function getToneStyles(tone: BannerTone): { borderColor: string; color: string; 
   }
 }
 
-export default function EntropyGateBanner({ isHome, onNavigateHome }: EntropyGateBannerProps) {
+export default function EntropyGateBanner({
+  isHome,
+  isGate = false,
+  onNavigateGate,
+}: EntropyGateBannerProps) {
   const wallet = useWallet();
   const ethLock = useEthLockState();
   const hasConfigError = wallet.isConnected && !ethLock.isLocked && !ethLock.lockRecipient;
@@ -50,11 +55,11 @@ export default function EntropyGateBanner({ isHome, onNavigateHome }: EntropyGat
     : 'Connect a wallet to check your ETH lock status and unlock daily FLUX claims.';
 
   if (wallet.isConnected) {
-    const nextStep = isHome
+    const nextStep = isHome || isGate
       ? ''
       : ethLock.isLocked
-        ? ' Return home to claim daily FLUX.'
-        : ' Open the home gate to continue.';
+        ? ' Open Entropy Gate to manage your daily FLUX claim.'
+        : ' Open Entropy Gate to continue.';
     const baseDetail = ethLock.isLoading
       ? 'Checking current ETH lock status...'
       : ethLock.statusDetail;
@@ -123,13 +128,13 @@ export default function EntropyGateBanner({ isHome, onNavigateHome }: EntropyGat
             <Zap size={12} />
             {wallet.isConnecting ? 'Connecting...' : 'Connect'}
           </button>
-        ) : !isHome && !hasConfigError ? (
+        ) : !isHome && !isGate && !hasConfigError && onNavigateGate ? (
           <button
-            onClick={onNavigateHome}
+            onClick={onNavigateGate}
             className="shrink-0 flex items-center gap-1.5 border border-border-default px-3 py-1.5 text-[11px] font-mono font-semibold uppercase tracking-[0.14em] text-text-primary hover:border-border-strong"
           >
             <ExternalLink size={12} />
-            {ethLock.isLocked ? 'Home' : 'Open Gate'}
+            {ethLock.isLocked ? 'Gate' : 'Open Gate'}
           </button>
         ) : null}
       </div>

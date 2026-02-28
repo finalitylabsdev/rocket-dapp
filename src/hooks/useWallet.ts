@@ -16,7 +16,7 @@ import {
   dismissWeb3OnboardModal,
   WEB3_ONBOARD_MAINNET_CHAIN_DECIMAL,
   WEB3_ONBOARD_MAINNET_CHAIN_ID,
-} from '../lib/web3Onboard';
+} from '../lib/web3OnboardShared';
 import { supabase } from '../lib/supabase';
 import {
   clearActiveEthereumWalletContext,

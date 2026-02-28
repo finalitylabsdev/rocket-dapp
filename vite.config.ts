@@ -7,6 +7,14 @@ process.env.BROWSERSLIST_IGNORE_OLD_DATA = 'true';
 const packageJson = JSON.parse(readFileSync(new URL('./package.json', import.meta.url), 'utf-8')) as { version?: string };
 const appVersion = packageJson.version || '0.0.0';
 
+function inNodeModulePackage(id: string, pkg: string): boolean {
+  return id.includes(`/node_modules/${pkg}/`);
+}
+
+function inNodeModuleScope(id: string, scope: string): boolean {
+  return id.includes(`/node_modules/${scope}/`);
+}
+
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react()],
@@ -21,19 +29,30 @@ export default defineConfig({
             return;
           }
 
-          if (id.includes('/react/') || id.includes('/react-dom/')) {
+          if (
+            inNodeModulePackage(id, 'react')
+            || inNodeModulePackage(id, 'react-dom')
+            || inNodeModulePackage(id, 'scheduler')
+          ) {
             return 'framework';
           }
 
-          if (id.includes('/@supabase/')) {
+          if (
+            inNodeModulePackage(id, 'ethers')
+            || inNodeModuleScope(id, '@ethersproject')
+          ) {
+            return 'chain';
+          }
+
+          if (inNodeModuleScope(id, '@supabase')) {
             return 'supabase';
           }
 
-          if (id.includes('/lucide-react/')) {
+          if (inNodeModulePackage(id, 'lucide-react')) {
             return 'icons';
           }
 
-          if (id.includes('/sonner/')) {
+          if (inNodeModulePackage(id, 'sonner')) {
             return 'ui';
           }
         },
