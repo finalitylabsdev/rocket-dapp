@@ -26,11 +26,11 @@ This section is the shared contract reference for all branches before touching f
 ### Public API / Schema Checklist
 - [ ] Add `gate` and `wallet` to the app `Page` union and routing.
 - [ ] Add `variant_id`, `illustration_key`, `illustration_url`, and `illustration_alt` to the inventory payload returned by Supabase RPCs.
-- [ ] Add `total_power` to `inventory_parts` and expose it to the client.
-- [ ] Add `serial_number` to `inventory_parts` as a globally monotonic unique value.
+- [x] Add `total_power` to `inventory_parts` and expose it to the client.
+- [x] Add `serial_number` to `inventory_parts` as a globally monotonic unique value.
 - [ ] Add `serial_trait` to `inventory_parts` with allowed values: `none`, `repeated`, `sequence`, `palindrome`, `low`.
-- [ ] Add `is_shiny` to `inventory_parts`.
-- [ ] Add `condition_pct` to `inventory_parts` with default `100`.
+- [x] Add `is_shiny` to `inventory_parts`.
+- [x] Add `condition_pct` to `inventory_parts` with default `100`.
 - [ ] Extend `InventoryPart` in the client with `variantId`, `totalPower`, `serialNumber`, `serialTrait`, `isShiny`, and `conditionPct`.
 - [ ] Keep `partValue` in payloads for one compatibility release only.
 - [ ] Extend `RarityTierConfig` with `attrFloor`, `attrCap`, `attrBias`, and `dropCurveExponent`.
@@ -38,7 +38,7 @@ This section is the shared contract reference for all branches before touching f
 - [ ] Add persistent `rocket_launches` storage.
 
 ### Shared Acceptance Checklist
-- [ ] Existing inventory rows are backfilled for the new columns.
+- [x] Existing inventory rows are backfilled for the new columns.
 - [ ] Client builds against the enriched inventory contract without fallback hacks.
 - [ ] No new UI depends on `partValue` as the primary user-facing metric.
 
@@ -55,25 +55,25 @@ This section is the shared contract reference for all branches before touching f
 
 **Implementation Checklist**
 - [ ] Add a global sequence for inventory serial numbers.
-- [ ] Add `serial_number`, `serial_trait`, `is_shiny`, `total_power`, and `condition_pct` columns to `inventory_parts`.
+- [x] Add `serial_number`, `serial_trait`, `is_shiny`, `total_power`, and `condition_pct` columns to `inventory_parts`.
 - [ ] Add rarity tuning columns to `rarity_tiers`: `attr_floor`, `attr_cap`, `attr_bias`, `drop_curve_exponent`.
 - [ ] Seed rarity tuning values for all 8 tiers.
 - [ ] Extend `part_variants` with illustration metadata if missing.
 - [ ] Update `open_mystery_box()` to:
 - [ ] Generate upward-biased attributes within rarity-specific floor/cap.
-- [ ] Compute `total_power = attr1 + attr2 + attr3`.
-- [ ] Assign the next global serial number.
-- [ ] Derive `serial_trait`.
+- [x] Compute `total_power = attr1 + attr2 + attr3`.
+- [x] Assign the next global serial number.
+- [x] Derive `serial_trait`.
 - [ ] Set `is_shiny` for repeated-digit serials only.
-- [ ] Return the enriched payload fields.
-- [ ] Update `get_user_inventory()` to return the enriched payload fields.
-- [ ] Backfill all existing rows in deterministic order.
+- [x] Return the enriched payload fields.
+- [x] Update `get_user_inventory()` to return the enriched payload fields.
+- [x] Backfill all existing rows in deterministic order.
 - [ ] Update client normalizers and types to consume the new contract.
 - [ ] Mark `partValue` as deprecated in code comments / type naming where appropriate.
 
 **Validation Checklist**
-- [ ] New rows receive unique monotonic serial numbers.
-- [ ] Existing rows are backfilled without nulls in required new columns.
+- [x] New rows receive unique monotonic serial numbers.
+- [x] Existing rows are backfilled without nulls in required new columns.
 - [ ] `totalPower` in the client matches the backend-returned total.
 - [ ] Inventory responses include variant and illustration metadata.
 
@@ -170,18 +170,18 @@ This section is the shared contract reference for all branches before touching f
 - [ ] Add bounded per-open randomization to the effective weight calculation.
 - [ ] Enforce an `Uncommon -> Rare` floor of at least `12%`.
 - [ ] Reduce overall higher-rarity outcomes versus the current distribution.
-- [ ] Update auction round duration from `4h` to `1h`.
-- [ ] Update submission window from `30m` to `15m`.
-- [ ] Update remaining bid phase timing accordingly.
-- [ ] Update any frontend countdown assumptions to match the new timing.
-- [ ] Change selected-part ranking from `rarity DESC, part_value DESC` to `total_power DESC, rarity DESC, created_at ASC`.
-- [ ] Surface serial number and shiny state anywhere the selected or historical part is shown.
+- [x] Update auction round duration from `4h` to `1h`.
+- [x] Update submission window from `30m` to `15m`.
+- [x] Update remaining bid phase timing accordingly.
+- [x] Update any frontend countdown assumptions to match the new timing.
+- [x] Change selected-part ranking from `rarity DESC, part_value DESC` to `total_power DESC, rarity DESC, created_at ASC`.
+- [x] Surface serial number and shiny state anywhere the selected or historical part is shown.
 
 **Validation Checklist**
 - [ ] Statistical simulation confirms `Rare` from `Uncommon` is at or above `12%`.
 - [ ] Hourly rounds start and transition with the new timing.
-- [ ] The selected part is now chosen by `total_power`.
-- [ ] Auction UI labels and timers reflect the new cadence.
+- [x] The selected part is now chosen by `total_power`.
+- [x] Auction UI labels and timers reflect the new cadence.
 
 **Dependency Notes**
 - Rebase onto `wt-backend-inventory-contract` before merge.
@@ -282,7 +282,7 @@ This section is the shared contract reference for all branches before touching f
 - [ ] Home and Gate are separated.
 - [ ] Wallet page route works.
 - [ ] Hourly auction cadence works.
-- [ ] Auction selection uses `total_power`.
+- [x] Auction selection uses `total_power`.
 - [ ] Eight equipped parts are required for launch.
 - [ ] Launch burns FLUX.
 - [ ] Meteorite damage persists.
@@ -303,6 +303,14 @@ This section is the shared contract reference for all branches before touching f
 - [ ] Re-launch with the repaired loadout.
 
 ## Progress Rollup
+
+### `wt_nebula` Branch Update (2026-02-28)
+- [x] Added and applied a live inventory metadata sync migration for `serial_number`, `serial_trait`, `is_shiny`, `total_power`, and `condition_pct`.
+- [x] Updated `open_mystery_box()` and `get_user_inventory()` to match the live inventory metadata contract used in this worktree.
+- [x] Added and applied the hourly Nebula auction migration plus a safe reconciliation for untouched legacy-format active rounds.
+- [x] Updated auction UI surfaces to show `Total Power`, serial number, and shiny / inverted state for active and historical items.
+- [ ] Drop-curve rarity-roll changes remain outstanding in this branch.
+- [ ] Full client adoption of `variantId`, `serialTrait`, and `conditionPct` remains outstanding in this branch.
 
 ### Overall Progress
 - [ ] Backend contract complete
