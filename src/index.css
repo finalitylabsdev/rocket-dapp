@@ -314,9 +314,27 @@
   display: inline-block;
 }
 
+.star-vault-box-float {
+  transition: transform 220ms ease;
+  will-change: transform;
+  animation: starVaultBoxFloat 2.6s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .star-vault-box-float {
+    animation: none;
+    transform: none;
+  }
+}
+
 @keyframes prismaticShift {
   0% { background-position: 0% 50%; }
   100% { background-position: 200% 50%; }
+}
+
+@keyframes starVaultBoxFloat {
+  0%, 100% { transform: translateY(-2px); }
+  50% { transform: translateY(-8px); }
 }
 
 @keyframes phiPulse {

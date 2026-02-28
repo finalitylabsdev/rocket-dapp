@@ -282,13 +282,11 @@ function PartRow({
             className="px-2 py-1.5"
             style={{ background: 'var(--color-bg-base)', border: '1px solid var(--color-border-subtle)' }}
           >
-            <div className="flex items-center justify-between">
-              <p className="font-mono text-[9px] uppercase tracking-[0.16em] text-text-muted">Condition</p>
-              <span className={`font-mono text-[9px] font-bold ${conditionPct > 0 ? 'text-text-primary' : 'text-red-400'}`}>
-                {conditionPct.toFixed(0)}%
-              </span>
-            </div>
-            <div className="mt-1.5 h-1 overflow-hidden" style={{ background: 'var(--color-border-subtle)' }}>
+            <p className="font-mono text-[9px] uppercase tracking-[0.16em] text-text-muted">Condition</p>
+            <p className={`mt-0.5 font-mono font-bold text-xs ${conditionPct > 0 ? 'text-text-primary' : 'text-red-400'}`}>
+              {conditionPct.toFixed(0)}%
+            </p>
+            <div className="mt-1 h-1 overflow-hidden" style={{ background: 'var(--color-border-subtle)' }}>
               <div
                 className="h-full"
                 style={{

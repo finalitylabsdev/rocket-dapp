@@ -185,9 +185,9 @@ export default function InventoryPartCard({
                 <div className="flex min-w-0 items-center gap-2">
                   <div
                     className="flex h-5 w-5 shrink-0 items-center justify-center rounded-md"
-                    style={{ background: `${rarityCfg.color}14`, border: `1px solid ${rarityCfg.border}` }}
+                    style={{ background: 'rgba(100,116,139,0.12)', border: '1px solid var(--color-border-subtle)' }}
                   >
-                    <Icon size={10} style={{ color: rarityCfg.color }} />
+                    <Icon size={10} style={{ color: 'var(--color-text-secondary)' }} />
                   </div>
                   <p className="truncate text-[9px] font-mono uppercase tracking-[0.16em]" style={APP3_TEXT_SECONDARY_STYLE}>
                     {part.attributeNames[index]}
