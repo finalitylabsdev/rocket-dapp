@@ -1,6 +1,4 @@
 import { Zap } from 'lucide-react';
-import { APP_VERSION } from '../config/app';
-import { useTheme } from '../context/ThemeContext';
 import type { Page } from '../App';
 
 interface FooterProps {
@@ -8,7 +6,6 @@ interface FooterProps {
 }
 
 export default function Footer({ onNavigate }: FooterProps) {
-  const { ambientFxEnabled, toggleAmbientFx } = useTheme();
 
   return (
     <footer className="bg-bg-card border-t border-border-subtle">
@@ -25,11 +22,46 @@ export default function Footer({ onNavigate }: FooterProps) {
               </div>
             </div>
             <p className="text-text-muted text-xs leading-relaxed max-w-xs">
-              Permission-less. Immutable. Proof-of-Infinity. Lock ETH. Claim Flux. Build rockets. Win real ETH on-chain.
+              Permissionless. Immutable. Proof of Infinity.
+            </p>
+            <p className="text-text-muted text-xs leading-relaxed max-w-xs mt-1">
+              Acquire Φ. Build. Compete. Strengthen the network.
             </p>
           </div>
 
           <div className="flex gap-10">
+            <div>
+              <h4 className="font-mono font-bold text-text-secondary text-xs mb-2 uppercase tracking-wider">Join Us</h4>
+              <ul className="space-y-1">
+                <li>
+                  <a href="https://x.com/entropy" target="_blank" rel="noopener noreferrer" className="text-text-muted hover:text-text-primary text-xs transition-colors duration-150">
+                    X
+                  </a>
+                </li>
+                <li>
+                  <a href="https://t.me/entropy" target="_blank" rel="noopener noreferrer" className="text-text-muted hover:text-text-primary text-xs transition-colors duration-150">
+                    Telegram
+                  </a>
+                </li>
+              </ul>
+            </div>
+
+            <div>
+              <h4 className="font-mono font-bold text-text-secondary text-xs mb-2 uppercase tracking-wider">Learn More</h4>
+              <ul className="space-y-1">
+                <li>
+                  <a href="https://uvd.xyz/" target="_blank" rel="noopener noreferrer" className="text-text-muted hover:text-text-primary text-xs transition-colors duration-150">
+                    Universe Dollar
+                  </a>
+                </li>
+                <li>
+                  <a href="https://ordo.foundation/" target="_blank" rel="noopener noreferrer" className="text-text-muted hover:text-text-primary text-xs transition-colors duration-150">
+                    Ordo Foundation
+                  </a>
+                </li>
+              </ul>
+            </div>
+
             <div>
               <h4 className="font-mono font-bold text-text-secondary text-xs mb-2 uppercase tracking-wider">Apps</h4>
               <ul className="space-y-1">
@@ -66,7 +98,7 @@ export default function Footer({ onNavigate }: FooterProps) {
                 </li>
                 <li>
                   <button onClick={() => onNavigate('leaderboard')} className="text-text-muted hover:text-text-primary text-xs transition-colors duration-150">
-                    Jackpot
+                    Leaderboard
                   </button>
                 </li>
               </ul>
@@ -74,37 +106,10 @@ export default function Footer({ onNavigate }: FooterProps) {
           </div>
         </div>
 
-        <div className="pt-4 border-t border-border-subtle flex flex-col sm:flex-row items-center justify-between gap-3">
+        <div className="pt-4 border-t border-border-subtle">
           <p className="text-text-muted text-xs font-mono">
-            © 2026 Entropy Protocol. This is a <b>Testnet</b> — not financial advice.
+            © 2026 Entropy Network. Experimental infrastructure.
           </p>
-          <button
-            type="button"
-            onClick={toggleAmbientFx}
-            className="group flex cursor-default items-center gap-2 border-0 bg-transparent p-0 hover:cursor-pointer"
-            aria-label={ambientFxEnabled ? 'Disable ambient cosmic background' : 'Enable ambient cosmic background'}
-            aria-pressed={ambientFxEnabled}
-          >
-            <span
-              className="relative block h-2.5 w-2.5 border transition-all duration-200"
-              style={{
-                background: ambientFxEnabled ? '#4ADE80' : 'var(--color-border-strong)',
-                borderColor: ambientFxEnabled ? 'rgba(74,222,128,0.45)' : 'var(--color-border-default)',
-                boxShadow: ambientFxEnabled
-                  ? '0 0 0 1px rgba(74,222,128,0.08)'
-                  : '0 0 0 1px rgba(58,74,96,0)',
-              }}
-            >
-              <span
-                className="absolute inset-[2px] opacity-0 transition-all duration-200 group-hover:opacity-100"
-                style={{
-                  background: ambientFxEnabled ? 'rgba(6,8,15,0.55)' : 'rgba(248,250,252,0.55)',
-                  transform: ambientFxEnabled ? 'translate(1px, -1px)' : 'translate(-1px, 1px)',
-                }}
-              />
-            </span>
-            <span className="text-[10px] font-mono font-medium text-text-muted">{`ɸ-net v${APP_VERSION} — SEASON 1 ACTIVE`}</span>
-          </button>
         </div>
       </div>
     </footer>

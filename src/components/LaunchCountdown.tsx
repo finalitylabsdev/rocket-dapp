@@ -1,4 +1,4 @@
-import { Clock3 } from 'lucide-react';
+
 import { LAUNCH_COUNTDOWN_ENABLED, LAUNCH_COUNTDOWN_TARGET_UTC_MS } from '../config/flags';
 import { useCountdown } from '../hooks/useCountdown';
 
@@ -26,7 +26,7 @@ export default function LaunchCountdown() {
     <div
       className="w-screen relative left-1/2 -translate-x-1/2 border-y py-5 sm:py-6"
       style={{
-        background: 'linear-gradient(90deg, rgba(6,8,15,0) 0%, rgba(74,222,128,0.04) 50%, rgba(6,8,15,0) 100%)',
+        background: 'transparent',
         borderColor: 'var(--color-border-subtle)',
       }}
     >
@@ -34,10 +34,6 @@ export default function LaunchCountdown() {
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="text-left">
             <div className="flex flex-wrap items-center gap-2">
-              <span className="inline-flex items-center gap-2 tag">
-                <Clock3 size={12} />
-                Launch Countdown
-              </span>
               <span className="tag">
                 <div className="glow-dot" />
                 Testnet Closed Alpha
@@ -46,13 +42,8 @@ export default function LaunchCountdown() {
             <p className="mt-3 font-mono text-xs uppercase tracking-[0.22em] text-text-secondary">
               Alpha Goes Public
             </p>
-            <p className="mt-1 font-mono font-bold text-sm text-text-primary">
+            <p className="mt-1 font-mono font-normal text-sm text-text-primary">
               {TARGET_LABEL}
-            </p>
-            <p className="mt-2 text-sm text-text-muted italic">
-              {countdown.isExpired
-                ? 'The veil has lifted — the stars await your arrival.'
-                : 'The celestial gates stir. Soon you will chart paths through the infinite.'}
             </p>
           </div>
 
@@ -61,7 +52,7 @@ export default function LaunchCountdown() {
               <div
                 key={segment.label}
                 className="min-w-[72px] border px-3 py-3 text-center"
-                style={{ background: 'var(--color-bg-base)', borderColor: 'var(--color-border-subtle)' }}
+                style={{ background: 'transparent', borderColor: 'var(--color-border-subtle)' }}
               >
                 <p className="font-mono font-black text-lg text-text-primary sm:text-xl">
                   {segment.value}

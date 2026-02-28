@@ -1,4 +1,4 @@
-import { Clock3, Wallet } from 'lucide-react';
+import { ArrowLeftRight, Wallet } from 'lucide-react';
 import TokenIcon from '../components/dex/TokenIcon';
 import { useGameState } from '../context/GameState';
 import { useWallet } from '../hooks/useWallet';
@@ -138,22 +138,30 @@ export default function WalletPage() {
 
           <aside className="space-y-4">
             <div className="bg-bg-card border border-border-subtle p-5">
-              <p className="text-[11px] font-mono font-semibold text-text-muted uppercase tracking-[0.16em]">
-                Live Source
-              </p>
-              <p className="mt-3 text-sm text-text-muted leading-relaxed">
-                FLUX reads from the shared game state and updates after gate claims, spending, and wallet refreshes.
-              </p>
-            </div>
-
-            <div className="bg-bg-card border border-border-subtle p-5">
-              <div className="flex items-center gap-2">
-                <Clock3 size={15} className="text-dot-green" />
-                <p className="font-mono font-semibold text-text-primary uppercase tracking-wider">Scaffolded Rows</p>
+              <div className="flex items-center gap-2.5 mb-3">
+                <div className="w-8 h-8 flex items-center justify-center bg-bg-inset border border-border-default">
+                  <ArrowLeftRight size={15} className="text-text-secondary" />
+                </div>
+                <p className="font-mono font-bold text-text-primary text-sm uppercase tracking-wider">
+                  Entropy Exchange
+                </p>
               </div>
-              <p className="mt-3 text-sm text-text-muted leading-relaxed">
-                wETH, wBTC, and UVD remain explicit placeholders here until the app exposes real balance reads for those assets.
+              <p className="text-sm text-text-muted leading-relaxed mb-4">
+                Swap tokens on the constant-product AMM. Trade FLUX against wrapped assets directly on the ɸ-net testnet.
               </p>
+              <div className="flex items-center gap-2 mb-4">
+                <span className="inline-block w-1.5 h-1.5 bg-text-muted" />
+                <span className="text-[10px] font-mono font-semibold text-text-muted uppercase tracking-wider">
+                  Live data source disconnected
+                </span>
+              </div>
+              <button
+                onClick={() => { window.location.hash = 'dex'; window.scrollTo(0, 0); }}
+                className="w-full border border-border-default py-2.5 font-mono font-semibold text-xs uppercase tracking-wider text-text-primary hover:border-border-strong transition-all duration-200 flex items-center justify-center gap-2"
+              >
+                <ArrowLeftRight size={12} />
+                Open Exchange
+              </button>
             </div>
           </aside>
         </div>

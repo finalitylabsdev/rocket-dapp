@@ -53,15 +53,6 @@ function StepArrow({ fromColor, toColor }: { fromColor: string; toColor: string 
   );
 }
 
-/* ── Telegram icon (inline SVG) ── */
-function TelegramIcon({ size = 18 }: { size?: number }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor">
-      <path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.479.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z" />
-    </svg>
-  );
-}
-
 
 interface HeroProps {
   onOpenGate: () => void;
@@ -84,26 +75,21 @@ export default function Hero({ onOpenGate, onOpenMystery, onOpenBids, onOpenLab,
         <div className="w-full py-14 md:py-20">
           <div className="max-w-4xl mx-auto text-center space-y-12 animate-slide-up">
 
-            <div className="space-y-5">
-              <h1 className="font-mono font-black text-3xl sm:text-4xl lg:text-5xl text-text-primary leading-[1.08] uppercase tracking-tight">
-                Enter the{' '}
-                <span className="text-dot-green">Entropy Network</span>
+            <div className="space-y-4">
+              <h1 className="font-display font-normal text-3xl sm:text-4xl text-text-primary leading-[1] tracking-tight" style={{ letterSpacing: '-0.025em' }}>
+                Build on{' '}
+                <span className="text-text-primary">Entropy Network</span>
               </h1>
-              <p className="font-mono font-semibold text-lg sm:text-xl text-text-muted tracking-[0.3em] uppercase">
+              <p className="font-mono font-normal text-[11px] text-text-muted tracking-[0.14em] uppercase">
                 Deterministic. Immutable. Gamified.
               </p>
             </div>
 
-            <div className="max-w-2xl mx-auto space-y-4">
-              <p className="text-text-muted text-sm sm:text-base leading-relaxed">
-                <span className="font-mono font-black text-text-primary uppercase">The future needs infrastructure that doesn't break under stress.</span>
-              </p>
-              <p className="text-text-muted text-sm sm:text-base leading-relaxed">
-                So we are building it — and turned testing it into a game.{' '}
-                <span className="text-text-secondary font-medium">Design your rocket, race to Mars, and push our testnet to its limits.</span>
-              </p>
-              <p className="font-mono font-semibold text-dot-green text-sm sm:text-base tracking-wide">
-                Every move strengthens Entropy.
+            <div className="max-w-2xl mx-auto mb-8">
+              <p className="font-mono text-sm text-text-secondary leading-relaxed">
+                The future needs infrastructure that doesn't break under stress.
+                So we are building it and turned testing it into a game.
+                Design your rocket, race to Mars, and push our testnet to its limits.
               </p>
             </div>
 
@@ -148,7 +134,7 @@ export default function Hero({ onOpenGate, onOpenMystery, onOpenBids, onOpenLab,
                     className="w-full border font-mono font-semibold text-sm py-2.5 flex items-center justify-center gap-1.5 uppercase tracking-wider transition-all duration-200"
                     style={{ borderColor: gateColor.accent, color: gateColor.accent }}
                   >
-                    Open Entropy Gate
+                    Enter Network
                     <ChevronRight size={13} />
                   </div>
                 </div>
@@ -187,7 +173,7 @@ export default function Hero({ onOpenGate, onOpenMystery, onOpenBids, onOpenLab,
                   </div>
 
                   <p className="text-sm text-text-muted leading-relaxed flex-1 mb-4">
-                    Open mystery boxes and get parts with rarity and traits.
+                    Open mystery boxes and discover rare models.
                   </p>
 
                   <div
@@ -233,7 +219,7 @@ export default function Hero({ onOpenGate, onOpenMystery, onOpenBids, onOpenLab,
                   </div>
 
                   <p className="text-sm text-text-muted leading-relaxed flex-1 mb-4">
-                    Assemble the rocket that will top the leaderboards.
+                    Assemble the rocket and compete for Mars.
                   </p>
 
                   <div
@@ -258,7 +244,7 @@ export default function Hero({ onOpenGate, onOpenMystery, onOpenBids, onOpenLab,
                 }}
               >
                 <Gavel size={20} className="text-[#C084FC]/70 group-hover:text-[#C084FC] transition-colors duration-300" />
-                <span className="font-mono font-bold text-lg uppercase tracking-wider text-[#C084FC]/70 group-hover:text-[#C084FC] transition-colors duration-300">
+                <span className="font-mono font-bold text-base uppercase tracking-wider text-[#C084FC]/70 group-hover:text-[#C084FC] transition-colors duration-300">
                   Parts Auction
                 </span>
               </button>
@@ -272,35 +258,23 @@ export default function Hero({ onOpenGate, onOpenMystery, onOpenBids, onOpenLab,
                 }}
               >
                 <Trophy size={20} className="text-[#FB923C]/70 group-hover:text-[#FB923C] transition-colors duration-300" />
-                <span className="font-mono font-bold text-lg uppercase tracking-wider text-[#FB923C]/70 group-hover:text-[#FB923C] transition-colors duration-300">
+                <span className="font-mono font-bold text-base uppercase tracking-wider text-[#FB923C]/70 group-hover:text-[#FB923C] transition-colors duration-300">
                   Cosmic Jackpot
                 </span>
               </button>
             </div>
 
-            {/* ── Community CTA ── */}
-            <div className="flex flex-col items-center gap-4 pt-2">
-              <h2 className="font-mono font-black text-2xl sm:text-3xl uppercase tracking-wider text-text-primary">
-                Join Us
-              </h2>
-              <a
-                href="https://x.com/entropy"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="font-mono font-bold text-lg uppercase tracking-wider transition-all duration-300 text-text-muted hover:text-text-primary"
-              >
-                X
-              </a>
-              <a
-                href="https://t.me/entropy"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 border border-transparent px-5 py-2.5 font-mono font-semibold text-sm uppercase tracking-wider transition-all duration-300 text-text-muted hover:text-text-primary hover:border-border-subtle"
-              >
-                <TelegramIcon size={16} />
-                Telegram
-              </a>
-            </div>
+            <blockquote className="max-w-2xl mx-auto border-l-2 border-border-default pl-5 text-left mt-8">
+              <p className="font-mono text-sm text-text-secondary leading-relaxed">
+                Progress begins as a spark in the eyes. A moment where curiosity turns into movement and imagination demands structure. This game is playful on the surface, but beneath it runs real infrastructure built to carry far more than rockets.
+              </p>
+              <p className="font-mono text-sm text-text-secondary leading-relaxed mt-3">
+                And this is only the first visible step. Entropy is part of a much larger architecture that will unfold in time. If that spark resonates with you, join the community and help shape what comes next.
+              </p>
+            </blockquote>
+            <p className="max-w-2xl mx-auto text-left pl-5 font-mono text-sm text-text-muted -mt-10">
+              — The Entropy Team
+            </p>
 
           </div>
         </div>
