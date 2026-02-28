@@ -17,6 +17,10 @@ interface RarityTierRow {
   id: number | string;
   name: string;
   multiplier: number | string;
+  attr_floor?: number | string;
+  attr_cap?: number | string;
+  attr_bias?: number | string;
+  drop_curve_exponent?: number | string;
   base_box_price_flux: number | string;
   approximate_drop_rate: number | string;
   color: string;
@@ -57,6 +61,7 @@ interface BoxTierRow {
 
 interface InventoryPartPayload {
   id?: string;
+  variant_id?: number | string;
   name?: string;
   section_key?: string;
   section_name?: string;
@@ -68,7 +73,12 @@ interface InventoryPartPayload {
   attr1_name?: string;
   attr2_name?: string;
   attr3_name?: string;
+  total_power?: number | string;
   part_value?: number | string;
+  serial_number?: number | string;
+  serial_trait?: string;
+  is_shiny?: boolean;
+  condition_pct?: number | string;
   is_locked?: boolean;
   is_equipped?: boolean;
   source?: 'mystery_box' | 'auction_win' | 'admin';
@@ -150,6 +160,10 @@ function normalizeRarityTierRow(payload: RarityTierRow): RarityTierConfig {
     id: toNumber(payload.id),
     name,
     multiplier: toNumber(payload.multiplier),
+    attrFloor: toNumber(payload.attr_floor ?? 1),
+    attrCap: toNumber(payload.attr_cap ?? 100),
+    attrBias: toNumber(payload.attr_bias ?? 1),
+    dropCurveExponent: toNumber(payload.drop_curve_exponent ?? 1),
     baseBoxPriceFlux: toNumber(payload.base_box_price_flux),
     approximateDropRate: toNumber(payload.approximate_drop_rate),
     color: payload.color,
@@ -226,14 +240,18 @@ function normalizeInventoryPart(payload: InventoryPartPayload): InventoryPart {
   const attr1 = toNumber(payload.attr1);
   const attr2 = toNumber(payload.attr2);
   const attr3 = toNumber(payload.attr3);
+  const totalPower = toNumber(payload.total_power ?? (attr1 + attr2 + attr3));
   const partValue = toNumber(payload.part_value);
+  const serialNumber = Math.max(0, toNumber(payload.serial_number ?? 0));
 
   return {
     id: payload.id,
+    variantId: toNumber(payload.variant_id ?? 0),
     name: payload.name,
     slot: payload.section_key as RocketSection,
     rarity: payload.rarity,
-    power: Math.round((attr1 + attr2 + attr3) / 3),
+    power: totalPower,
+    totalPower,
     attributes: [attr1, attr2, attr3],
     attributeNames: [
       payload.attr1_name ?? 'Attribute 1',
@@ -243,6 +261,10 @@ function normalizeInventoryPart(payload: InventoryPartPayload): InventoryPart {
     partValue,
     sectionName: payload.section_name,
     rarityTierId: toNumber(payload.rarity_tier_id),
+    serialNumber,
+    serialTrait: toOptionalText(payload.serial_trait) ?? (serialNumber > 0 ? 'Issued' : 'Pending'),
+    isShiny: Boolean(payload.is_shiny),
+    conditionPct: toNumber(payload.condition_pct ?? 100),
     isLocked: Boolean(payload.is_locked),
     isEquipped: Boolean(payload.is_equipped),
     source: payload.source,

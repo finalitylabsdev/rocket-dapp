@@ -312,10 +312,13 @@ export function getBoxVisualRecipe(asset?: AssetReference | null, fallbackKey?: 
 export function getSectionVisualRecipe(asset?: AssetReference | null, fallbackKey?: string | null) {
   const resolved = resolveCatalogAsset(asset, fallbackKey);
   const recipe = resolved.key ? SECTION_VISUAL_RECIPES[resolved.key as RocketSection] ?? null : null;
+  const fallbackRecipeKey = normalizeVisualKey(fallbackKey)?.toLowerCase() ?? null;
+  const fallbackRecipe = fallbackRecipeKey ? SECTION_VISUAL_RECIPES[fallbackRecipeKey as RocketSection] ?? null : null;
+  const activeRecipe = recipe ?? fallbackRecipe;
 
   return {
     ...resolved,
-    recipe,
-    usesExplicitFallback: !resolved.url && !recipe,
+    recipe: activeRecipe,
+    usesExplicitFallback: !resolved.url && !activeRecipe,
   };
 }

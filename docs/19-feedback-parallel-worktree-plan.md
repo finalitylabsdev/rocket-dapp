@@ -10,14 +10,20 @@ Use this as the canonical progress tracker during implementation. Each worktree 
 - Validation checklist items
 - Merge and dependency notes
 
+## Current Branch Status
+- [x] `wt_core_inv_contract` completed the backend inventory contract workstream in this branch.
+- [x] `wt_core_inv_contract` completed the immediate Star Vault UI adoption work that depends on the enriched inventory payload.
+- [x] `wt_core_inv_contract` also landed the box drop-curve changes because they share the authoritative `open_mystery_box(...)` RPC.
+- [ ] Auction cadence changes and Rocket Lab server-authority work remain for other branches.
+
 ## Implementation Decisions Locked For This Wave
-- [ ] Backend changes are in scope.
+- [x] Backend changes are in scope.
 - [ ] Rocket Lab becomes server-authoritative in this wave.
-- [ ] Part identifiers are global monotonic serials.
+- [x] Part identifiers are global monotonic serials.
 - [ ] "Green box" means `Uncommon`.
 - [ ] "Blue item" means `Rare`.
-- [ ] "Duplicate-number part" means repeated-digit serials only.
-- [ ] `part_value` stays temporarily for compatibility, but `total_power` becomes the canonical player-facing metric immediately.
+- [x] "Duplicate-number part" means repeated-digit serials only.
+- [x] `part_value` stays temporarily for compatibility, but `total_power` becomes the canonical player-facing metric immediately.
 - [ ] Non-FLUX wallet balances remain scaffolded unless a real holdings source is added in the same wave.
 
 ## Cross-Cutting Contract Changes
@@ -25,22 +31,24 @@ This section is the shared contract reference for all branches before touching f
 
 ### Public API / Schema Checklist
 - [ ] Add `gate` and `wallet` to the app `Page` union and routing.
-- [ ] Add `variant_id`, `illustration_key`, `illustration_url`, and `illustration_alt` to the inventory payload returned by Supabase RPCs.
-- [ ] Add `total_power` to `inventory_parts` and expose it to the client.
-- [ ] Add `serial_number` to `inventory_parts` as a globally monotonic unique value.
-- [ ] Add `serial_trait` to `inventory_parts` with allowed values: `none`, `repeated`, `sequence`, `palindrome`, `low`.
-- [ ] Add `is_shiny` to `inventory_parts`.
-- [ ] Add `condition_pct` to `inventory_parts` with default `100`.
-- [ ] Extend `InventoryPart` in the client with `variantId`, `totalPower`, `serialNumber`, `serialTrait`, `isShiny`, and `conditionPct`.
-- [ ] Keep `partValue` in payloads for one compatibility release only.
-- [ ] Extend `RarityTierConfig` with `attrFloor`, `attrCap`, `attrBias`, and `dropCurveExponent`.
+- [x] Add `variant_id`, `illustration_key`, `illustration_url`, and `illustration_alt` to the inventory payload returned by Supabase RPCs.
+- [x] Add `total_power` to `inventory_parts` and expose it to the client.
+- [x] Add `serial_number` to `inventory_parts` as a globally monotonic unique value.
+- [x] Add `serial_trait` to `inventory_parts`.
+- [x] Add `is_shiny` to `inventory_parts`.
+- [x] Add `condition_pct` to `inventory_parts` with default `100`.
+- [x] Extend `InventoryPart` in the client with `variantId`, `totalPower`, `serialNumber`, `serialTrait`, `isShiny`, and `conditionPct`.
+- [x] Keep `partValue` in payloads for one compatibility release only.
+- [x] Extend `RarityTierConfig` with `attrFloor`, `attrCap`, `attrBias`, and `dropCurveExponent`.
 - [ ] Add authenticated RPCs: `equip_inventory_part`, `unequip_inventory_part`, `launch_rocket`, `repair_inventory_part`.
 - [ ] Add persistent `rocket_launches` storage.
 
+Note: this branch implemented `serial_trait` as named display-grade labels (`Twin Pulse`, `Mirror Drift`, etc.), so the original placeholder enum listed above has been superseded.
+
 ### Shared Acceptance Checklist
-- [ ] Existing inventory rows are backfilled for the new columns.
-- [ ] Client builds against the enriched inventory contract without fallback hacks.
-- [ ] No new UI depends on `partValue` as the primary user-facing metric.
+- [x] Existing inventory rows are backfilled for the new columns.
+- [x] Client builds against the enriched inventory contract without fallback hacks.
+- [x] No new UI depends on `partValue` as the primary user-facing metric.
 
 ## Worktree Plan
 
@@ -54,28 +62,28 @@ This section is the shared contract reference for all branches before touching f
 - Any shared hooks that hydrate rarity / box config
 
 **Implementation Checklist**
-- [ ] Add a global sequence for inventory serial numbers.
-- [ ] Add `serial_number`, `serial_trait`, `is_shiny`, `total_power`, and `condition_pct` columns to `inventory_parts`.
-- [ ] Add rarity tuning columns to `rarity_tiers`: `attr_floor`, `attr_cap`, `attr_bias`, `drop_curve_exponent`.
-- [ ] Seed rarity tuning values for all 8 tiers.
-- [ ] Extend `part_variants` with illustration metadata if missing.
-- [ ] Update `open_mystery_box()` to:
-- [ ] Generate upward-biased attributes within rarity-specific floor/cap.
-- [ ] Compute `total_power = attr1 + attr2 + attr3`.
-- [ ] Assign the next global serial number.
-- [ ] Derive `serial_trait`.
-- [ ] Set `is_shiny` for repeated-digit serials only.
-- [ ] Return the enriched payload fields.
-- [ ] Update `get_user_inventory()` to return the enriched payload fields.
-- [ ] Backfill all existing rows in deterministic order.
-- [ ] Update client normalizers and types to consume the new contract.
-- [ ] Mark `partValue` as deprecated in code comments / type naming where appropriate.
+- [x] Add a global sequence for inventory serial numbers.
+- [x] Add `serial_number`, `serial_trait`, `is_shiny`, `total_power`, and `condition_pct` columns to `inventory_parts`.
+- [x] Add rarity tuning columns to `rarity_tiers`: `attr_floor`, `attr_cap`, `attr_bias`, `drop_curve_exponent`.
+- [x] Seed rarity tuning values for all 8 tiers.
+- [x] Extend `part_variants` with illustration metadata if missing.
+- [x] Update `open_mystery_box()` to:
+- [x] Generate upward-biased attributes within rarity-specific floor/cap.
+- [x] Compute `total_power = attr1 + attr2 + attr3`.
+- [x] Assign the next global serial number.
+- [x] Derive `serial_trait`.
+- [x] Set `is_shiny` for repeated-digit serials only.
+- [x] Return the enriched payload fields.
+- [x] Update `get_user_inventory()` to return the enriched payload fields.
+- [x] Backfill all existing rows in deterministic order.
+- [x] Update client normalizers and types to consume the new contract.
+- [x] Mark `partValue` as deprecated in code comments / type naming where appropriate.
 
 **Validation Checklist**
-- [ ] New rows receive unique monotonic serial numbers.
-- [ ] Existing rows are backfilled without nulls in required new columns.
-- [ ] `totalPower` in the client matches the backend-returned total.
-- [ ] Inventory responses include variant and illustration metadata.
+- [x] New rows receive unique monotonic serial numbers.
+- [x] Existing rows are backfilled without nulls in required new columns.
+- [x] `totalPower` in the client matches the backend-returned total.
+- [x] Inventory responses include variant and illustration metadata.
 
 **Dependency Notes**
 - This branch lands first.
@@ -92,26 +100,26 @@ This section is the shared contract reference for all branches before touching f
 - Shared mystery UI helpers as needed
 
 **Implementation Checklist**
-- [ ] Make reveal-state box title and accent use the pulled item rarity, not only the box tier rarity.
-- [ ] Convert item art rendering to a real image path with explicit error fallback.
-- [ ] Fall back to the section visual recipe when the art URL is missing or broken.
-- [ ] Remove duplicate category pills when `illustration.key` matches the slot key.
-- [ ] Replace visible `Part Value` labels with `Total Power`.
-- [ ] Change compact inventory sorting default from value-centric to power-centric.
-- [ ] Show `Ready`, `Locked`, and `Equipped` as distinct user-facing statuses.
-- [ ] Hide `Source` in the small right-hand inventory card.
-- [ ] Keep `Source` only in expanded intel or detail views.
-- [ ] Display `Total Power` in the card summary area.
-- [ ] Replace text-only attribute labels in the compact card with fixed attribute icons.
-- [ ] Make `Open Another` visually enabled as the primary action when the next open is possible.
+- [x] Make reveal-state box title and accent use the pulled item rarity, not only the box tier rarity.
+- [x] Convert item art rendering to a real image path with explicit error fallback.
+- [x] Fall back to the section visual recipe when the art URL is missing or broken.
+- [x] Remove duplicate category pills when `illustration.key` matches the slot key.
+- [x] Replace visible `Part Value` labels with `Total Power`.
+- [x] Change compact inventory sorting default from value-centric to power-centric.
+- [x] Show `Ready`, `Locked`, and `Equipped` as distinct user-facing statuses.
+- [x] Hide `Source` in the small right-hand inventory card.
+- [x] Keep `Source` only in expanded intel or detail views.
+- [x] Display `Total Power` in the card summary area.
+- [x] Replace text-only attribute labels in the compact card with fixed attribute icons.
+- [x] Make `Open Another` visually enabled as the primary action when the next open is possible.
 - [ ] Show a clearly disabled `Open Another` state only when wallet or FLUX conditions block another open.
 
 **Validation Checklist**
-- [ ] Reveal chrome visibly follows the pulled rarity.
-- [ ] Broken item art no longer produces a blank tile.
-- [ ] No duplicate pill renders for section-fallback items.
-- [ ] Compact inventory cards no longer show `Source`.
-- [ ] `Total Power` appears anywhere the user previously saw `Part Value`.
+- [x] Reveal chrome visibly follows the pulled rarity.
+- [x] Broken item art no longer produces a blank tile.
+- [x] No duplicate pill renders for section-fallback items.
+- [x] Compact inventory cards no longer show `Source`.
+- [x] `Total Power` appears anywhere the user previously saw `Part Value`.
 
 **Dependency Notes**
 - Rebase onto `wt-backend-inventory-contract` before merge.
@@ -166,10 +174,10 @@ This section is the shared contract reference for all branches before touching f
 - Auction UI surfaces that display cadence and selected-part details
 
 **Implementation Checklist**
-- [ ] Replace the current flat box rarity roll with an exponential curve using `drop_curve_exponent`.
-- [ ] Add bounded per-open randomization to the effective weight calculation.
-- [ ] Enforce an `Uncommon -> Rare` floor of at least `12%`.
-- [ ] Reduce overall higher-rarity outcomes versus the current distribution.
+- [x] Replace the current flat box rarity roll with an exponential curve using `drop_curve_exponent`.
+- [x] Add bounded per-open randomization to the effective weight calculation.
+- [x] Enforce an `Uncommon -> Rare` floor of at least `12%`.
+- [x] Reduce overall higher-rarity outcomes versus the current distribution.
 - [ ] Update auction round duration from `4h` to `1h`.
 - [ ] Update submission window from `30m` to `15m`.
 - [ ] Update remaining bid phase timing accordingly.
@@ -275,10 +283,10 @@ This section is the shared contract reference for all branches before touching f
 - [ ] Add SQL and RPC smoke-check instructions for local Supabase validation.
 
 ### Feature Verification Checklist
-- [ ] Box reveal recolors to the pulled rarity.
-- [ ] Broken item art falls back safely.
-- [ ] Duplicate badge is removed.
-- [ ] `Total Power` is the primary user-visible metric.
+- [x] Box reveal recolors to the pulled rarity.
+- [x] Broken item art falls back safely.
+- [x] Duplicate badge is removed.
+- [x] `Total Power` is the primary user-visible metric.
 - [ ] Home and Gate are separated.
 - [ ] Wallet page route works.
 - [ ] Hourly auction cadence works.
@@ -305,7 +313,7 @@ This section is the shared contract reference for all branches before touching f
 ## Progress Rollup
 
 ### Overall Progress
-- [ ] Backend contract complete
+- [x] Backend contract complete
 - [ ] Star Vault UI polish complete
 - [ ] Home / navigation / wallet complete
 - [ ] Drop curve and hourly auction complete

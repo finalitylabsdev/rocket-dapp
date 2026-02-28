@@ -33,15 +33,23 @@ export interface AssetReference {
 }
 export interface InventoryPart {
   id: string;
+  variantId: number;
   name: string;
   slot: RocketSection;
   rarity: RarityTier;
+  // Compatibility alias for totalPower until all consumers switch.
   power: number;
+  totalPower: number;
   attributes: [number, number, number];
   attributeNames: [string, string, string];
+  /** @deprecated Compatibility only; prefer totalPower for player-facing comparisons. */
   partValue: number;
   sectionName: string;
   rarityTierId: number;
+  serialNumber: number;
+  serialTrait: string;
+  isShiny: boolean;
+  conditionPct: number;
   isLocked?: boolean;
   isEquipped?: boolean;
   source?: 'mystery_box' | 'auction_win' | 'admin';
@@ -64,6 +72,10 @@ export interface RarityTierConfig {
   id: number;
   name: RarityTier;
   multiplier: number;
+  attrFloor: number;
+  attrCap: number;
+  attrBias: number;
+  dropCurveExponent: number;
   baseBoxPriceFlux: number;
   approximateDropRate: number;
   color: string;
@@ -136,5 +148,5 @@ export interface AuctionHistoryEntry {
   sellerWallet: string | null;
 }
 
-export type InventorySortKey = 'section' | 'rarity' | 'value' | 'name';
+export type InventorySortKey = 'section' | 'rarity' | 'power' | 'value' | 'name';
 export type InventorySortDir = 'asc' | 'desc';

@@ -19,7 +19,7 @@ function compareValues(a: string | number, b: string | number, dir: InventorySor
 
 export default function InventoryPanel({ onSendToAuction }: InventoryPanelProps) {
   const game = useGameState();
-  const [sortKey, setSortKey] = useState<InventorySortKey>('value');
+  const [sortKey, setSortKey] = useState<InventorySortKey>('power');
   const [sortDir, setSortDir] = useState<InventorySortDir>('desc');
   const [rarityFilter, setRarityFilter] = useState<RarityTier | 'all'>('all');
   const [sectionFilter, setSectionFilter] = useState<RocketSection | 'all'>('all');
@@ -48,6 +48,8 @@ export default function InventoryPanel({ onSendToAuction }: InventoryPanelProps)
           return compareValues(left.rarityTierId, right.rarityTierId, sortDir);
         case 'section':
           return compareValues(left.sectionName, right.sectionName, sortDir);
+        case 'power':
+          return compareValues(left.totalPower ?? left.power, right.totalPower ?? right.power, sortDir);
         case 'value':
         default:
           return compareValues(left.partValue, right.partValue, sortDir);
@@ -89,6 +91,7 @@ export default function InventoryPanel({ onSendToAuction }: InventoryPanelProps)
               className="px-2 py-2 text-[10px] font-mono uppercase tracking-wider"
               style={APP3_CONTROL_STYLE}
             >
+              <option value="power">Total Power</option>
               <option value="value">Value</option>
               <option value="rarity">Rarity</option>
               <option value="section">Section</option>
