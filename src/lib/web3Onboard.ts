@@ -282,7 +282,7 @@ export const web3Onboard = init({
   },
   connect: {
     showSidebar: false,
-    autoConnectLastWallet: true,
+    autoConnectLastWallet: false,
     iDontHaveAWalletLink: 'https://ethereum.org/en/wallets/find-wallet/',
     wheresMyWalletLink: 'https://www.blocknative.com/blog/metamask-wont-connect-web3-wallet-troubleshooting',
     removeWhereIsMyWalletWarning: true,
@@ -303,7 +303,7 @@ export const web3Onboard = init({
     '--w3o-border-color': 'var(--color-border-default)',
     '--w3o-action-color': '#4ADE80',
     '--w3o-border-radius': '0px',
-    '--w3o-font-family': "'JetBrains Mono', 'Inter', sans-serif",
+    '--w3o-font-family': "'IBM Plex Mono', 'JetBrains Mono', 'Inter', sans-serif",
   },
   disableFontDownload: true,
 });

@@ -1,13 +1,10 @@
 import { Loader } from 'lucide-react';
 import { Toaster } from 'sonner';
-import { useTheme } from '../context/ThemeContext';
 
 export default function AppToaster() {
-  const { theme } = useTheme();
-
   return (
     <Toaster
-      theme={theme}
+      theme="light"
       position="bottom-left"
       expand
       closeButton

@@ -44,10 +44,10 @@ export default function StarField() {
 
     const pointer = { x: 0, y: 0, targetX: 0, targetY: 0 };
     const particles: Particle[] = [];
-    const isDark = theme === 'dark';
-    const particleColor = isDark ? 'rgba(226, 232, 240, 0.82)' : 'rgba(37, 48, 76, 0.46)';
-    const trailColor = isDark ? 'rgba(96, 165, 250, 0.04)' : 'rgba(71, 85, 105, 0.085)';
-    const accentColor = isDark ? 'rgba(74, 222, 128, 0.08)' : 'rgba(59, 130, 246, 0.035)';
+    const isDark = false;
+    const particleColor = 'rgba(37, 48, 76, 0.46)';
+    const trailColor = 'rgba(71, 85, 105, 0.085)';
+    const accentColor = 'rgba(59, 130, 246, 0.035)';
 
     let animationFrame = 0;
     let frame = 0;
@@ -201,19 +201,12 @@ export default function StarField() {
     };
   }, [ambientFxEnabled, theme]);
 
-  const baseBackground = theme === 'dark'
-    ? [
-        'radial-gradient(circle at 18% 22%, rgba(59, 130, 246, 0.08) 0%, rgba(59, 130, 246, 0) 42%)',
-        'radial-gradient(circle at 78% 14%, rgba(74, 222, 128, 0.055) 0%, rgba(74, 222, 128, 0) 34%)',
-        'radial-gradient(circle at 50% 100%, rgba(37, 99, 235, 0.045) 0%, rgba(37, 99, 235, 0) 46%)',
-        'radial-gradient(circle, rgba(226, 232, 240, 0.045) 1px, transparent 1.4px)',
-      ].join(', ')
-    : [
-        'radial-gradient(circle at 16% 18%, rgba(148, 163, 184, 0.12) 0%, rgba(148, 163, 184, 0) 36%)',
-        'radial-gradient(circle at 80% 12%, rgba(125, 211, 252, 0.12) 0%, rgba(125, 211, 252, 0) 30%)',
-        'radial-gradient(circle at 50% 100%, rgba(191, 219, 254, 0.14) 0%, rgba(191, 219, 254, 0) 42%)',
-        'radial-gradient(circle, rgba(37, 48, 76, 0.055) 1px, transparent 1.5px)',
-      ].join(', ');
+  const baseBackground = [
+    'radial-gradient(circle at 16% 18%, rgba(148, 163, 184, 0.12) 0%, rgba(148, 163, 184, 0) 36%)',
+    'radial-gradient(circle at 80% 12%, rgba(125, 211, 252, 0.12) 0%, rgba(125, 211, 252, 0) 30%)',
+    'radial-gradient(circle at 50% 100%, rgba(191, 219, 254, 0.14) 0%, rgba(191, 219, 254, 0) 42%)',
+    'radial-gradient(circle, rgba(37, 48, 76, 0.055) 1px, transparent 1.5px)',
+  ].join(', ');
 
   return (
     <div
@@ -225,9 +218,7 @@ export default function StarField() {
         className="absolute inset-0"
         style={{
           backgroundImage: baseBackground,
-          backgroundSize: theme === 'dark'
-            ? 'auto, auto, auto, 54px 54px'
-            : 'auto, auto, auto, 64px 64px',
+          backgroundSize: 'auto, auto, auto, 64px 64px',
           opacity: ambientFxEnabled ? 1 : 0.5,
           transition: 'opacity 500ms ease',
         }}

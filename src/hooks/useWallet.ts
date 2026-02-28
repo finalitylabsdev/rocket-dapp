@@ -160,6 +160,15 @@ function useProvideWallet(): WalletContextValue {
       return false;
     }
 
+    if (supabase) {
+      const { data } = await supabase.auth.getSession();
+      const existingAddress = getWalletAddressFromUser(data.session?.user ?? null);
+      if (existingAddress && existingAddress === onboardState.address) {
+        setAddress(existingAddress);
+        return true;
+      }
+    }
+
     setIsAuthenticating(true);
     setError(null);
     const previousAddress = address;

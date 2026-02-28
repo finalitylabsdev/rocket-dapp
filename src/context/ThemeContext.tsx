@@ -13,15 +13,12 @@ interface ThemeContextValue {
 const ThemeContext = createContext<ThemeContextValue | null>(null);
 
 function getInitialTheme(): Theme {
-  if (typeof window === 'undefined') return 'dark';
-  const stored = safeGetStorageItem('entropy-theme');
-  if (stored === 'light' || stored === 'dark') return stored;
-  return 'dark';
+  return 'light';
 }
 
 function getInitialAmbientFx(): boolean {
-  if (typeof window === 'undefined') return false;
-  return safeGetStorageItem('entropy-ambient-fx') === 'enabled';
+  if (typeof window === 'undefined') return true;
+  return safeGetStorageItem('entropy-ambient-fx') !== 'disabled';
 }
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
@@ -29,12 +26,11 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   const [ambientFxEnabled, setAmbientFxEnabled] = useState<boolean>(getInitialAmbientFx);
 
   useEffect(() => {
-    document.documentElement.setAttribute('data-theme', theme);
-    safeSetStorageItem('entropy-theme', theme);
+    document.documentElement.setAttribute('data-theme', 'light');
 
     const meta = document.querySelector('meta[name="theme-color"]');
     if (meta) {
-      meta.setAttribute('content', theme === 'dark' ? '#06080F' : '#FFFFFF');
+      meta.setAttribute('content', '#FFFFFF');
     }
   }, [theme]);
 

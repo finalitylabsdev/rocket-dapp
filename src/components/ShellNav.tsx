@@ -1,13 +1,13 @@
 import { useState, useEffect } from 'react';
 import { APP_VERSION } from '../config/app';
 import {
-  Menu, X, Trophy, Zap, LogOut, Sun, Moon, ArrowLeft, Wallet,
-  ArrowLeftRight, Gift, FlaskConical,
+  Menu, X, Trophy, Zap, LogOut, ArrowLeft, Wallet,
+  ArrowLeftRight, Gift, FlaskConical, Compass,
 } from 'lucide-react';
 import PhiSymbol from './brand/PhiSymbol';
 import { useWallet } from '../hooks/useWallet';
 import { useGameState } from '../context/GameState';
-import { useTheme } from '../context/ThemeContext';
+
 import type { Page } from '../App';
 import {
   DEX_ENABLED,
@@ -44,7 +44,6 @@ export default function ShellNav({ page, onNavigate }: ShellNavProps) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const wallet = useWallet();
   const game = useGameState();
-  const { theme, toggleTheme } = useTheme();
 
   const isHome = page === 'home';
 
@@ -138,6 +137,15 @@ export default function ShellNav({ page, onNavigate }: ShellNavProps) {
 
           {/* Right side — desktop */}
           <div className="hidden md:flex items-center gap-1">
+            <a
+              href="https://o.day/testnet"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-2 font-mono font-medium text-sm px-3 py-2 border mr-1 transition-all duration-200 bg-bg-card/50 border-border-subtle text-text-secondary hover:bg-bg-card hover:text-text-primary"
+            >
+              <Compass size={14} />
+              <span className="uppercase tracking-wider">Explorer</span>
+            </a>
             <button
               onClick={() => onNavigate('wallet')}
               className={`flex items-center gap-2 font-mono font-medium text-sm px-3 py-2 border mr-1 transition-all duration-200 ${
@@ -155,13 +163,6 @@ export default function ShellNav({ page, onNavigate }: ShellNavProps) {
                   <span className="font-bold text-text-primary">{game.fluxBalance}</span>
                 </>
               )}
-            </button>
-            <button
-              onClick={toggleTheme}
-              className="flex items-center justify-center w-9 h-9 text-text-secondary hover:text-text-primary hover:bg-bg-card transition-all duration-200"
-              aria-label="Toggle theme"
-            >
-              {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
             </button>
             {wallet.isConnected ? (
               <div className="ml-2 flex items-center gap-2">
@@ -201,6 +202,15 @@ export default function ShellNav({ page, onNavigate }: ShellNavProps) {
         {/* Mobile menu */}
         {mobileOpen && (
           <div className="md:hidden pb-4 space-y-1 border-t border-border-subtle pt-4">
+            <a
+              href="https://o.day/testnet"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="w-full flex items-center gap-2 text-text-secondary font-mono font-medium text-sm px-4 py-3 hover:bg-bg-card"
+            >
+              <Compass size={15} />
+              <span className="uppercase tracking-wider">Explorer</span>
+            </a>
             <button
               onClick={() => { onNavigate('wallet'); setMobileOpen(false); }}
               className="w-full flex items-center gap-2 text-text-secondary font-mono font-medium text-sm px-4 py-3 hover:bg-bg-card"
@@ -215,13 +225,6 @@ export default function ShellNav({ page, onNavigate }: ShellNavProps) {
                   <span className="text-xs text-text-muted font-mono">FLUX</span>
                 </>
               )}
-            </button>
-            <button
-              onClick={toggleTheme}
-              className="w-full flex items-center gap-2 text-text-secondary font-mono font-medium text-sm px-4 py-3 hover:bg-bg-card"
-            >
-              {theme === 'dark' ? <Sun size={15} /> : <Moon size={15} />}
-              {theme === 'dark' ? 'LIGHT MODE' : 'DARK MODE'}
             </button>
             <div className="pt-2 px-2">
               {wallet.isConnected ? (

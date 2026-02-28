@@ -4,7 +4,6 @@ import { EthLockStateProvider } from './context/EthLockState';
 import { WalletProvider } from './hooks/useWallet';
 import ShellNav from './components/ShellNav';
 import Hero from './components/Hero';
-import QuickActions from './components/QuickActions';
 import Footer from './components/Footer';
 import AppToaster from './components/AppToaster';
 import RouteErrorBoundary from './components/RouteErrorBoundary';
@@ -49,10 +48,12 @@ function pageFromHash(): Page {
 
 export default function App() {
   const [page, setPage] = useState<Page>(pageFromHash);
+  const [mysteryTab, setMysteryTab] = useState<'vault' | 'bids' | undefined>();
 
   const navigate = useCallback((p: Page) => {
     window.location.hash = p === 'home' ? '' : p;
     setPage(p);
+    if (p !== 'mystery') setMysteryTab(undefined);
     window.scrollTo(0, 0);
   }, []);
 
@@ -84,7 +85,7 @@ export default function App() {
 
     if (page === 'mystery') {
       return STAR_VAULT_ENABLED || NEBULA_BIDS_ENABLED
-        ? <MysteryPage />
+        ? <MysteryPage initialTab={mysteryTab} />
         : <ComingSoon title="Star Vault & Nebula Bids" subtitle="Mystery boxes and auctions are not yet available." />;
     }
 
@@ -99,20 +100,13 @@ export default function App() {
     }
 
     return (
-      <>
-        <Hero
-          onOpenDex={() => navigate('dex')}
-          onOpenGate={() => navigate('gate')}
-          onOpenWallet={() => navigate('wallet')}
-        />
-        <QuickActions
-          onOpenGate={() => navigate('gate')}
-          onOpenDex={() => navigate('dex')}
-          onOpenMystery={() => navigate('mystery')}
-          onOpenLab={() => navigate('lab')}
-          onOpenLeaderboard={() => navigate('leaderboard')}
-        />
-      </>
+      <Hero
+        onOpenGate={() => navigate('gate')}
+        onOpenMystery={() => navigate('mystery')}
+        onOpenBids={() => { setMysteryTab('bids'); navigate('mystery'); }}
+        onOpenLab={() => navigate('lab')}
+        onOpenLeaderboard={() => navigate('leaderboard')}
+      />
     );
   })();
 

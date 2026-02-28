@@ -4,11 +4,11 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        mono: ["'JetBrains Mono'", 'monospace'],
+        mono: ["'IBM Plex Mono'", "'JetBrains Mono'", 'monospace'],
         inter: ['Inter', 'sans-serif'],
-        display: ["'JetBrains Mono'", 'monospace'],
-        data: ["'JetBrains Mono'", 'monospace'],
-        poppins: ["'JetBrains Mono'", 'monospace'],
+        display: ["'Libre Baskerville'", 'Georgia', 'serif'],
+        data: ["'IBM Plex Mono'", "'JetBrains Mono'", 'monospace'],
+        poppins: ["'IBM Plex Mono'", "'JetBrains Mono'", 'monospace'],
       },
       colors: {
         // Base void palette (from brief)

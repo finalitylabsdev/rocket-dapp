@@ -1,4 +1,4 @@
-import { Zap, Github, Twitter, FileText } from 'lucide-react';
+import { Zap } from 'lucide-react';
 import { APP_VERSION } from '../config/app';
 import { useTheme } from '../context/ThemeContext';
 import type { Page } from '../App';
@@ -7,99 +7,75 @@ interface FooterProps {
   onNavigate: (page: Page) => void;
 }
 
-type FooterLink = { label: string; action?: () => void; comingSoon?: boolean };
-
 export default function Footer({ onNavigate }: FooterProps) {
   const { ambientFxEnabled, toggleAmbientFx } = useTheme();
 
-  const links: Record<string, FooterLink[]> = {
-    Protocol: [
-      { label: 'Whitepaper', comingSoon: true },
-      { label: 'Docs', comingSoon: true },
-      { label: 'GitHub', comingSoon: true },
-      { label: 'Audit Report', comingSoon: true },
-    ],
-    Apps: [
-      { label: 'Entropy Gate', action: () => onNavigate('gate') },
-      { label: 'Entropy Exchange', action: () => onNavigate('dex') },
-      { label: 'Star Vault & Nebula Bids', action: () => onNavigate('mystery') },
-      { label: 'Celestial Assembler', comingSoon: true },
-    ],
-    Jackpot: [
-      { label: 'Quantum Lift-Off', action: () => onNavigate('leaderboard') },
-      { label: 'Cosmic Jackpot', action: () => onNavigate('leaderboard') },
-      { label: 'Season 1 Prizes', comingSoon: true },
-      { label: 'Prize Claim', comingSoon: true },
-    ],
-    Community: [
-      { label: 'Twitter / X', comingSoon: true },
-      { label: 'Discord', comingSoon: true },
-      { label: 'Telegram', comingSoon: true },
-      { label: 'Blog', comingSoon: true },
-    ],
-  };
-
   return (
     <footer className="bg-bg-card border-t border-border-subtle">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
-        <div className="grid grid-cols-1 md:grid-cols-6 gap-10 mb-12">
-          <div className="md:col-span-2">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-9 h-9 flex items-center justify-center" style={{ background: 'var(--color-text-primary)' }}>
-                <Zap size={18} style={{ color: 'var(--color-bg-base)' }} fill="var(--color-bg-base)" />
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <div className="flex flex-col md:flex-row items-start justify-between gap-6 mb-5">
+          <div>
+            <div className="flex items-center gap-2.5 mb-2">
+              <div className="w-7 h-7 flex items-center justify-center" style={{ background: 'var(--color-text-primary)' }}>
+                <Zap size={14} style={{ color: 'var(--color-bg-base)' }} fill="var(--color-bg-base)" />
               </div>
               <div>
-                <span className="font-mono font-bold text-text-primary text-lg leading-none uppercase tracking-wider">Entropy</span>
-                <div className="text-[10px] font-mono font-medium text-text-muted mt-0.5 uppercase tracking-wider">ɸ-net Testnet</div>
+                <span className="font-mono font-bold text-text-primary text-sm leading-none uppercase tracking-wider">Entropy</span>
+                <div className="text-[9px] font-mono font-medium text-text-muted mt-0.5 uppercase tracking-wider">ɸ-net Testnet</div>
               </div>
             </div>
-            <p className="text-text-muted text-sm leading-relaxed max-w-xs mb-6">
+            <p className="text-text-muted text-xs leading-relaxed max-w-xs">
               Permission-less. Immutable. Proof-of-Infinity. Lock ETH. Claim Flux. Build rockets. Win real ETH on-chain.
             </p>
-            <div className="flex items-center gap-2.5">
-              {[
-                { icon: <Twitter size={15} />, label: 'Twitter' },
-                { icon: <Github size={15} />, label: 'GitHub' },
-                { icon: <FileText size={15} />, label: 'Docs' },
-              ].map((social, i) => (
-                <span
-                  key={i}
-                  className="w-9 h-9 bg-bg-inset border border-border-default flex items-center justify-center text-text-muted/50 cursor-default"
-                  aria-label={`${social.label} (coming soon)`}
-                >
-                  {social.icon}
-                </span>
-              ))}
-            </div>
           </div>
 
-          {Object.entries(links).map(([category, items]) => (
-            <div key={category}>
-              <h4 className="font-mono font-bold text-text-secondary text-sm mb-4 uppercase tracking-wider">{category}</h4>
-              <ul className="space-y-2.5">
-                {items.map((item) => (
-                  <li key={item.label}>
-                    {item.comingSoon ? (
-                      <span className="text-text-muted/50 text-sm cursor-default">
-                        {item.label} <span className="text-[10px] font-mono uppercase tracking-wider">(Soon)</span>
-                      </span>
-                    ) : (
-                      <button
-                        onClick={item.action}
-                        className="text-text-muted hover:text-text-primary text-sm transition-colors duration-150"
-                      >
-                        {item.label}
-                      </button>
-                    )}
-                  </li>
-                ))}
+          <div className="flex gap-10">
+            <div>
+              <h4 className="font-mono font-bold text-text-secondary text-xs mb-2 uppercase tracking-wider">Apps</h4>
+              <ul className="space-y-1">
+                <li>
+                  <button onClick={() => onNavigate('gate')} className="text-text-muted hover:text-text-primary text-xs transition-colors duration-150">
+                    Gate
+                  </button>
+                </li>
+                <li>
+                  <button onClick={() => onNavigate('mystery')} className="text-text-muted hover:text-text-primary text-xs transition-colors duration-150">
+                    Vault
+                  </button>
+                </li>
+                <li>
+                  <button onClick={() => onNavigate('lab')} className="text-text-muted hover:text-text-primary text-xs transition-colors duration-150">
+                    Lab
+                  </button>
+                </li>
               </ul>
             </div>
-          ))}
+
+            <div>
+              <h4 className="font-mono font-bold text-text-secondary text-xs mb-2 uppercase tracking-wider">Fun</h4>
+              <ul className="space-y-1">
+                <li>
+                  <button onClick={() => onNavigate('mystery')} className="text-text-muted hover:text-text-primary text-xs transition-colors duration-150">
+                    Auction
+                  </button>
+                </li>
+                <li>
+                  <button onClick={() => onNavigate('leaderboard')} className="text-text-muted hover:text-text-primary text-xs transition-colors duration-150">
+                    Launch
+                  </button>
+                </li>
+                <li>
+                  <button onClick={() => onNavigate('leaderboard')} className="text-text-muted hover:text-text-primary text-xs transition-colors duration-150">
+                    Jackpot
+                  </button>
+                </li>
+              </ul>
+            </div>
+          </div>
         </div>
 
-        <div className="pt-8 border-t border-border-subtle flex flex-col sm:flex-row items-center justify-between gap-4">
-          <p className="text-text-muted text-sm font-mono">
+        <div className="pt-4 border-t border-border-subtle flex flex-col sm:flex-row items-center justify-between gap-3">
+          <p className="text-text-muted text-xs font-mono">
             © 2026 Entropy Protocol. This is a <b>Testnet</b> — not financial advice.
           </p>
           <button
@@ -110,7 +86,7 @@ export default function Footer({ onNavigate }: FooterProps) {
             aria-pressed={ambientFxEnabled}
           >
             <span
-              className="relative block h-3.5 w-3.5 border transition-all duration-200"
+              className="relative block h-2.5 w-2.5 border transition-all duration-200"
               style={{
                 background: ambientFxEnabled ? '#4ADE80' : 'var(--color-border-strong)',
                 borderColor: ambientFxEnabled ? 'rgba(74,222,128,0.45)' : 'var(--color-border-default)',
@@ -120,14 +96,14 @@ export default function Footer({ onNavigate }: FooterProps) {
               }}
             >
               <span
-                className="absolute inset-[3px] opacity-0 transition-all duration-200 group-hover:opacity-100"
+                className="absolute inset-[2px] opacity-0 transition-all duration-200 group-hover:opacity-100"
                 style={{
                   background: ambientFxEnabled ? 'rgba(6,8,15,0.55)' : 'rgba(248,250,252,0.55)',
                   transform: ambientFxEnabled ? 'translate(1px, -1px)' : 'translate(-1px, 1px)',
                 }}
               />
             </span>
-            <span className="text-sm font-mono font-medium text-text-muted">{`ɸ-net v${APP_VERSION} — SEASON 1 ACTIVE`}</span>
+            <span className="text-[10px] font-mono font-medium text-text-muted">{`ɸ-net v${APP_VERSION} — SEASON 1 ACTIVE`}</span>
           </button>
         </div>
       </div>

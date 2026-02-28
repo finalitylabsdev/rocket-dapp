@@ -9,9 +9,13 @@ import type { InventoryPart } from '../types/domain';
 import { NEBULA_BIDS_ENABLED, PREVIEW_READ_ONLY_ENABLED, STAR_VAULT_ENABLED } from '../config/flags';
 import { getPreviewInventory } from '../lib/launchPreview';
 
-export default function MysteryPage() {
+interface MysteryPageProps {
+  initialTab?: 'vault' | 'bids';
+}
+
+export default function MysteryPage({ initialTab }: MysteryPageProps) {
   const game = useGameState();
-  const [activeTab, setActiveTab] = useState<'vault' | 'bids'>(STAR_VAULT_ENABLED ? 'vault' : 'bids');
+  const [activeTab, setActiveTab] = useState<'vault' | 'bids'>(initialTab ?? (STAR_VAULT_ENABLED ? 'vault' : 'bids'));
   const [preferredAuctionPartId, setPreferredAuctionPartId] = useState<string | null>(null);
   const displayInventory = getPreviewInventory(game.inventory);
 
