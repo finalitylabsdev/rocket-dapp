@@ -188,14 +188,14 @@ export default function StatsPanel({
         )}
       </div>
 
-      <div className="p-5">
+      <div className="p-4">
         <button
           onClick={runPreviewGuardedAction('rocketLaunch', onLaunch)}
           disabled={launchAction.disabled}
           aria-disabled={launchAction['aria-disabled']}
           title={launchAction.title}
           data-click-denied={launchAction['data-click-denied']}
-          className="relative w-full px-5 py-4 font-mono font-black text-base transition-all duration-200 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed overflow-hidden flex items-center justify-center gap-2.5 uppercase tracking-widest"
+          className="relative w-full px-4 py-3 font-mono font-black text-sm transition-all duration-200 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed overflow-hidden flex items-center justify-center gap-2 uppercase tracking-widest"
           style={buttonDisabled ? {
             background: 'var(--color-bg-card)',
             color: 'var(--color-text-muted)',
@@ -206,17 +206,22 @@ export default function StatsPanel({
             border: '1px solid #F97316',
           }}
         >
-          {launching ? (
-            <div className="w-4 h-4 border-2 border-white/30 border-t-white animate-spin" />
-          ) : (
-            <Rocket size={24} style={{ color: buttonDisabled ? 'var(--color-text-muted)' : '#F97316' }} />
-          )}
-          {buttonLabel}
+          <span className="flex items-center gap-2">
+            {launching ? (
+              <div className="w-4 h-4 border-2 border-white/30 border-t-white animate-spin" />
+            ) : (
+              <Rocket size={22} strokeWidth={2.5} style={{ color: buttonDisabled ? 'var(--color-text-muted)' : '#F97316' }} />
+            )}
+            {buttonLabel}
+          </span>
           {!buttonDisabled && (
-            <span className="flex items-center gap-1 text-sm font-mono font-black ml-auto" style={{ color: '#F97316' }}>
-              <Fuel size={12} />
-              {formatFlux(metrics.fuelCost)}
-            </span>
+            <>
+              <span className="h-4 w-px mx-1" style={{ background: 'rgba(249,115,22,0.25)' }} />
+              <span className="flex items-center gap-1 text-sm font-mono font-black ml-auto" style={{ color: '#F97316' }}>
+                <Fuel size={13} strokeWidth={2.5} />
+                {formatFlux(metrics.fuelCost)}
+              </span>
+            </>
           )}
         </button>
       </div>

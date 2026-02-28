@@ -3,7 +3,6 @@ import { Gift, Gavel } from 'lucide-react';
 import VaultTab from '../components/mystery/VaultTab';
 import BidsTab from '../components/mystery/BidsTab';
 import InventoryPanel from '../components/mystery/InventoryPanel';
-import PreviewReadOnlyBanner from '../components/PreviewReadOnlyBanner';
 import { useGameState } from '../context/GameState';
 import type { InventoryPart } from '../types/domain';
 import { NEBULA_BIDS_ENABLED, PREVIEW_READ_ONLY_ENABLED, STAR_VAULT_ENABLED } from '../config/flags';
@@ -34,12 +33,6 @@ export default function MysteryPage({ initialTab }: MysteryPageProps) {
           <p className="text-text-secondary text-lg font-mono">
             Unbox rare finds, place your bids, and build your cosmic collection.
           </p>
-          {PREVIEW_READ_ONLY_ENABLED && (
-            <PreviewReadOnlyBanner
-              title="Preview Vault"
-              message="Live auction activity stays visible. Box openings, bids, and submissions are click-denied while this branch remains read-only."
-            />
-          )}
         </div>
 
         <div className="mb-6 flex gap-0 border border-border-subtle overflow-hidden">

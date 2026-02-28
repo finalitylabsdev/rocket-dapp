@@ -199,14 +199,6 @@ export default function BidsTab({
   return (
     <>
       <section className="space-y-6">
-        {readOnly && (
-          <div
-            className="p-4 font-mono text-sm"
-            style={{ background: '#1C1307', border: '1px solid rgba(245,158,11,0.28)', color: '#FCD34D' }}
-          >
-            Preview mode is browse-only. Live auction rounds and bid traffic stay visible, but your submissions and bids are click-denied.
-          </div>
-        )}
 
         {error && (
           <div className="p-4 font-mono text-sm" style={{ background: '#120B0B', border: '1px solid rgba(239,68,68,0.35)', color: '#FCA5A5' }}>

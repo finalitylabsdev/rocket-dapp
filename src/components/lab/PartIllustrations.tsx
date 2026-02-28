@@ -14,6 +14,18 @@ function getAccent(rarity: RarityTier, equipped: boolean) {
   return { primary: cfg.color, secondary: cfg.bg, highlight: cfg.border, glow: cfg.glow };
 }
 
+const ILLUSTRATION_CONTENT_TRANSFORM = 'translate(5.4 5.4) scale(0.85)';
+
+function IllustrationTile({ gradientId }: { gradientId: string }) {
+  return (
+    <>
+      <rect x="2" y="2" width="68" height="68" rx="13" fill={`url(#${gradientId})`} />
+      <rect x="2" y="2" width="68" height="68" rx="13" fill="white" fillOpacity="0.12" />
+      <rect x="2.5" y="2.5" width="67" height="67" rx="12.5" fill="none" stroke="white" strokeOpacity="0.05" />
+    </>
+  );
+}
+
 export function PulseEngineIllustration({ equipped, rarity, size = 72 }: IllustrationProps) {
   const a = getAccent(rarity, equipped);
   const s = size;
@@ -44,7 +56,8 @@ export function PulseEngineIllustration({ equipped, rarity, size = 72 }: Illustr
         </linearGradient>
       </defs>
 
-      <rect width="72" height="72" rx="14" fill="url(#pe-bg)" />
+      <IllustrationTile gradientId="pe-bg" />
+      <g transform={ILLUSTRATION_CONTENT_TRANSFORM}>
 
       {equipped && (
         <ellipse cx="36" cy="36" rx="28" ry="28"
@@ -96,6 +109,7 @@ export function PulseEngineIllustration({ equipped, rarity, size = 72 }: Illustr
 
       <line x1="12" y1="20" x2="22" y2="24" stroke="white" strokeWidth="0.5" strokeOpacity="0.15" strokeLinecap="round" />
       <line x1="18" y1="14" x2="22" y2="20" stroke="white" strokeWidth="0.4" strokeOpacity="0.1" strokeLinecap="round" />
+      </g>
     </svg>
   );
 }
@@ -125,7 +139,8 @@ export function NebulaTankIllustration({ equipped, rarity, size = 72 }: Illustra
         </linearGradient>
       </defs>
 
-      <rect width="72" height="72" rx="14" fill="url(#nt-bg)" />
+      <IllustrationTile gradientId="nt-bg" />
+      <g transform={ILLUSTRATION_CONTENT_TRANSFORM}>
 
       <rect x="22" y="8" width="28" height="4" rx="2" fill="url(#nt-body)" stroke="#3a4050" strokeWidth="0.8" />
       <rect x="20" y="12" width="32" height="48" rx="8" fill="url(#nt-body)" stroke="#3a4050" strokeWidth="1" />
@@ -163,6 +178,7 @@ export function NebulaTankIllustration({ equipped, rarity, size = 72 }: Illustra
           style={{ filter: 'blur(8px)' }}
         />
       )}
+      </g>
     </svg>
   );
 }
@@ -187,7 +203,8 @@ export function RadiationMantleIllustration({ equipped, rarity, size = 72 }: Ill
         </linearGradient>
       </defs>
 
-      <rect width="72" height="72" rx="14" fill="url(#rm-bg)" />
+      <IllustrationTile gradientId="rm-bg" />
+      <g transform={ILLUSTRATION_CONTENT_TRANSFORM}>
 
       <path d="M36 10 L58 20 L62 52 C62 62 50 66 36 68 C22 66 10 62 10 52 L14 20 Z"
         fill="url(#rm-panel)" stroke="#3a4055" strokeWidth="1" />
@@ -235,6 +252,7 @@ export function RadiationMantleIllustration({ equipped, rarity, size = 72 }: Ill
           style={{ filter: 'blur(4px)' }}
         />
       )}
+      </g>
     </svg>
   );
 }
@@ -259,7 +277,8 @@ export function SolarWingsIllustration({ equipped, rarity, size = 72 }: Illustra
         </linearGradient>
       </defs>
 
-      <rect width="72" height="72" rx="14" fill="url(#sw-bg)" />
+      <IllustrationTile gradientId="sw-bg" />
+      <g transform={ILLUSTRATION_CONTENT_TRANSFORM}>
 
       <path d="M36 32 L8 16 L6 24 L26 36 L6 48 L8 56 L36 40 Z"
         fill="url(#sw-panel)" stroke="#3a4055" strokeWidth="1" />
@@ -300,6 +319,7 @@ export function SolarWingsIllustration({ equipped, rarity, size = 72 }: Illustra
           />
         </>
       )}
+      </g>
     </svg>
   );
 }
@@ -323,7 +343,8 @@ export function IonArrayIllustration({ equipped, rarity, size = 72 }: Illustrati
         </radialGradient>
       </defs>
 
-      <rect width="72" height="72" rx="14" fill="url(#ia-bg)" />
+      <IllustrationTile gradientId="ia-bg" />
+      <g transform={ILLUSTRATION_CONTENT_TRANSFORM}>
 
       <rect x="14" y="12" width="44" height="28" rx="5"
         fill="url(#ia-body)" stroke="#3a4050" strokeWidth="1" />
@@ -373,6 +394,7 @@ export function IonArrayIllustration({ equipped, rarity, size = 72 }: Illustrati
       )}
 
       <rect x="16" y="14" width="8" height="26" rx="2" fill="white" fillOpacity="0.04" />
+      </g>
     </svg>
   );
 }
@@ -397,7 +419,8 @@ export function NovaThrusterIllustration({ equipped, rarity, size = 72 }: Illust
         </radialGradient>
       </defs>
 
-      <rect width="72" height="72" rx="14" fill="url(#nt2-bg)" />
+      <IllustrationTile gradientId="nt2-bg" />
+      <g transform={ILLUSTRATION_CONTENT_TRANSFORM}>
 
       <path d="M36 8 L46 14 L42 52 L30 52 L26 14 Z"
         fill="url(#nt2-cone)" stroke="#3a4050" strokeWidth="1" />
@@ -437,6 +460,7 @@ export function NovaThrusterIllustration({ equipped, rarity, size = 72 }: Illust
           style={{ filter: 'blur(5px)' }}
         />
       )}
+      </g>
     </svg>
   );
 }
@@ -460,7 +484,8 @@ export function ImpactFieldIllustration({ equipped, rarity, size = 72 }: Illustr
         </linearGradient>
       </defs>
 
-      <rect width="72" height="72" rx="14" fill="url(#if-bg)" />
+      <IllustrationTile gradientId="if-bg" />
+      <g transform={ILLUSTRATION_CONTENT_TRANSFORM}>
 
       {equipped && (
         <circle cx="36" cy="36" r="26"
@@ -506,6 +531,7 @@ export function ImpactFieldIllustration({ equipped, rarity, size = 72 }: Illustr
           fillOpacity="0.5"
         />
       )}
+      </g>
     </svg>
   );
 }
@@ -530,7 +556,8 @@ export function AstroGyroIllustration({ equipped, rarity, size = 72 }: Illustrat
         </linearGradient>
       </defs>
 
-      <rect width="72" height="72" rx="14" fill="url(#ag-bg)" />
+      <IllustrationTile gradientId="ag-bg" />
+      <g transform={ILLUSTRATION_CONTENT_TRANSFORM}>
 
       {equipped && (
         <circle cx="36" cy="36" r="24"
@@ -587,6 +614,7 @@ export function AstroGyroIllustration({ equipped, rarity, size = 72 }: Illustrat
           />
         );
       })}
+      </g>
     </svg>
   );
 }
@@ -610,7 +638,8 @@ export function PhotonSailsIllustration({ equipped, rarity, size = 72 }: Illustr
         </linearGradient>
       </defs>
 
-      <rect width="72" height="72" rx="14" fill="url(#ps-bg)" />
+      <IllustrationTile gradientId="ps-bg" />
+      <g transform={ILLUSTRATION_CONTENT_TRANSFORM}>
 
       <path d="M36 8 C28 14 12 18 8 36 C12 54 28 58 36 64 C44 58 60 54 64 36 C60 18 44 14 36 8 Z"
         fill="url(#ps-sail)" stroke="#3a4050" strokeWidth="1" />
@@ -660,6 +689,7 @@ export function PhotonSailsIllustration({ equipped, rarity, size = 72 }: Illustr
         fill={equipped ? a.primary : '#2a2f3d'}
         fillOpacity={equipped ? 0.9 : 0.2}
       />
+      </g>
     </svg>
   );
 }
@@ -683,7 +713,8 @@ export function StarFiberIllustration({ equipped, rarity, size = 72 }: Illustrat
         </linearGradient>
       </defs>
 
-      <rect width="72" height="72" rx="14" fill="url(#sf-bg)" />
+      <IllustrationTile gradientId="sf-bg" />
+      <g transform={ILLUSTRATION_CONTENT_TRANSFORM}>
 
       {[
         { x1: 18, y1: 10, x2: 28, y2: 62, w: 3 },
@@ -732,6 +763,7 @@ export function StarFiberIllustration({ equipped, rarity, size = 72 }: Illustrat
       <rect x="16" y="56" width="40" height="8" rx="4"
         fill="url(#sf-sleeve)" stroke="#3a4050" strokeWidth="0.8"
       />
+      </g>
     </svg>
   );
 }
