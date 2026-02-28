@@ -8,7 +8,6 @@ import { getPreviewActionButtonProps, runPreviewGuardedAction } from '../../lib/
 import { formatStarVaultError, openMysteryBox } from '../../lib/starVault';
 import type { BoxTierConfig, InventoryPart } from '../../types/domain';
 import BoxIllustration, { type BoxAnimationState } from './BoxIllustration';
-import { SectionGlyph } from './metadataVisuals';
 import {
   APP3_INSET_STYLE,
   APP3_PANEL_STYLE,
@@ -169,11 +168,12 @@ export default function BoxCard({
 
       <div className="p-5 flex-1 flex flex-col">
         <div className="flex items-start justify-between mb-4 gap-3 min-h-[7.5rem]">
-          <div>
+          <div className="min-w-0 flex-1">
             <RarityBadge tier={tier.rarity} />
             <h3
-              className="mt-2 font-mono font-black text-lg leading-none uppercase tracking-wider"
+              className="mt-2 truncate whitespace-nowrap font-mono font-black text-lg leading-none uppercase tracking-wider"
               style={{ color: state === 'revealed' ? revealCfg.color : 'var(--color-text-primary)' }}
+              title={tier.name}
             >
               {tier.name}
             </h3>
@@ -219,38 +219,35 @@ export default function BoxCard({
             <p className="text-[10px] font-mono font-semibold uppercase tracking-wider text-text-muted">
               {readOnly ? 'Preview Reveal' : 'You Received'}
             </p>
-            <div className="mt-3 flex items-start gap-3">
-              {reward.illustration?.url && (
-                <SectionGlyph asset={reward.illustration} fallbackKey={reward.slot} size="sm" />
+            <p
+              className="mt-3 truncate whitespace-nowrap font-mono font-black text-lg uppercase"
+              style={{ color: getRarityConfig(reward.rarity).color }}
+              title={reward.name}
+            >
+              {reward.name}
+            </p>
+            <div className="mt-2 flex flex-wrap items-center gap-2">
+              <RarityBadge tier={reward.rarity} size="xs" />
+              <span
+                className="inline-flex items-center rounded-full px-2 py-0.5 text-[9px] font-mono font-semibold uppercase tracking-[0.16em]"
+                style={{ background: 'rgba(15,23,42,0.65)', color: '#E2E8F0', border: '1px solid rgba(148,163,184,0.2)' }}
+              >
+                {reward.sectionName}
+              </span>
+              <span
+                className="inline-flex items-center rounded-full px-2 py-0.5 text-[9px] font-mono font-semibold uppercase tracking-[0.16em]"
+                style={{ background: 'rgba(15,23,42,0.58)', color: '#E2E8F0', border: '1px solid rgba(148,163,184,0.18)' }}
+              >
+                #{(reward.serialNumber ?? 0).toString().padStart(6, '0')}
+              </span>
+              {reward.isShiny && (
+                <span
+                  className="inline-flex items-center rounded-full px-2 py-0.5 text-[9px] font-mono font-semibold uppercase tracking-[0.16em]"
+                  style={{ background: 'rgba(245,158,11,0.12)', color: '#FCD34D', border: '1px solid rgba(245,158,11,0.28)' }}
+                >
+                  Shiny
+                </span>
               )}
-              <div className="min-w-0 flex-1">
-                <p className="font-mono font-black text-lg uppercase" style={{ color: getRarityConfig(reward.rarity).color }}>
-                  {reward.name}
-                </p>
-                <div className="mt-2 flex flex-wrap items-center gap-2">
-                  <RarityBadge tier={reward.rarity} size="xs" />
-                  <span
-                    className="inline-flex items-center rounded-full px-2 py-0.5 text-[9px] font-mono font-semibold uppercase tracking-[0.16em]"
-                    style={{ background: 'rgba(15,23,42,0.65)', color: '#E2E8F0', border: '1px solid rgba(148,163,184,0.2)' }}
-                  >
-                    {reward.sectionName}
-                  </span>
-                  <span
-                    className="inline-flex items-center rounded-full px-2 py-0.5 text-[9px] font-mono font-semibold uppercase tracking-[0.16em]"
-                    style={{ background: 'rgba(15,23,42,0.58)', color: '#E2E8F0', border: '1px solid rgba(148,163,184,0.18)' }}
-                  >
-                    #{(reward.serialNumber ?? 0).toString().padStart(6, '0')}
-                  </span>
-                  {reward.isShiny && (
-                    <span
-                      className="inline-flex items-center rounded-full px-2 py-0.5 text-[9px] font-mono font-semibold uppercase tracking-[0.16em]"
-                      style={{ background: 'rgba(245,158,11,0.12)', color: '#FCD34D', border: '1px solid rgba(245,158,11,0.28)' }}
-                    >
-                      Shiny
-                    </span>
-                  )}
-                </div>
-              </div>
             </div>
             <AttributeBars part={reward} />
             <div className="mt-3 grid grid-cols-2 gap-2 text-xs font-mono">
@@ -269,12 +266,12 @@ export default function BoxCard({
             </div>
           </div>
         ) : (
-          <div className="mb-4 flex-1">
-            <p className="text-[10px] font-mono font-bold mb-2 uppercase tracking-widest text-text-muted">
+          <div className="mb-4 flex-1 p-4 flex flex-col justify-center" style={APP3_INSET_STYLE}>
+            <p className="text-[10px] font-mono font-bold mb-3 uppercase tracking-widest text-text-muted">
               Possible Drops
             </p>
             {tier.rewards.length === 0 ? (
-              <div className="p-3 text-[11px] font-mono" style={{ ...APP3_INSET_STYLE, ...APP3_TEXT_SECONDARY_STYLE }}>
+              <div className="text-[11px] font-mono" style={APP3_TEXT_SECONDARY_STYLE}>
                 Reward metadata is unavailable for this box tier.
               </div>
             ) : (

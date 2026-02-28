@@ -343,7 +343,7 @@ const ONBOARD_STYLE_OVERRIDES = `
 
   .container:has(> .connecting-container) > .onboard-button-primary {
     position: static !important;
-    grid-column: 2 !important;
+    grid-column: 1 / -1 !important;
     justify-self: start !important;
     align-self: start !important;
     margin: 0 !important;
@@ -352,21 +352,21 @@ const ONBOARD_STYLE_OVERRIDES = `
 
   .connecting-container {
     background:
-      linear-gradient(180deg, rgba(12, 16, 24, 0.96), rgba(6, 8, 15, 0.98)) !important;
-    border: 1px solid rgba(74, 222, 128, 0.22) !important;
+      linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(247, 248, 250, 0.98)) !important;
+    border: 1px solid var(--w3o-border-color, #BFC3CC) !important;
     border-radius: 0 !important;
-    color: var(--w3o-text-color, #E8ECF4) !important;
+    color: var(--w3o-text-color, #111318) !important;
   }
 
   .connecting-container.warning {
     background:
-      linear-gradient(180deg, rgba(31, 24, 8, 0.96), rgba(18, 14, 6, 0.98)) !important;
+      linear-gradient(180deg, rgba(255, 251, 235, 0.98), rgba(254, 243, 199, 0.96)) !important;
     border-color: rgba(245, 158, 11, 0.28) !important;
-    color: var(--w3o-text-color, #E8ECF4) !important;
+    color: var(--w3o-text-color, #111318) !important;
   }
 
   .connecting-container .text {
-    color: var(--w3o-text-color, #E8ECF4) !important;
+    color: var(--w3o-text-color, #111318) !important;
     font-size: 1rem !important;
     font-weight: 700 !important;
     line-height: 1.25 !important;
@@ -374,7 +374,7 @@ const ONBOARD_STYLE_OVERRIDES = `
   }
 
   .connecting-container .subtext {
-    color: #A7B2C8 !important;
+    color: var(--color-text-secondary, #4A4F5C) !important;
     font-size: 0.875rem !important;
     font-weight: 500 !important;
     line-height: 1.45 !important;
@@ -386,9 +386,9 @@ const ONBOARD_STYLE_OVERRIDES = `
   }
 
   .onboard-button-primary {
-    background: rgba(6, 8, 15, 0.92) !important;
-    color: #4ADE80 !important;
-    border: 1px solid rgba(74, 222, 128, 0.24) !important;
+    background: var(--w3o-foreground-color, rgba(255, 255, 255, 0.98)) !important;
+    color: var(--w3o-action-color, #22C55E) !important;
+    border: 1px solid var(--w3o-border-color, #BFC3CC) !important;
     border-radius: 0 !important;
     display: inline-flex !important;
     box-shadow: none !important;
@@ -401,9 +401,9 @@ const ONBOARD_STYLE_OVERRIDES = `
   }
 
   .onboard-button-primary:hover {
-    background: rgba(74, 222, 128, 0.08) !important;
-    border-color: #4ADE80 !important;
-    color: #6EE7A0 !important;
+    background: rgba(34, 197, 94, 0.06) !important;
+    border-color: rgba(34, 197, 94, 0.28) !important;
+    color: var(--w3o-action-color, #22C55E) !important;
   }
 
   .close-button {

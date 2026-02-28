@@ -80,12 +80,15 @@ export function SectionGlyph({ asset, fallbackKey, size = 'md' }: SectionGlyphPr
         </>
       ) : (
         <div className="absolute inset-0 flex items-center justify-center">
-          <span
-            className="font-mono font-black tracking-[0.22em]"
-            style={{ fontSize, color: '#E2E8F0' }}
-          >
-            ??
-          </span>
+          <div
+            className="rounded-full"
+            style={{
+              width: size === 'sm' ? 6 : 8,
+              height: size === 'sm' ? 6 : 8,
+              background: 'rgba(226,232,240,0.55)',
+              boxShadow: '0 0 12px rgba(226,232,240,0.18)',
+            }}
+          />
         </div>
       )}
 

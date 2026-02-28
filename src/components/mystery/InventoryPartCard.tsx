@@ -81,6 +81,18 @@ export default function InventoryPartCard({
   const renderKeyLabel = formatMetadataKey(part.illustration?.key ?? part.slot);
   const showRenderKeyPill = renderKeyLabel !== slotKeyLabel;
   const partStatus = part.isLocked ? 'Locked' : part.isEquipped ? 'Equipped' : 'Ready';
+  const useCompactStatusPill = partStatus.length > 6;
+  const statusPillSizing = useCompactStatusPill
+    ? {
+        padding: '0.25rem 0.5625rem',
+        fontSize: '0.5rem',
+        letterSpacing: '0.08em',
+      }
+    : {
+        padding: '0.125rem 0.5rem',
+        fontSize: '0.625rem',
+        letterSpacing: '0.16em',
+      };
   const partStatusStyle = part.isLocked
     ? { background: 'rgba(239,68,68,0.08)', color: '#FCA5A5', border: '1px solid rgba(239,68,68,0.22)' }
     : part.isEquipped
@@ -133,8 +145,14 @@ export default function InventoryPartCard({
             )}
             {part.isEquipped && (
               <span
-                className="inline-flex items-center rounded-full px-2 py-0.5 text-[9px] font-mono font-semibold uppercase tracking-[0.16em]"
-                style={{ background: 'rgba(59,130,246,0.08)', color: '#93C5FD', border: '1px solid rgba(59,130,246,0.24)' }}
+                className="inline-flex items-center rounded-full font-mono font-semibold uppercase whitespace-nowrap"
+                style={{
+                  background: 'rgba(59,130,246,0.08)',
+                  color: '#93C5FD',
+                  border: '1px solid rgba(59,130,246,0.24)',
+                  lineHeight: 1,
+                  ...statusPillSizing,
+                }}
               >
                 Equipped
               </span>
@@ -181,24 +199,30 @@ export default function InventoryPartCard({
       </div>
 
       <div className="mt-3 grid grid-cols-3 gap-2">
-        <div className="p-2" style={APP3_INSET_STYLE}>
+        <div className="p-2 flex flex-col" style={APP3_INSET_STYLE}>
           <p className="text-[9px] font-mono uppercase tracking-[0.16em]" style={APP3_TEXT_SECONDARY_STYLE}>Total Power</p>
-          <p className="mt-2 font-mono font-bold text-sm" style={APP3_TEXT_PRIMARY_STYLE}>
+          <p className="mt-auto pt-2 font-mono font-bold text-sm" style={APP3_TEXT_PRIMARY_STYLE}>
             {part.totalPower}
           </p>
         </div>
-        <div className="p-2" style={APP3_INSET_STYLE}>
+        <div className="p-2 flex flex-col" style={APP3_INSET_STYLE}>
           <p className="text-[9px] font-mono uppercase tracking-[0.16em]" style={APP3_TEXT_SECONDARY_STYLE}>Value</p>
-          <p className="mt-2 flex items-center gap-1 font-mono font-bold text-sm" style={APP3_TEXT_PRIMARY_STYLE}>
+          <p className="mt-auto pt-2 flex items-center gap-1 font-mono font-bold text-sm" style={APP3_TEXT_PRIMARY_STYLE}>
             <PhiSymbol size={10} color="currentColor" />
             {formatFluxValue(part.partValue)}
           </p>
         </div>
-        <div className="p-2" style={APP3_INSET_STYLE}>
+        <div className="p-2 flex flex-col" style={APP3_INSET_STYLE}>
           <p className="text-[9px] font-mono uppercase tracking-[0.16em]" style={APP3_TEXT_SECONDARY_STYLE}>Status</p>
           <p
-            className="mt-2 inline-flex rounded-full px-2 py-0.5 font-mono font-bold text-[10px] uppercase tracking-[0.16em]"
-            style={partStatusStyle}
+            className="mt-auto inline-flex max-w-full self-start rounded-full font-mono font-bold uppercase"
+            style={{
+              ...partStatusStyle,
+              marginTop: 'auto',
+              whiteSpace: 'nowrap',
+              lineHeight: 1,
+              ...statusPillSizing,
+            }}
           >
             {partStatus}
           </p>
