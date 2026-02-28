@@ -8,6 +8,7 @@ import {
 } from 'react';
 import {
   type InventoryPart,
+  type RocketSection,
 } from '../types/domain';
 import {
   EFFECTIVE_DAILY_CLAIM_FLUX,
@@ -23,6 +24,7 @@ import {
   type FluxBalance,
 } from '../lib/flux';
 import { formatStarVaultError, getUserInventory } from '../lib/starVault';
+import { setRocketLoadoutPart as persistRocketLoadoutPart } from '../lib/rocketLoadout';
 import { supabase } from '../lib/supabase';
 import { useWallet } from '../hooks/useWallet';
 
@@ -62,6 +64,7 @@ interface GameState {
   addPart: (part: InventoryPart) => void;
   replaceInventory: (inventory: InventoryPart[]) => void;
   refreshInventory: () => Promise<void>;
+  setRocketLoadoutPart: (section: RocketSection, partId: string | null) => Promise<InventoryPart[]>;
   applyServerSnapshot: (snapshot: ServerSnapshot) => void;
 }
 
@@ -313,6 +316,29 @@ export function GameStateProvider({ children }: { children: ReactNode }) {
     }));
   }, []);
 
+  const setRocketLoadoutPart = useCallback(async (
+    section: RocketSection,
+    partId: string | null,
+  ) => {
+    if (!wallet.address) {
+      throw new Error('Connect a wallet to edit the Rocket Lab loadout.');
+    }
+
+    setIsInventorySyncing(true);
+
+    try {
+      const inventory = await persistRocketLoadoutPart(wallet.address, section, partId);
+      replaceInventory(inventory);
+      return inventory;
+    } catch (error) {
+      const message = formatStarVaultError(error, 'Failed to update the Rocket Lab loadout.');
+      console.error('Failed to update Rocket Lab loadout:', message);
+      throw new Error(message);
+    } finally {
+      setIsInventorySyncing(false);
+    }
+  }, [replaceInventory, wallet.address]);
+
   return (
     <GameStateContext.Provider
       value={{
@@ -327,6 +353,7 @@ export function GameStateProvider({ children }: { children: ReactNode }) {
         addPart,
         replaceInventory,
         refreshInventory,
+        setRocketLoadoutPart,
         applyServerSnapshot,
       }}
     >

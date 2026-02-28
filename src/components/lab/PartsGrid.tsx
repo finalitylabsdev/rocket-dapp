@@ -2,18 +2,20 @@ import RarityBadge, { getRarityConfig } from '../brand/RarityBadge';
 import PhiSymbol from '../brand/PhiSymbol';
 import { SectionIllustration } from './PartIllustrations';
 import { type RocketLabSlotView, type RocketLabSlots } from './rocketLabAdapter';
-import { ROCKET_SECTIONS } from '../../types/domain';
+import { ROCKET_SECTIONS, type RocketSection } from '../../types/domain';
 
 interface PartsGridProps {
   slots: RocketLabSlots;
   isSyncing: boolean;
+  loadoutError?: string | null;
+  onSelectPart: (section: RocketSection, partId: string | null) => void;
 }
 
 function getSlotStatusCopy(slot: RocketLabSlotView) {
   if (slot.status === 'ready') {
     return {
-      label: 'Ready',
-      summary: 'Using the best unlocked inventory part for this slot.',
+      label: 'Equipped',
+      summary: 'This saved part is armed for the next launch.',
       border: slot.part ? getRarityConfig(slot.part.rarity).color : '#4ADE80',
       accent: slot.part ? getRarityConfig(slot.part.rarity).bg : 'rgba(74,222,128,0.08)',
       text: slot.part ? getRarityConfig(slot.part.rarity).color : '#4ADE80',
@@ -21,12 +23,27 @@ function getSlotStatusCopy(slot: RocketLabSlotView) {
   }
 
   if (slot.status === 'locked') {
+    const hasReplacement = slot.availableCount > 0;
     return {
-      label: 'Auction-Locked',
-      summary: 'A part exists here, but it is locked and excluded from the simulated build.',
+      label: 'Locked',
+      summary: slot.part?.isEquipped
+        ? hasReplacement
+          ? 'The saved part is locked. Equip an unlocked replacement to restore this slot.'
+          : 'The saved part is locked and no unlocked replacement is available yet.'
+        : 'Only locked inventory exists for this slot right now.',
       border: '#F59E0B',
       accent: 'rgba(245,158,11,0.08)',
       text: '#F59E0B',
+    };
+  }
+
+  if (slot.status === 'unassigned') {
+    return {
+      label: 'Unassigned',
+      summary: 'Choose one unlocked part to add this slot to the saved launch loadout.',
+      border: '#38BDF8',
+      accent: 'rgba(56,189,248,0.08)',
+      text: '#38BDF8',
     };
   }
 
@@ -39,10 +56,38 @@ function getSlotStatusCopy(slot: RocketLabSlotView) {
   };
 }
 
-function SlotCard({ slot }: { slot: RocketLabSlotView }) {
+function formatPartOptionLabel(slot: RocketLabSlotView, partId: string) {
+  const candidate = slot.availableParts.find((part) => part.id === partId);
+  if (!candidate) {
+    return 'Unknown Part';
+  }
+
+  return `${candidate.name} · P${candidate.power} · ${candidate.partValue.toFixed(2)} FLUX`;
+}
+
+function getSelectedValue(slot: RocketLabSlotView) {
+  if (!slot.part || slot.part.isLocked) {
+    return '';
+  }
+
+  return slot.availableParts.some((candidate) => candidate.id === slot.part?.id)
+    ? slot.part.id
+    : '';
+}
+
+function SlotCard({
+  slot,
+  isSyncing,
+  onSelectPart,
+}: {
+  slot: RocketLabSlotView;
+  isSyncing: boolean;
+  onSelectPart: (section: RocketSection, partId: string | null) => void;
+}) {
   const status = getSlotStatusCopy(slot);
   const part = slot.part;
   const rarity = part?.rarity ?? 'Common';
+  const selectedValue = getSelectedValue(slot);
 
   return (
     <div
@@ -118,6 +163,50 @@ function SlotCard({ slot }: { slot: RocketLabSlotView }) {
           </p>
         </div>
 
+        {slot.availableParts.length > 0 && (
+          <div
+            className="mb-3 px-2.5 py-2"
+            style={{
+              background: 'var(--color-bg-card)',
+              border: '1px solid var(--color-border-subtle)',
+            }}
+          >
+            <div className="flex items-center justify-between gap-2">
+              <span className="font-mono text-[10px] uppercase tracking-[0.16em] text-text-muted">
+                Slot Assignment
+              </span>
+              <span className="font-mono text-[10px] uppercase tracking-[0.16em] text-text-muted">
+                {slot.availableParts.length} selectable
+              </span>
+            </div>
+            <select
+              value={selectedValue}
+              disabled={isSyncing}
+              onChange={(event) => {
+                const nextPartId = event.target.value.trim();
+                onSelectPart(slot.section, nextPartId.length > 0 ? nextPartId : null);
+              }}
+              className="mt-2 w-full bg-transparent px-2.5 py-2 font-mono text-[11px] text-text-primary disabled:opacity-60"
+              style={{
+                border: '1px solid var(--color-border-subtle)',
+                background: 'var(--color-bg-base)',
+              }}
+            >
+              <option value="">
+                {slot.status === 'ready' ? 'Unequip this slot' : 'Select an unlocked part'}
+              </option>
+              {slot.availableParts.map((candidate) => (
+                <option key={candidate.id} value={candidate.id}>
+                  {formatPartOptionLabel(slot, candidate.id)}
+                </option>
+              ))}
+            </select>
+            <p className="mt-2 text-[10px] leading-relaxed font-mono text-text-muted">
+              Launches only use parts saved here. Locked parts cannot be equipped.
+            </p>
+          </div>
+        )}
+
         {part ? (
           <>
             <div className="space-y-2">
@@ -172,7 +261,7 @@ function SlotCard({ slot }: { slot: RocketLabSlotView }) {
   );
 }
 
-export default function PartsGrid({ slots, isSyncing }: PartsGridProps) {
+export default function PartsGrid({ slots, isSyncing, loadoutError = null, onSelectPart }: PartsGridProps) {
   const readyCount = ROCKET_SECTIONS.reduce(
     (count, section) => count + (slots[section].status === 'ready' ? 1 : 0),
     0,
@@ -181,26 +270,44 @@ export default function PartsGrid({ slots, isSyncing }: PartsGridProps) {
     (count, section) => count + (slots[section].status === 'locked' ? 1 : 0),
     0,
   );
+  const unassignedCount = ROCKET_SECTIONS.reduce(
+    (count, section) => count + (slots[section].status === 'unassigned' ? 1 : 0),
+    0,
+  );
 
   return (
     <div>
       <div className="mb-5 flex items-center justify-between gap-4">
         <div>
           <p className="font-mono font-bold text-base uppercase tracking-wider text-text-primary">
-            Canonical Inventory Adapter
+            Saved Rocket Loadout
           </p>
           <p className="mt-0.5 text-xs font-mono text-text-muted">
             {isSyncing
-              ? 'Syncing GameState.inventory into the 8-slot compatibility view…'
-              : `${readyCount}/${ROCKET_SECTIONS.length} launch-ready · ${lockedCount} auction-locked`}
+              ? 'Saving slot assignments…'
+              : `${readyCount}/${ROCKET_SECTIONS.length} equipped · ${unassignedCount} unassigned · ${lockedCount} locked`}
           </p>
         </div>
-        <span className="tag text-[10px]">Read-Only</span>
+        <span className="tag text-[10px]">Editable</span>
       </div>
+
+      {loadoutError && (
+        <div
+          className="mb-4 px-3 py-2"
+          style={{ background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)' }}
+        >
+          <p className="text-xs font-mono text-red-400">{loadoutError}</p>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
         {ROCKET_SECTIONS.map((section) => (
-          <SlotCard key={section} slot={slots[section]} />
+          <SlotCard
+            key={section}
+            slot={slots[section]}
+            isSyncing={isSyncing}
+            onSelectPart={onSelectPart}
+          />
         ))}
       </div>
     </div>

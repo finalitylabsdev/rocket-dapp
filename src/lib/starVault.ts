@@ -273,6 +273,14 @@ function normalizeInventoryPart(payload: InventoryPartPayload): InventoryPart {
   };
 }
 
+export function normalizeInventoryParts(data: unknown): InventoryPart[] {
+  if (!Array.isArray(data)) {
+    return [];
+  }
+
+  return data.map((entry) => normalizeInventoryPart(entry as InventoryPartPayload));
+}
+
 async function fetchCatalogFromSource(): Promise<StarVaultCatalog> {
   assertSupabaseConfigured(supabase);
 
@@ -392,11 +400,7 @@ export async function getUserInventory(
     throw new Error(toFriendlyStarVaultError(error.message, 'Failed to load inventory.'));
   }
 
-  if (!Array.isArray(data)) {
-    return [];
-  }
-
-  return data.map((entry) => normalizeInventoryPart(entry as InventoryPartPayload));
+  return normalizeInventoryParts(data);
 }
 
 export function formatStarVaultError(error: unknown, fallback: string): string {

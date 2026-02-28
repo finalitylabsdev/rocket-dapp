@@ -67,7 +67,7 @@ export default function StatsPanel({ metrics, model, onLaunch, launching, launch
             <div>
               <p className="font-mono font-bold text-sm uppercase tracking-wider text-text-primary">Launch Readout</p>
               <p className="font-mono text-[11px] text-text-muted">
-                {metrics.readySlots}/{metrics.totalSlots} canonical slots ready
+                {metrics.readySlots}/{metrics.totalSlots} equipped and launch-ready
               </p>
             </div>
           </div>
@@ -111,8 +111,8 @@ export default function StatsPanel({ metrics, model, onLaunch, launching, launch
               value: String(metrics.lockedSlots),
             },
             {
-              label: 'Missing',
-              value: String(metrics.missingSlots),
+              label: 'Open',
+              value: String(metrics.unassignedSlots + metrics.missingSlots),
             },
             {
               label: 'Base GS',
@@ -166,8 +166,8 @@ export default function StatsPanel({ metrics, model, onLaunch, launching, launch
         {!metrics.canLaunch && (
           <p className="text-center text-xs font-mono mb-3 text-text-muted">
             {metrics.lockedSlots > 0
-              ? 'Resolve auction locks and fill all 8 slots to launch.'
-              : 'All 8 canonical slots must be filled before launching.'}
+              ? 'Replace any locked equipped parts and fill all 8 slots before launching.'
+              : 'Equip one unlocked part in every slot before launching.'}
           </p>
         )}
 

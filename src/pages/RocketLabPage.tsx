@@ -18,6 +18,7 @@ import {
   type LaunchHistoryEntry,
 } from '../lib/rocketLaunch';
 import { useWallet } from '../hooks/useWallet';
+import type { RocketSection } from '../types/domain';
 
 interface LaunchSequenceResult {
   score: number;
@@ -28,28 +29,30 @@ interface LaunchSequenceResult {
 export default function RocketLabPage() {
   const selectedModel = 'standard' as const;
   const wallet = useWallet();
-  const { inventory, isInventorySyncing, fluxBalance, applyServerSnapshot } = useGameState();
+  const {
+    inventory,
+    isInventorySyncing,
+    fluxBalance,
+    applyServerSnapshot,
+    setRocketLoadoutPart,
+  } = useGameState();
   const [history, setHistory] = useState<LaunchHistoryEntry[]>([]);
   const [launching, setLaunching] = useState(false);
   const [showSequence, setShowSequence] = useState(false);
   const [launchResult, setLaunchResult] = useState<LaunchSequenceResult | null>(null);
   const [launchPower, setLaunchPower] = useState(0);
   const [launchError, setLaunchError] = useState<string | null>(null);
+  const [loadoutError, setLoadoutError] = useState<string | null>(null);
 
   const launchPromiseRef = useRef<Promise<LaunchResult> | null>(null);
 
   const slots = buildRocketLabSlots(inventory);
   const metrics = computeRocketLabMetrics(slots, selectedModel);
 
-  const totalPartValue = inventory
-    .filter((part) => !part.isLocked)
-    .reduce((sum, part) => {
-      const slotView = slots[part.slot];
-      if (slotView?.status === 'ready' && slotView.part?.id === part.id) {
-        return sum + part.partValue;
-      }
-      return sum;
-    }, 0);
+  const totalPartValue = Object.values(slots).reduce(
+    (sum, slot) => sum + (slot.status === 'ready' ? slot.part?.partValue ?? 0 : 0),
+    0,
+  );
 
   const launchFee = Math.round(totalPartValue * LAUNCH_FEE_RATE * 100) / 100;
 
@@ -57,6 +60,8 @@ export default function RocketLabPage() {
   useEffect(() => {
     if (!wallet.address) {
       setHistory([]);
+      setLoadoutError(null);
+      setLaunchError(null);
       return;
     }
 
@@ -76,6 +81,19 @@ export default function RocketLabPage() {
       cancelled = true;
     };
   }, [wallet.address]);
+
+  const handleSetLoadoutPart = useCallback((section: RocketSection, partId: string | null) => {
+    if (launching) {
+      return;
+    }
+
+    setLoadoutError(null);
+    setLaunchError(null);
+
+    void setRocketLoadoutPart(section, partId).catch((error) => {
+      setLoadoutError(error instanceof Error ? error.message : 'Failed to update the Rocket Lab loadout.');
+    });
+  }, [launching, setRocketLoadoutPart]);
 
   const handleLaunch = useCallback(() => {
     if (launching || !metrics.canLaunch || !wallet.address) {
@@ -208,6 +226,8 @@ export default function RocketLabPage() {
               <PartsGrid
                 slots={slots}
                 isSyncing={isInventorySyncing}
+                loadoutError={loadoutError}
+                onSelectPart={handleSetLoadoutPart}
               />
             </div>
 
@@ -226,7 +246,7 @@ export default function RocketLabPage() {
                 <p className="font-mono text-xs font-bold mb-3 uppercase tracking-widest text-text-muted">LAUNCH HISTORY</p>
                 {history.length === 0 ? (
                   <p className="text-xs py-2 font-mono text-text-muted">
-                    No launches yet. Fill all 8 unlocked slots to launch.
+                    No launches yet. Equip all 8 unlocked slots to launch.
                   </p>
                 ) : (
                   history.slice(0, 5).map((entry, index) => (

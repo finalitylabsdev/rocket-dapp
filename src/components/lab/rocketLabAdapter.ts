@@ -1,7 +1,7 @@
 import { ROCKET_SECTIONS, type InventoryPart, type RocketSection } from '../../types/domain';
 import { ROCKET_MODELS, type RocketModelId } from './RocketModels';
 
-export type RocketLabSlotStatus = 'ready' | 'locked' | 'missing';
+export type RocketLabSlotStatus = 'ready' | 'locked' | 'missing' | 'unassigned';
 
 interface RocketLabSlotMeta {
   displayName: string;
@@ -14,6 +14,7 @@ export interface RocketLabSlotView {
   description: string;
   status: RocketLabSlotStatus;
   part: InventoryPart | null;
+  availableParts: InventoryPart[];
   availableCount: number;
   lockedCount: number;
 }
@@ -24,6 +25,7 @@ export interface RocketLabMetrics {
   readySlots: number;
   totalSlots: number;
   lockedSlots: number;
+  unassignedSlots: number;
   missingSlots: number;
   completionRatio: number;
   stability: number;
@@ -99,6 +101,10 @@ function getBestPart(parts: InventoryPart[]) {
   return sorted[0] ?? null;
 }
 
+function sortPartsByRank(parts: InventoryPart[]) {
+  return [...parts].sort((left, right) => getPartRank(right) - getPartRank(left));
+}
+
 function getSectionPower(slots: RocketLabSlots, section: RocketSection) {
   return slots[section].status === 'ready' ? slots[section].part?.power ?? 0 : 0;
 }
@@ -117,12 +123,20 @@ export function buildRocketLabSlots(inventory: InventoryPart[]): RocketLabSlots 
 
   for (const section of ROCKET_SECTIONS) {
     const owned = inventory.filter((part) => part.slot === section);
-    const available = owned.filter((part) => !part.isLocked);
-    const locked = owned.filter((part) => part.isLocked);
-    const readyPart = getBestPart(available);
-    const lockedPart = getBestPart(locked);
-    const selectedPart = readyPart ?? lockedPart;
-    const status: RocketLabSlotStatus = readyPart ? 'ready' : lockedPart ? 'locked' : 'missing';
+    const available = sortPartsByRank(owned.filter((part) => !part.isLocked));
+    const locked = sortPartsByRank(owned.filter((part) => part.isLocked));
+    const equippedReadyPart = available.find((part) => part.isEquipped) ?? null;
+    const equippedLockedPart = locked.find((part) => part.isEquipped) ?? null;
+    const selectedPart = equippedReadyPart
+      ?? equippedLockedPart
+      ?? (available.length === 0 ? getBestPart(locked) : null);
+    const status: RocketLabSlotStatus = equippedReadyPart
+      ? 'ready'
+      : equippedLockedPart || (available.length === 0 && locked.length > 0)
+        ? 'locked'
+        : available.length > 0
+          ? 'unassigned'
+          : 'missing';
 
     slots[section] = {
       section,
@@ -130,6 +144,7 @@ export function buildRocketLabSlots(inventory: InventoryPart[]): RocketLabSlots 
       description: SLOT_META[section].description,
       status,
       part: selectedPart,
+      availableParts: available,
       availableCount: available.length,
       lockedCount: locked.length,
     };
@@ -156,7 +171,14 @@ export function computeRocketLabMetrics(
     (count, section) => count + (slots[section].status === 'locked' ? 1 : 0),
     0,
   );
-  const missingSlots = totalSlots - readySlots - lockedSlots;
+  const unassignedSlots = ROCKET_SECTIONS.reduce(
+    (count, section) => count + (slots[section].status === 'unassigned' ? 1 : 0),
+    0,
+  );
+  const missingSlots = ROCKET_SECTIONS.reduce(
+    (count, section) => count + (slots[section].status === 'missing' ? 1 : 0),
+    0,
+  );
   const completionRatio = readySlots / totalSlots;
 
   const readyParts = ROCKET_SECTIONS
@@ -211,6 +233,7 @@ export function computeRocketLabMetrics(
     readySlots,
     totalSlots,
     lockedSlots,
+    unassignedSlots,
     missingSlots,
     completionRatio,
     stability,

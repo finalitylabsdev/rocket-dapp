@@ -117,6 +117,14 @@ export default function InventoryPartCard({ part, onSendToAuction }: InventoryPa
                 {renderKeyLabel}
               </span>
             )}
+            {part.isEquipped && (
+              <span
+                className="inline-flex items-center rounded-full px-2 py-0.5 text-[9px] font-mono font-semibold uppercase tracking-[0.16em]"
+                style={{ background: 'rgba(59,130,246,0.08)', color: '#93C5FD', border: '1px solid rgba(59,130,246,0.24)' }}
+              >
+                Equipped
+              </span>
+            )}
             {part.isShiny && (
               <span
                 className="inline-flex items-center rounded-full px-2 py-0.5 text-[9px] font-mono font-semibold uppercase tracking-[0.16em]"
