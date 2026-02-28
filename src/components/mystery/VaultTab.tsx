@@ -141,8 +141,7 @@ function LastDrawWindow({ part }: { part: InventoryPart }) {
         <div
           className="pointer-events-none absolute inset-[-70%]"
           style={{
-            background: 'conic-gradient(from 0deg, #F59E0B, #22C55E, #06B6D4, #3B82F6, #8B5CF6, #EF4444, #F59E0B)',
-            animation: 'lastDrawBorderOrbit 5s linear infinite',
+            background: '#374151',
           }}
         />
 
@@ -256,8 +255,7 @@ function LastDrawWindow({ part }: { part: InventoryPart }) {
         <div
           className="pointer-events-none absolute inset-[-200%]"
           style={{
-            background: 'conic-gradient(from 0deg, #F59E0B, #22C55E, #06B6D4, #3B82F6, #8B5CF6, #EF4444, #F59E0B)',
-            animation: 'lastDrawBorderOrbit 5s linear infinite',
+            background: '#374151',
           }}
         />
         <span
