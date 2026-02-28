@@ -28,6 +28,8 @@ interface SnapshotEntry {
   activityEvents: number;
   fluxBurned: number;
   ethLocked: number;
+  cumulativeGravScore: number;
+  launchCount: number;
   rank: number;
   prevRank: number;
 }
@@ -40,6 +42,8 @@ interface SnapshotPayload {
     knownWallets: number;
     activityEvents: number;
     fluxBurned: number;
+    totalGravScore: number;
+    totalLaunches: number;
   };
   entries: SnapshotEntry[];
 }
@@ -92,6 +96,8 @@ function parseSnapshotPayload(value: unknown): SnapshotPayload | null {
   const knownWallets = asFiniteNumber(value.summary.known_wallets);
   const activityEvents = asFiniteNumber(value.summary.activity_events);
   const fluxBurned = asFiniteNumber(value.summary.flux_burned);
+  const totalGravScore = asFiniteNumber(value.summary.total_grav_score) ?? 0;
+  const totalLaunches = asFiniteNumber(value.summary.total_launches) ?? 0;
 
   if (
     dailyEthPrize === null
@@ -116,6 +122,8 @@ function parseSnapshotPayload(value: unknown): SnapshotPayload | null {
       const activityValue = asFiniteNumber(entry.activity_events);
       const burnedValue = asFiniteNumber(entry.flux_burned);
       const lockedValue = asFiniteNumber(entry.eth_locked);
+      const gravScoreValue = asFiniteNumber(entry.cumulative_grav_score) ?? 0;
+      const launchCountValue = asFiniteNumber(entry.launch_count) ?? 0;
 
       if (
         !id
@@ -135,6 +143,8 @@ function parseSnapshotPayload(value: unknown): SnapshotPayload | null {
         activityEvents: activityValue,
         fluxBurned: burnedValue,
         ethLocked: lockedValue,
+        cumulativeGravScore: gravScoreValue,
+        launchCount: launchCountValue,
         rank,
         prevRank,
       };
@@ -149,6 +159,8 @@ function parseSnapshotPayload(value: unknown): SnapshotPayload | null {
       knownWallets,
       activityEvents,
       fluxBurned,
+      totalGravScore,
+      totalLaunches,
     },
     entries,
   };
@@ -189,7 +201,7 @@ function toSnapshotDisplayEntries(rows: SnapshotEntry[]): DisplayEntry[] {
   return rows.map((entry) => ({
     id: entry.id,
     walletAddress: entry.walletAddress,
-    metricValue: entry.activityEvents,
+    metricValue: entry.cumulativeGravScore,
     fluxBurned: entry.fluxBurned,
     ethValue: entry.ethLocked,
     rank: entry.rank,
@@ -292,14 +304,12 @@ export default function LeaderboardPage() {
           setSummary({
             prizeEth: snapshot.summary.dailyEthPrize,
             players: snapshot.summary.activePlayers,
-            metricTotal: snapshot.summary.activityEvents,
+            metricTotal: snapshot.summary.totalGravScore,
             fluxBurned: snapshot.summary.fluxBurned,
-            playerSubtext: `${snapshot.summary.activePlayers} active wallets · ${snapshot.summary.knownWallets} tracked`,
+            playerSubtext: `${snapshot.summary.activePlayers} active wallets · ${snapshot.summary.totalLaunches} launches`,
           });
           setMode('snapshot');
-          setStatusMessage(
-            'Live Supabase activity proxy. Rocket launches are still local-only on this branch, so rankings update from wallet, flux, lock, and auction writes.'
-          );
+          setStatusMessage(null);
           setLastUpdated(snapshot.generatedAt ?? new Date());
           setLoading(false);
           setRefreshing(false);
@@ -379,14 +389,12 @@ export default function LeaderboardPage() {
     };
   }, []);
 
-  const metricCardLabel = mode === 'snapshot' ? 'Live Activity' : 'Missions Launched';
-  const metricCardSubtext = mode === 'snapshot' ? 'Tracked Supabase writes' : 'Total Quantum Lift-Offs';
-  const metricColumnLabel = mode === 'snapshot' ? 'Activity' : 'Missions';
+  const metricCardLabel = mode === 'snapshot' ? 'Cumulative GravScore' : 'Missions Launched';
+  const metricCardSubtext = mode === 'snapshot' ? 'Sum of all launch scores' : 'Total Quantum Lift-Offs';
+  const metricColumnLabel = mode === 'snapshot' ? 'GravScore' : 'Missions';
   const ethColumnLabel = mode === 'snapshot' ? 'ETH Locked' : 'ETH Earned';
-  const rankingTag = mode === 'snapshot' ? 'Live Activity · Top 20' : 'Grav Score · Top 20';
-  const rankingFooter = mode === 'snapshot'
-    ? 'Ranked by live wallet, flux, lock, and auction activity'
-    : 'Ranked by cumulative Grav Score';
+  const rankingTag = mode === 'snapshot' ? 'GravScore · Top 20' : 'Grav Score · Top 20';
+  const rankingFooter = 'Ranked by cumulative GravScore';
 
   const cardValues = {
     prize: loading ? '...' : summary ? `${summary.prizeEth.toFixed(3)} ETH` : 'N/A',
