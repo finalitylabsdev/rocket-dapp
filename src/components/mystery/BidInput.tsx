@@ -32,10 +32,22 @@ export default function BidInput({ minBid, isSubmitting, onSubmit }: BidInputPro
       return;
     }
 
+    const raw = Number(trimmedAmount);
+
+    if (!Number.isFinite(raw) || raw <= 0) {
+      setError('Enter a valid bid amount.');
+      return;
+    }
+
+    if (raw > AUCTION_MAX_BID_FLUX) {
+      setError(`Bid cannot exceed ${formatFluxValue(AUCTION_MAX_BID_FLUX)} FLUX.`);
+      return;
+    }
+
     let parsed: number;
 
     try {
-      parsed = normalizeAuctionBidAmount(Number(trimmedAmount));
+      parsed = normalizeAuctionBidAmount(raw);
     } catch (nextError) {
       setError(nextError instanceof Error ? nextError.message : 'Enter a valid bid amount.');
       return;

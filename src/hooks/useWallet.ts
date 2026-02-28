@@ -10,6 +10,7 @@ import {
 } from 'react';
 import type { WalletState } from '@web3-onboard/core';
 import { useConnectWallet, useSetChain, useWallets } from '@web3-onboard/react';
+import { toast } from 'sonner';
 import { recordWalletConnect, recordWalletDisconnect } from '../lib/ledger';
 import {
   dismissWeb3OnboardModal,
@@ -183,8 +184,9 @@ function useProvideWallet(): WalletContextValue {
       if (nextAddress !== previousAddress) {
         const ledgerResult = await recordWalletConnect(nextAddress);
         if (!ledgerResult.ok) {
-          setError(ledgerResult.message);
-          console.warn('Wallet connect activity log warning:', ledgerResult.cause ?? ledgerResult.message);
+          toast.warning('Activity log unavailable', {
+            description: 'Wallet connected successfully, but the activity log could not be written.',
+          });
         }
       }
 
@@ -354,14 +356,14 @@ function useProvideWallet(): WalletContextValue {
     setError(null);
     setIsDisconnecting(true);
     manualDisconnectRef.current = true;
-    let ledgerWarning: string | null = null;
 
     try {
       if (address) {
         const ledgerResult = await recordWalletDisconnect(address);
         if (!ledgerResult.ok) {
-          ledgerWarning = ledgerResult.message;
-          console.warn('Wallet disconnect activity log warning:', ledgerResult.cause ?? ledgerResult.message);
+          toast.warning('Activity log unavailable', {
+            description: 'Wallet disconnected successfully, but the activity log could not be written.',
+          });
         }
       }
 
@@ -376,9 +378,6 @@ function useProvideWallet(): WalletContextValue {
       clearActiveEthereumWalletContext();
       failedAuthAddressRef.current = null;
       setAddress(null);
-      if (ledgerWarning) {
-        setError(ledgerWarning);
-      }
     } catch (disconnectError) {
       const message = toErrorMessage(disconnectError);
       setError(message);

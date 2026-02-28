@@ -2,6 +2,7 @@ const rawSupabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const rawSupabasePublicKey =
   import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY ?? import.meta.env.VITE_SUPABASE_ANON_KEY;
 const rawSiweUri = import.meta.env.VITE_SIWE_URI;
+const rawEthLockRecipient = import.meta.env.VITE_ETH_LOCK_RECIPIENT;
 
 function computeWalletAuthConfigIssues(): string[] {
   const issues: string[] = [];
@@ -28,6 +29,12 @@ function computeWalletAuthConfigIssues(): string[] {
     }
   }
 
+  if (typeof rawEthLockRecipient === 'string' && rawEthLockRecipient.trim().length > 0) {
+    if (!/^0x[0-9a-fA-F]{40}$/.test(rawEthLockRecipient.trim())) {
+      issues.push('VITE_ETH_LOCK_RECIPIENT must be a valid 0x address when provided.');
+    }
+  }
+
   return issues;
 }
 
@@ -43,4 +50,14 @@ export function getWalletAuthConfigErrorMessage(): string | null {
   }
 
   return `Wallet authentication is unavailable. ${walletAuthConfigIssues.join(' ')}`;
+}
+
+/**
+ * Returns true if any critical env vars are missing or invalid.
+ * Critical = the app cannot function at all without them.
+ */
+export function hasCriticalConfigErrors(): boolean {
+  return walletAuthConfigIssues.some(
+    (issue) => issue.includes('VITE_SUPABASE_URL') || issue.includes('VITE_SUPABASE_PUBLISHABLE_KEY') || issue.includes('VITE_SUPABASE_ANON_KEY'),
+  );
 }
