@@ -747,12 +747,69 @@ export const SECTION_ILLUSTRATIONS: Record<RocketSection, React.ComponentType<Il
   shielding:         RadiationMantleIllustration,
 };
 
-export function SectionIllustration({ section, equipped, rarity, size = 72 }: {
+export function SectionIllustration({ section, equipped, rarity, variantId, size = 72 }: {
   section: RocketSection;
   equipped: boolean;
   rarity: RarityTier;
+  variantId?: number;
   size?: number;
 }) {
   const Component = SECTION_ILLUSTRATIONS[section];
-  return <Component equipped={equipped} rarity={rarity} size={size} />;
+  const accent = getRarityConfig(rarity).color;
+
+  const renderVariantGimmick = () => {
+    if (!variantId || !equipped) {
+      return null;
+    }
+
+    const pattern = variantId % 4;
+
+    if (pattern === 0) {
+      return (
+        <div className="absolute inset-x-3 top-2 flex justify-between opacity-70">
+          {[0, 1, 2].map((index) => (
+            <span
+              key={index}
+              className="h-1.5 w-1.5 rounded-full"
+              style={{ background: accent, boxShadow: `0 0 8px ${accent}` }}
+            />
+          ))}
+        </div>
+      );
+    }
+
+    if (pattern === 1) {
+      return (
+        <div
+          className="absolute inset-y-3 right-2 w-1 rounded-full opacity-60"
+          style={{ background: `linear-gradient(180deg, ${accent}, transparent)` }}
+        />
+      );
+    }
+
+    if (pattern === 2) {
+      return (
+        <div className="absolute inset-x-0 bottom-2 flex justify-center opacity-70">
+          <span
+            className="h-1.5 w-8 rounded-full"
+            style={{ background: accent, boxShadow: `0 0 10px ${accent}` }}
+          />
+        </div>
+      );
+    }
+
+    return (
+      <div
+        className="absolute left-2 top-2 h-4 w-4 rotate-45 opacity-60"
+        style={{ border: `1px solid ${accent}` }}
+      />
+    );
+  };
+
+  return (
+    <div className="relative" style={{ width: size, height: size }}>
+      <Component equipped={equipped} rarity={rarity} size={size} />
+      {renderVariantGimmick()}
+    </div>
+  );
 }

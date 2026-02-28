@@ -33,23 +33,23 @@ export interface AssetReference {
 }
 export interface InventoryPart {
   id: string;
-  variantId: number;
+  variantId?: number;
+  variantIndex?: number;
   name: string;
   slot: RocketSection;
+  equippedSectionKey?: RocketSection;
   rarity: RarityTier;
-  // Compatibility alias for totalPower until all consumers switch.
   power: number;
   totalPower: number;
   attributes: [number, number, number];
   attributeNames: [string, string, string];
-  /** @deprecated Compatibility only; prefer totalPower for player-facing comparisons. */
   partValue: number;
+  conditionPct?: number;
+  serialNumber?: string;
+  serialTrait?: string;
+  isShiny?: boolean;
   sectionName: string;
   rarityTierId: number;
-  serialNumber: number;
-  serialTrait: string;
-  isShiny: boolean;
-  conditionPct: number;
   isLocked?: boolean;
   isEquipped?: boolean;
   source?: 'mystery_box' | 'auction_win' | 'admin';

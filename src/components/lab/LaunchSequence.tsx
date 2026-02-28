@@ -3,9 +3,14 @@ import type { RocketModelId } from './RocketModels';
 import { FlaskConical } from 'lucide-react';
 
 interface LaunchResult {
-  score: number;
-  bonus: string;
-  multiplier: string;
+  scoreBreakdown: {
+    base: number;
+    luck: number;
+    randomness: number;
+    total: number;
+  };
+  fuelCostFlux: number;
+  meteoriteDamagePct: number;
 }
 
 interface LaunchSequenceProps {
@@ -872,25 +877,53 @@ export default function LaunchSequence(props: LaunchSequenceProps) {
             </div>
 
             <p className="font-mono text-[11px] font-bold mb-1 tracking-widest" style={{ color: '#4A5468' }}>
-              {isFullPower ? 'MISSION COMPLETE' : 'LAUNCH COMPLETE'}
+              {isFullPower ? 'LAUNCH RECORDED' : 'FLIGHT REPORT READY'}
             </p>
             <p className="font-data font-black text-5xl mb-1" style={{ color: '#E8ECF4' }}>
-              +{result.score}
+              +{result.scoreBreakdown.total}
               <span className="text-2xl ml-2" style={{ color: '#4A5468' }}>GS</span>
             </p>
-            <p className="text-sm mb-1" style={{ color: '#4A5468' }}>{result.multiplier}× Grav Score multiplier</p>
+            <p className="text-sm mb-1" style={{ color: '#4A5468' }}>Server-authoritative Rocket Lab settlement</p>
 
             <div
               className="inline-flex items-center gap-1.5  px-3 py-1 mb-4 text-xs font-bold"
               style={{ background: `${modelColor}12`, border: `1px solid ${modelColor}30`, color: modelColor }}
             >
               <div className="w-1.5 h-1.5 " style={{ background: modelColor }} />
-              {clampedPower}% thrust
+              {clampedPower}% thrust profile
             </div>
 
             <div className=" p-3 mb-6" style={{ background: '#06080F', border: '1px solid #1E2636' }}>
-              <p className="text-xs mb-1" style={{ color: '#4A5468' }}>Flight Event</p>
-              <p className="font-mono font-bold text-sm" style={{ color: '#E8ECF4' }}>{result.bonus}</p>
+              <p className="text-xs mb-2" style={{ color: '#4A5468' }}>Score Breakdown</p>
+              <div className="grid grid-cols-2 gap-2 text-left">
+                {[
+                  { label: 'Base', value: result.scoreBreakdown.base },
+                  { label: 'Luck', value: result.scoreBreakdown.luck },
+                  { label: 'Random', value: result.scoreBreakdown.randomness },
+                  { label: 'Total', value: result.scoreBreakdown.total },
+                ].map((item) => (
+                  <div
+                    key={item.label}
+                    className="px-2.5 py-2"
+                    style={{ background: '#0C1018', border: '1px solid #1E2636' }}
+                  >
+                    <p className="text-[10px] font-mono uppercase tracking-[0.16em]" style={{ color: '#4A5468' }}>
+                      {item.label}
+                    </p>
+                    <p className="mt-1 font-mono font-bold text-sm" style={{ color: '#E8ECF4' }}>
+                      {item.value.toLocaleString()}
+                    </p>
+                  </div>
+                ))}
+              </div>
+              <div className="mt-3 flex items-center justify-between text-[11px] font-mono" style={{ color: '#9BA7BE' }}>
+                <span>Fuel</span>
+                <span>{result.fuelCostFlux.toFixed(2)} FLUX</span>
+              </div>
+              <div className="mt-1 flex items-center justify-between text-[11px] font-mono" style={{ color: '#9BA7BE' }}>
+                <span>Meteorite Wear</span>
+                <span>{result.meteoriteDamagePct}%</span>
+              </div>
             </div>
 
             <button
@@ -903,7 +936,7 @@ export default function LaunchSequence(props: LaunchSequenceProps) {
                 letterSpacing: '0.06em',
               }}
             >
-              Close
+              Close Launch Report
             </button>
           </div>
         </div>

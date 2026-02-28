@@ -59,12 +59,14 @@ interface BoxTierRow {
   illustration_alt?: string | null;
 }
 
-interface InventoryPartPayload {
+export interface InventoryPartPayload {
   id?: string;
   variant_id?: number | string;
+  variant_index?: number | string;
   name?: string;
   section_key?: string;
   section_name?: string;
+  equipped_section_key?: string;
   rarity?: string;
   rarity_tier_id?: number | string;
   attr1?: number | string;
@@ -75,11 +77,10 @@ interface InventoryPartPayload {
   attr3_name?: string;
   total_power?: number | string;
   part_value?: number | string;
-  total_power?: number | string | null;
-  serial_number?: number | string;
+  condition_pct?: number | string;
+  serial_number?: string;
   serial_trait?: string;
   is_shiny?: boolean;
-  condition_pct?: number | string;
   is_locked?: boolean;
   is_equipped?: boolean;
   source?: 'mystery_box' | 'auction_win' | 'admin';
@@ -226,7 +227,7 @@ function normalizeBoxTierRow(payload: BoxTierRow, rarityLookup: Map<number, Rari
   };
 }
 
-function normalizeInventoryPart(payload: InventoryPartPayload): InventoryPart {
+export function normalizeInventoryPart(payload: InventoryPartPayload): InventoryPart {
   if (
     typeof payload.id !== 'string' ||
     typeof payload.name !== 'string' ||
@@ -243,13 +244,15 @@ function normalizeInventoryPart(payload: InventoryPartPayload): InventoryPart {
   const attr3 = toNumber(payload.attr3);
   const totalPower = toNumber(payload.total_power ?? (attr1 + attr2 + attr3));
   const partValue = toNumber(payload.part_value);
-  const serialNumber = Math.max(0, toNumber(payload.serial_number ?? 0));
 
   return {
     id: payload.id,
-    variantId: toNumber(payload.variant_id ?? 0),
+    variantId: payload.variant_id === undefined ? undefined : toNumber(payload.variant_id),
     name: payload.name,
     slot: payload.section_key as RocketSection,
+    equippedSectionKey: typeof payload.equipped_section_key === 'string'
+      ? payload.equipped_section_key as RocketSection
+      : undefined,
     rarity: payload.rarity,
     power: totalPower,
     totalPower,
@@ -260,12 +263,13 @@ function normalizeInventoryPart(payload: InventoryPartPayload): InventoryPart {
       payload.attr3_name ?? 'Attribute 3',
     ],
     partValue,
+    conditionPct: payload.condition_pct === undefined ? undefined : toNumber(payload.condition_pct),
+    serialNumber: toOptionalText(payload.serial_number) ?? undefined,
+    serialTrait: toOptionalText(payload.serial_trait) ?? undefined,
+    isShiny: payload.is_shiny === undefined ? undefined : Boolean(payload.is_shiny),
+    variantIndex: payload.variant_index === undefined ? undefined : toNumber(payload.variant_index),
     sectionName: payload.section_name,
     rarityTierId: toNumber(payload.rarity_tier_id),
-    serialNumber,
-    serialTrait: toOptionalText(payload.serial_trait) ?? (serialNumber > 0 ? 'Issued' : 'Pending'),
-    isShiny: Boolean(payload.is_shiny),
-    conditionPct: toNumber(payload.condition_pct ?? 100),
     isLocked: Boolean(payload.is_locked),
     isEquipped: Boolean(payload.is_equipped),
     source: payload.source,
