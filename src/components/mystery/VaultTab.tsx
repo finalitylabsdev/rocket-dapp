@@ -1,4 +1,4 @@
-import { Gavel } from 'lucide-react';
+import { Flame, Gavel, Gauge, Shield, Star } from 'lucide-react';
 import BoxCard from './BoxCard';
 import JourneyCue from '../JourneyCue';
 import RarityBadge, { getRarityConfig } from '../brand/RarityBadge';
@@ -16,6 +16,7 @@ import {
   APP3_TEXT_PRIMARY_STYLE,
   APP3_TEXT_SECONDARY_STYLE,
   APP3_TRACK_STYLE,
+  formatFluxValue,
 } from './ui';
 
 interface PreviewVaultCard {
@@ -116,6 +117,12 @@ function LastDrawWindow({ part }: { part: InventoryPart }) {
       equippedSectionKey: part.slot,
     },
   ]);
+  const drawStats = [
+    { label: 'Power', value: part.totalPower.toString(), icon: Gauge },
+    { label: 'Value', value: `${formatFluxValue(part.partValue)} Φ`, icon: Star },
+    { label: 'Condition', value: `${part.conditionPct ?? 100}%`, icon: Shield },
+    { label: 'Tier', value: part.rarity, icon: Flame },
+  ];
 
   return (
     <div className="relative overflow-hidden p-px">
@@ -127,7 +134,7 @@ function LastDrawWindow({ part }: { part: InventoryPart }) {
         }}
       />
       <div
-        className="relative overflow-hidden p-5"
+        className="relative overflow-hidden p-4 sm:p-5"
         style={{
           ...APP3_PANEL_STYLE,
           border: 'none',
@@ -135,7 +142,7 @@ function LastDrawWindow({ part }: { part: InventoryPart }) {
         }}
       >
         <span
-          className="absolute top-4 right-4 inline-flex items-center rounded-full px-2.5 py-1 text-[9px] font-mono font-semibold uppercase tracking-[0.22em]"
+          className="absolute top-3 right-3 inline-flex items-center rounded-full px-2.5 py-1 text-[9px] font-mono font-semibold uppercase tracking-[0.22em]"
           style={{
             color: 'var(--color-text-secondary)',
             background: 'var(--color-bg-card)',
@@ -145,67 +152,113 @@ function LastDrawWindow({ part }: { part: InventoryPart }) {
           LAST DRAW
         </span>
 
-        <div className="grid grid-cols-1 gap-5 pt-6 lg:grid-cols-[minmax(0,1fr)_18rem] lg:items-center">
-          <div className="pr-24 lg:pr-0">
-            <div className="flex items-start gap-3">
-              <SectionGlyph asset={part.illustration} fallbackKey={part.slot} size="md" />
-              <div className="min-w-0 flex-1">
-                <p
-                  className="font-mono font-black text-lg sm:text-xl uppercase"
-                  style={{ color: cfg.color }}
-                  title={part.name}
+        <div className="grid grid-cols-1 gap-4 pt-4 sm:pt-5 lg:grid-cols-[11rem_minmax(0,1fr)_14rem] lg:items-center xl:grid-cols-[12rem_minmax(0,1fr)_15rem]">
+          <div className="grid grid-cols-1 gap-1 sm:grid-cols-2 lg:grid-cols-1">
+            {drawStats.map((stat) => {
+              const Icon = stat.icon;
+
+              return (
+                <div
+                  key={stat.label}
+                  className="flex items-center justify-between gap-3 px-2 py-2"
+                  style={{
+                    borderLeft: `2px solid ${cfg.color}`,
+                    borderBottom: '1px solid rgba(148,163,184,0.1)',
+                  }}
                 >
-                  {part.name}
-                </p>
-                <div className="mt-3 flex flex-wrap items-center gap-2">
-                  <RarityBadge tier={part.rarity} size="xs" />
-                  <span
-                    className="inline-flex items-center rounded-full px-2 py-0.5 text-[9px] font-mono font-semibold uppercase tracking-[0.16em]"
-                    style={{ background: 'rgba(15,23,42,0.65)', color: '#E2E8F0', border: '1px solid rgba(148,163,184,0.2)' }}
-                  >
-                    {part.sectionName}
-                  </span>
-                  <span
-                    className="inline-flex items-center rounded-full px-2 py-0.5 text-[9px] font-mono font-semibold uppercase tracking-[0.16em]"
-                    style={{ background: 'rgba(15,23,42,0.58)', color: '#E2E8F0', border: '1px solid rgba(148,163,184,0.18)' }}
-                  >
-                    #{(part.serialNumber ?? 0).toString().padStart(6, '0')}
-                  </span>
-                  {part.isShiny && (
+                  <div className="flex min-w-0 items-center gap-2">
                     <span
-                      className="inline-flex items-center rounded-full px-2 py-0.5 text-[9px] font-mono font-semibold uppercase tracking-[0.16em]"
-                      style={{ background: 'rgba(245,158,11,0.12)', color: '#FCD34D', border: '1px solid rgba(245,158,11,0.28)' }}
+                      className="inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full"
+                      style={{ background: `${cfg.color}14` }}
                     >
-                      Shiny
+                      <Icon size={11} style={{ color: cfg.color }} />
                     </span>
-                  )}
+                    <span className="text-[10px] font-mono uppercase tracking-[0.16em]" style={APP3_TEXT_SECONDARY_STYLE}>
+                      {stat.label}
+                    </span>
+                  </div>
+                  <p className="shrink-0 font-mono font-black text-base tabular-nums" style={APP3_TEXT_PRIMARY_STYLE}>
+                    {stat.value}
+                  </p>
                 </div>
-              </div>
-            </div>
+              );
+            })}
+          </div>
 
-            <AttributeBars part={part} />
+          <div className="min-w-0">
+            <div className="flex w-full flex-col items-center justify-center text-center">
+              <p
+                className="max-w-full font-mono font-black text-base leading-tight sm:text-lg uppercase tracking-[0.08em]"
+                style={{ color: cfg.color }}
+                title={part.name}
+              >
+                {part.name}
+              </p>
+              <p className="mt-2 text-[10px] font-mono uppercase tracking-[0.24em]" style={APP3_TEXT_SECONDARY_STYLE}>
+                {part.sectionName}
+              </p>
 
-            <div className="mt-4 grid grid-cols-2 gap-2 text-xs font-mono">
-              <div className="rounded-xl px-3 py-2 min-w-0" style={APP3_INSET_STYLE}>
-                <span style={APP3_TEXT_SECONDARY_STYLE}>Total Power</span>
-                <p className="mt-1 font-mono font-black text-sm" style={APP3_TEXT_PRIMARY_STYLE}>
-                  {part.totalPower}
-                </p>
+              <div
+                className="mt-4 flex h-20 w-20 items-center justify-center rounded-[1.5rem] sm:h-24 sm:w-24"
+                style={{
+                  background: `radial-gradient(circle at 30% 30%, ${cfg.color}16, rgba(255,255,255,0) 68%)`,
+                  boxShadow: `inset 0 0 0 1px ${cfg.color}18`,
+                }}
+              >
+                <SectionGlyph asset={part.illustration} fallbackKey={part.slot} size="md" />
               </div>
-              <div className="rounded-xl px-3 py-2 min-w-0" style={APP3_INSET_STYLE}>
-                <span style={APP3_TEXT_SECONDARY_STYLE}>Serial Trait</span>
-                <p className="mt-1 font-mono font-black text-sm truncate" style={APP3_TEXT_PRIMARY_STYLE}>
+
+              <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
+                <RarityBadge tier={part.rarity} size="xs" />
+                <span
+                  className="inline-flex items-center rounded-full px-2 py-0.5 text-[9px] font-mono font-semibold uppercase tracking-[0.16em]"
+                  style={{ background: 'rgba(15,23,42,0.58)', color: '#E2E8F0', border: '1px solid rgba(148,163,184,0.18)' }}
+                >
+                  #{(part.serialNumber ?? 0).toString().padStart(6, '0')}
+                </span>
+                <span
+                  className="inline-flex items-center rounded-full px-2 py-0.5 text-[9px] font-mono font-semibold uppercase tracking-[0.16em]"
+                  style={{ background: 'rgba(15,23,42,0.65)', color: '#E2E8F0', border: '1px solid rgba(148,163,184,0.2)' }}
+                >
                   {part.serialTrait}
-                </p>
+                </span>
+                {part.isShiny && (
+                  <span
+                    className="inline-flex items-center rounded-full px-2 py-0.5 text-[9px] font-mono font-semibold uppercase tracking-[0.16em]"
+                    style={{ background: 'rgba(245,158,11,0.12)', color: '#FCD34D', border: '1px solid rgba(245,158,11,0.28)' }}
+                  >
+                    Shiny
+                  </span>
+                )}
+              </div>
+
+              <div className="mt-3 w-full">
+                <AttributeBars part={part} />
+              </div>
+
+              <div className="mt-4 grid w-full grid-cols-1 gap-2 text-xs font-mono sm:grid-cols-2">
+                <div className="rounded-2xl px-3 py-2.5 min-w-0" style={APP3_INSET_STYLE}>
+                  <span style={APP3_TEXT_SECONDARY_STYLE}>Slot Key</span>
+                  <p className="mt-1 font-mono font-black text-sm" style={APP3_TEXT_PRIMARY_STYLE}>
+                    {part.slot}
+                  </p>
+                </div>
+                <div className="rounded-2xl px-3 py-2.5 min-w-0" style={APP3_INSET_STYLE}>
+                  <span style={APP3_TEXT_SECONDARY_STYLE}>Origin</span>
+                  <p className="mt-1 font-mono font-black text-sm" style={APP3_TEXT_PRIMARY_STYLE}>
+                    {part.source === 'auction_win' ? 'Auction' : 'Vault'}
+                  </p>
+                </div>
               </div>
             </div>
           </div>
 
           <div
-            className="rounded-2xl px-3 py-2 sm:px-4 sm:py-3"
+            className="rounded-2xl px-3 py-2.5 sm:px-3.5"
             style={{
               ...APP3_INSET_STYLE,
               border: `1px solid ${cfg.border}`,
+              background: `linear-gradient(180deg, ${cfg.color}08, rgba(255,255,255,0))`,
             }}
           >
             <RocketPreview
