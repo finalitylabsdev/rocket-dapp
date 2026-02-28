@@ -27,10 +27,10 @@ export default function MysteryPage({ initialTab }: MysteryPageProps) {
     <div className="relative z-10 pt-20 md:pt-24 pb-16">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mb-10">
-          <h1 className="font-mono font-black text-3xl md:text-5xl lg:text-6xl text-text-primary mb-4 leading-[1.08] uppercase tracking-wider">
-            Star Vault &amp; Nebula Bids
+          <h1 className="font-mono font-black text-3xl md:text-4xl lg:text-5xl text-text-primary mb-4 leading-tight uppercase tracking-tight">
+            Star Vault
           </h1>
-          <p className="text-text-secondary text-lg font-mono">
+          <p className="text-lg text-text-muted leading-relaxed">
             Unbox rare finds, place your bids, and build your cosmic collection.
           </p>
         </div>

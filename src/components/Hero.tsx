@@ -254,7 +254,7 @@ export default function Hero({ onOpenGate, onOpenMystery, onOpenBids, onOpenLab,
                     Parts Auction
                   </span>
                   <span className="font-mono text-xs uppercase tracking-wider text-text-muted mt-0.5">
-                    Coming Soon
+                    Preview Only
                   </span>
                 </div>
               </button>
@@ -278,7 +278,7 @@ export default function Hero({ onOpenGate, onOpenMystery, onOpenBids, onOpenLab,
                     Cosmic Jackpot
                   </span>
                   <span className="font-mono text-xs uppercase tracking-wider text-text-muted mt-0.5">
-                    Coming Soon
+                    Preview Only
                   </span>
                 </div>
               </button>

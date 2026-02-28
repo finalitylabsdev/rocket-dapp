@@ -409,10 +409,10 @@ export default function LeaderboardPage() {
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
 
           <div className="text-left mb-10">
-            <h1 className="font-mono font-black text-3xl md:text-5xl lg:text-6xl text-text-primary mb-3 leading-[1.08] uppercase tracking-wider">
+            <h1 className="font-mono font-black text-3xl md:text-4xl lg:text-5xl text-text-primary mb-3 leading-tight uppercase tracking-tight">
               Cosmic Jackpot
             </h1>
-            <p className="text-text-secondary text-lg font-mono pl-1">
+            <p className="text-lg text-text-muted leading-relaxed pl-1">
               Compete by Grav Score. Win real ETH daily.
             </p>
           </div>

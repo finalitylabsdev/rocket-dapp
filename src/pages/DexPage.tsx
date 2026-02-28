@@ -39,7 +39,7 @@ export default function DexPage() {
             <h1 className="font-mono font-black text-3xl md:text-4xl lg:text-5xl text-text-primary mb-3 uppercase tracking-wider">
               Entropy Exchange
             </h1>
-            <p className="text-text-muted text-lg font-mono">
+            <p className="text-lg text-text-muted leading-relaxed">
               Trade <span className="text-text-primary font-semibold">Φ</span> ↔{' '}
               <span className="text-text-primary font-semibold">wBTC / wETH / UVD</span>
             </p>

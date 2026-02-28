@@ -231,10 +231,10 @@ export default function RocketLabPage() {
       <div className="relative z-10 pt-20 md:pt-24 pb-16">
         <div className="max-w-[92rem] mx-auto px-4 sm:px-6 lg:px-8">
           <div className="mb-8">
-            <h1 className="font-mono font-black text-3xl md:text-5xl lg:text-6xl mb-3 leading-[1.08] uppercase tracking-wider text-text-primary">
+            <h1 className="font-mono font-black text-3xl md:text-4xl lg:text-5xl mb-3 leading-tight uppercase tracking-tight text-text-primary">
               Rocket Lab
             </h1>
-            <p className="text-lg font-mono text-text-muted">
+            <p className="text-lg text-text-muted leading-relaxed">
               Manage the equipped loadout, repair meteorite wear, and run server-authoritative launches.
             </p>
             {PREVIEW_READ_ONLY_ENABLED && (
