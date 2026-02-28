@@ -115,8 +115,8 @@ export default function QuickActions({
   const [hovered, setHovered] = useState<string | null>(null);
 
   return (
-    <section id="status" className="py-20 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-7xl mx-auto">
+    <section id="status" className="py-20">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div
           ref={ref}
           className={`text-center mb-12 transition-all duration-700 ${

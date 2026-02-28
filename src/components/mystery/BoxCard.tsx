@@ -139,7 +139,7 @@ export default function BoxCard({ tier }: { tier: BoxTierConfig }) {
       />
 
       <div className="p-5 flex-1 flex flex-col">
-        <div className="flex items-start justify-between mb-4 gap-3">
+        <div className="flex items-start justify-between mb-4 gap-3 min-h-[7.5rem]">
           <div>
             <RarityBadge tier={tier.rarity} />
             <h3

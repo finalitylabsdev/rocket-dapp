@@ -35,8 +35,8 @@ export default function WalletPage() {
   });
 
   return (
-    <div className="pt-20 md:pt-24 pb-16 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-5xl mx-auto">
+    <div className="pt-20 md:pt-24 pb-16">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="max-w-3xl mb-8">
           <div className="flex flex-wrap gap-2 mb-4">
             <span className="tag">

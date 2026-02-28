@@ -27,8 +27,8 @@ export default function DexPage() {
 
   return (
     <PriceProvider>
-      <div className="pt-20 md:pt-24 pb-16 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto">
+      <div className="pt-20 md:pt-24 pb-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-10">
             <div className="flex justify-center mb-3">
               <span className="tag">

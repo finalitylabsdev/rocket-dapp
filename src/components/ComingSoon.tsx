@@ -7,8 +7,8 @@ interface ComingSoonProps {
 
 export default function ComingSoon({ title, subtitle }: ComingSoonProps) {
   return (
-    <div className="pt-20 md:pt-24 pb-16 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-2xl mx-auto text-center">
+    <div className="pt-20 md:pt-24 pb-16">
+      <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
         <div className="flex justify-center mb-4">
           <span className="tag">
             <Rocket size={11} />

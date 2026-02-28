@@ -405,8 +405,8 @@ export default function LeaderboardPage() {
 
   return (
     <div className="relative overflow-hidden">
-      <div className="relative z-10 pt-20 md:pt-24 pb-16 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-6xl mx-auto">
+      <div className="relative z-10 pt-20 md:pt-24 pb-16">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
 
           <div className="text-center mb-10">
             <div className="flex justify-center mb-3">
