@@ -264,17 +264,19 @@ export default function Hero({ onOpenGate, onOpenMystery, onOpenBids, onOpenLab,
               </button>
             </div>
 
-            <blockquote className="max-w-2xl mx-auto border-l-2 border-border-default pl-5 text-left mt-8">
-              <p className="font-mono text-sm text-text-secondary leading-relaxed">
-                Progress begins as a spark in the eyes. A moment where curiosity turns into movement and imagination demands structure. This game is playful on the surface, but beneath it runs real infrastructure built to carry far more than rockets.
+            <div className="max-w-2xl mx-auto text-left mt-8">
+              <blockquote className="border-l-2 border-border-default pl-5">
+                <p className="font-mono text-sm text-text-secondary leading-relaxed">
+                  Progress begins as a spark in the eyes. A moment where curiosity turns into movement and imagination demands structure. This game is playful on the surface, but beneath it runs real infrastructure built to carry far more than rockets.
+                </p>
+                <p className="font-mono text-sm text-text-secondary leading-relaxed mt-3">
+                  And this is only the first visible step. Entropy is part of a much larger architecture that will unfold in time. If that spark resonates with you, join the community and help shape what comes next.
+                </p>
+              </blockquote>
+              <p className="pl-5 font-mono text-sm text-text-muted mt-6">
+                — The Entropy Team
               </p>
-              <p className="font-mono text-sm text-text-secondary leading-relaxed mt-3">
-                And this is only the first visible step. Entropy is part of a much larger architecture that will unfold in time. If that spark resonates with you, join the community and help shape what comes next.
-              </p>
-            </blockquote>
-            <p className="max-w-2xl mx-auto text-left pl-5 font-mono text-sm text-text-muted -mt-10">
-              — The Entropy Team
-            </p>
+            </div>
 
           </div>
         </div>
