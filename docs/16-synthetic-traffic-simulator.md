@@ -36,7 +36,9 @@ This is still the simplest path for one-off runs.
 
 - Set `SIM_WALLET_SOURCE=supabase`.
 - The worker reads encrypted simulator wallets from `public.sim_wallet_keys`.
+- In this mode, `public.sim_wallet_keys` is the durable source of truth for simulator wallets.
 - It can optionally import any `SIM_WALLET_PRIVATE_KEYS` into that pool on startup.
+- In that case, `SIM_WALLET_PRIVATE_KEYS` is only a bootstrap/import source, not the long-term registry.
 - It can generate additional wallets over time and store them durably in Supabase.
 - It can pseudo-seed a confirmed ETH lock row for those generated wallets so they can immediately participate in the simulator loop.
 
@@ -140,6 +142,7 @@ Before you use `SIM_WALLET_SOURCE=supabase` in a real run:
 2. Set the managed-wallet env flags in `.env`.
    - At minimum: `SUPABASE_SERVICE_ROLE_KEY`, `SIM_WALLET_SOURCE=supabase`, and `SIM_MANAGED_WALLETS_ENCRYPTION_KEY`.
    - Recommended: `SIM_IMPORT_ENV_WALLETS_TO_SUPABASE=true`, `SIM_AUTO_CONFIRM_ETH_LOCK=true`, and `SIM_MANAGED_WALLET_TARGET_COUNT`.
+   - For local Docker runs, `rocket-sim` inherits these values from the same `.env` via `docker-compose.yml`, so `make sim-bootstrap` and `make sim-up` use the same runtime config.
 3. Bootstrap the pool once.
 
 ```bash

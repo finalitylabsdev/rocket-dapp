@@ -15,10 +15,12 @@ Managed-wallet first-time setup:
 2. Set the managed-wallet flags in `.env`.
    - Required: `SUPABASE_SERVICE_ROLE_KEY`, `SIM_WALLET_SOURCE=supabase`, `SIM_MANAGED_WALLETS_ENCRYPTION_KEY`
    - Recommended: `SIM_IMPORT_ENV_WALLETS_TO_SUPABASE=true`, `SIM_AUTO_CONFIRM_ETH_LOCK=true`, `SIM_MANAGED_WALLET_TARGET_COUNT`
+   - Local `rocket-sim` container runs inherit these values from the same `.env` through `docker-compose.yml`.
 3. Run `make sim-bootstrap` once to import/generate the managed wallet pool.
 
 After that, `make sim-up` is the normal long-running simulator path when you want live traffic.
 Bootstrap-only prepares the pool only. Newly generated wallets receive their pseudo ETH lock on their first authenticated managed-wallet run.
+In managed-wallet mode, Supabase is the wallet source of truth; `SIM_WALLET_PRIVATE_KEYS` is only a seed/import input.
 
 Quick commands:
 
