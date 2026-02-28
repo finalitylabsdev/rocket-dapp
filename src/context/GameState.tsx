@@ -33,6 +33,21 @@ interface ServerSnapshot {
   inventory?: InventoryPart[];
 }
 
+type ClaimDailyFluxResult =
+  | {
+    status: 'claimed';
+    creditedAmount: number;
+    balance: FluxBalance;
+  }
+  | {
+    status: 'unchanged';
+    creditedAmount: 0;
+    balance: FluxBalance;
+  }
+  | {
+    status: 'cooldown' | 'failed';
+  };
+
 interface GameState {
   fluxBalance: number;
   inventory: InventoryPart[];
@@ -41,7 +56,7 @@ interface GameState {
   isClaimingFlux: boolean;
   isInventorySyncing: boolean;
   refreshFluxBalance: () => Promise<void>;
-  claimDailyFlux: () => Promise<boolean>;
+  claimDailyFlux: () => Promise<ClaimDailyFluxResult>;
   spendFlux: (amount: number, reason?: string, payload?: Record<string, unknown>) => Promise<boolean>;
   creditFlux: (amount: number, reason?: string, payload?: Record<string, unknown>) => Promise<boolean>;
   addPart: (part: InventoryPart) => void;
@@ -196,17 +211,18 @@ export function GameStateProvider({ children }: { children: ReactNode }) {
 
   const claimDailyFlux = useCallback(async () => {
     if (!wallet.address || isClaimingFlux) {
-      return false;
+      return { status: 'failed' } as const;
     }
 
     const now = Date.now();
     if (state.lastDailyClaim && now - state.lastDailyClaim < FAUCET_INTERVAL_MS) {
-      return false;
+      return { status: 'cooldown' } as const;
     }
 
     setIsClaimingFlux(true);
 
     try {
+      const previousBalance = state.fluxBalance;
       const balance = await claimFluxFromFaucet(
         wallet.address,
         EFFECTIVE_DAILY_CLAIM_FLUX,
@@ -214,14 +230,28 @@ export function GameStateProvider({ children }: { children: ReactNode }) {
         WHITELIST_BONUS_FLUX,
       );
       applyRemoteFluxBalance(balance);
-      return true;
+      const creditedAmount = Math.max(0, balance.availableBalance - previousBalance);
+
+      if (creditedAmount > 0) {
+        return {
+          status: 'claimed',
+          creditedAmount,
+          balance,
+        } as const;
+      }
+
+      return {
+        status: 'unchanged',
+        creditedAmount: 0,
+        balance,
+      } as const;
     } catch (error) {
       console.error('Failed to claim FLUX:', formatFluxError(error, 'Failed to claim FLUX.'));
-      return false;
+      return { status: 'failed' } as const;
     } finally {
       setIsClaimingFlux(false);
     }
-  }, [applyRemoteFluxBalance, isClaimingFlux, state.lastDailyClaim, wallet.address]);
+  }, [applyRemoteFluxBalance, isClaimingFlux, state.fluxBalance, state.lastDailyClaim, wallet.address]);
 
   const mutateFluxBalance = useCallback(async (
     delta: number,

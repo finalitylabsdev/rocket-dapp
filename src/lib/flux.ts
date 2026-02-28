@@ -159,9 +159,14 @@ export async function createSignedFluxClaimSettlement(
   };
 }
 
-function buildFaucetIdempotencyKey(walletAddress: string): string {
-  const today = new Date().toISOString().slice(0, 10);
-  return `faucet:${walletAddress.toLowerCase()}:${today}`;
+function buildFaucetIdempotencyKey(
+  walletAddress: string,
+  cooldownSeconds: number,
+  issuedAtTimestamp = Date.now(),
+): string {
+  const cooldownMs = Math.max(1, Math.round(cooldownSeconds * 1000));
+  const claimWindowBucket = Math.floor(issuedAtTimestamp / cooldownMs);
+  return `faucet:${walletAddress.toLowerCase()}:${cooldownMs}:${claimWindowBucket}`;
 }
 
 export async function submitFluxFaucetClaim(
@@ -174,6 +179,7 @@ export async function submitFluxFaucetClaim(
   assertSupabaseConfigured(supabase);
 
   const issuedAt = new Date().toISOString();
+  const issuedAtTimestamp = Date.parse(issuedAt);
 
   const { data, error } = await supabase!.rpc('record_flux_faucet_claim', {
     p_wallet_address: walletAddress,
@@ -189,7 +195,7 @@ export async function submitFluxFaucetClaim(
     p_whitelist_bonus_amount: whitelistBonusAmount,
     p_client_timestamp: issuedAt,
     p_user_agent: typeof navigator !== 'undefined' ? navigator.userAgent : null,
-    p_idempotency_key: buildFaucetIdempotencyKey(walletAddress),
+    p_idempotency_key: buildFaucetIdempotencyKey(walletAddress, cooldownSeconds, issuedAtTimestamp),
   });
 
   if (error) {

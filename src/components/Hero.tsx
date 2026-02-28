@@ -107,16 +107,26 @@ export default function Hero({ onOpenDex }: HeroProps) {
   };
 
   const handleClaimFlux = async () => {
-    const didClaim = await game.claimDailyFlux();
+    const claimResult = await game.claimDailyFlux();
 
-    if (didClaim) {
+    if (claimResult.status === 'claimed') {
       toast.success('Flux claimed', {
-        description: `Added ${EFFECTIVE_DAILY_CLAIM_FLUX} FLUX to your balance.`,
+        description: `Added ${claimResult.creditedAmount} FLUX to your balance.`,
       });
       return;
     }
 
-    if (canClaim) {
+    if (claimResult.status === 'cooldown' || claimResult.status === 'unchanged') {
+      const retryDelay = cooldownRemaining > 0
+        ? ` Try again in ${formatCooldown(cooldownRemaining)}.`
+        : '';
+      toast('Flux already claimed', {
+        description: `This faucet window was already recorded and your balance did not change.${retryDelay}`,
+      });
+      return;
+    }
+
+    if (claimResult.status === 'failed' && canClaim) {
       toast.error('Flux claim failed', {
         description: 'The signed claim could not be recorded.',
       });
